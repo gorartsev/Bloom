@@ -195,11 +195,15 @@ const Icon = ({ name, size = 20, color = "currentColor", stroke = 2 }) => {
 
 // ═══ APP ═════════════════════════════════════════════════════════════════════
 function App() {
-  const [state, setState] = useState(() => storage.get("bloom") || {
-    name: null,
-    workouts: {},    // { "2026-04-18": [{...}] }
-    moods: {},       // { "2026-04-18": 4 }
-    weights: {},     // { "2026-04-18": 58.5 }
+  const [state, setState] = useState(() => {
+    const saved = storage.get("bloom");
+    // Migrate old data: ensure moods and weights exist
+    return {
+      name: saved?.name || null,
+      workouts: saved?.workouts || {},
+      moods: saved?.moods || {},
+      weights: saved?.weights || {},
+    };
   });
   const [view, setView] = useState("home");
   const [month, setMonth] = useState(() => {
