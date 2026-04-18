@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>BLOOM Journal</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="BLOOM">
+<meta name="theme-color" content="#F6EFEE">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+  html, body {
+    background: #F6EFEE;
+    color: #2B1F26;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    line-height: 1.4;
+    font-size: 15px;
+  }
+  body {
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  button { font-family: inherit; border: none; cursor: pointer; background: none; color: inherit; font-size: inherit; }
+  input, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  h1, h2, h3, h4 { font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+  ::-webkit-scrollbar { display: none; }
+  input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: none; min-height: 48px; }
+  input[type="number"] { -webkit-appearance: none; appearance: none; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  textarea { resize: none; }
+
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ═══ DESIGN TOKENS ══════════════════════════════════════════════════════════
+const C = {
+  bg: "#F6EFEE",
+  card: "#FFFFFF",
+  cardDim: "#FBF4F3",
+  text: "#2B1F26",
+  textDim: "#8E7A84",
+  textSoft: "#C4AEBA",
+  border: "#E2B6CF",
+  borderSoft: "#EFD5E3",
+  accent: "#E396DF",
+  accentDark: "#C872C4",
+  accentSoft: "#F8DCEF",
+  success: "#9BC791",
+  successSoft: "#E8F1E4",
+};
+
+const SP = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 };
+
+// ═══ STORAGE ════════════════════════════════════════════════════════════════
+const storage = {
+  get: (k) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+// ═══ HELPERS ═══════════════════════════════════════════════════════════════
+const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const MONTHS_SHORT = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+const DAYS_FULL = ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
+const DAYS_SHORT = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+
+const dateKey = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+};
+const parseKey = (k) => {
+  const [y,m,d] = k.split('-').map(Number);
+  return new Date(y, m-1, d);
+};
+const sameDay = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+
+// Workout category presets (with emojis for visual appeal)
+const CATEGORIES = [
+  { id: "cardio", name: "Кардио", emoji: "🏃‍♀️" },
+  { id: "strength", name: "Силовая", emoji: "💪" },
+  { id: "yoga", name: "Йога", emoji: "🧘‍♀️" },
+  { id: "pilates", name: "Пилатес", emoji: "🤸‍♀️" },
+  { id: "dance", name: "Танцы", emoji: "💃" },
+  { id: "stretch", name: "Растяжка", emoji: "🌸" },
+  { id: "swim", name: "Плавание", emoji: "🏊‍♀️" },
+  { id: "walk", name: "Прогулка", emoji: "🚶‍♀️" },
+  { id: "bike", name: "Велосипед", emoji: "🚴‍♀️" },
+  { id: "other", name: "Другое", emoji: "✨" },
+];
+
+const MOODS = [
+  { id: "amazing", emoji: "🤩", label: "Супер" },
+  { id: "great", emoji: "😊", label: "Отлично" },
+  { id: "ok", emoji: "🙂", label: "Нормально" },
+  { id: "tired", emoji: "😮‍💨", label: "Устала" },
+  { id: "tough", emoji: "🥵", label: "Тяжело" },
+];
+
+// ═══ ICONS ═══════════════════════════════════════════════════════════════════
+const Icon = ({ name, size = 20, color = "currentColor", stroke = 2 }) => {
+  const paths = {
+    back: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
+    plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    check: <polyline points="20 6 9 17 4 12"/>,
+    chevronL: <polyline points="15 18 9 12 15 6"/>,
+    chevronR: <polyline points="9 18 15 12 9 6"/>,
+    close: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></>,
+    flame: <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/>,
+    heart: <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>,
+    calendar: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+    trending: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
+    flower: <><circle cx="12" cy="12" r="3"/><path d="M12 3c1.5 2 3 4 3 6 0 1.657-1.343 3-3 3s-3-1.343-3-3c0-2 1.5-4 3-6z"/><path d="M12 21c-1.5-2-3-4-3-6 0-1.657 1.343-3 3-3s3 1.343 3 3c0 2-1.5 4-3 6z"/><path d="M3 12c2-1.5 4-3 6-3 1.657 0 3 1.343 3 3s-1.343 3-3 3c-2 0-4-1.5-6-3z"/><path d="M21 12c-2 1.5-4 3-6 3-1.657 0-3-1.343-3-3s1.343-3 3-3c2 0 4 1.5 6 3z"/></>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={{display:"block"}}>
+      {paths[name]}
+    </svg>
+  );
+};
+
+// ═══ APP ═════════════════════════════════════════════════════════════════════
+function App() {
+  const [state, setState] = useState(() => storage.get("bloom") || { name: null, workouts: {} });
+  const [view, setView] = useState("home");
+  const [month, setMonth] = useState(() => {
+    const d = new Date();
+    return { y: d.getFullYear(), m: d.getMonth() };
+  });
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [editingWorkout, setEditingWorkout] = useState(null);
+
+  const save = (s) => { setState(s); storage.set("bloom", s); };
+
+  const saveWorkout = (dateK, workout) => {
+    const dayWorkouts = state.workouts[dateK] || [];
+    let updated;
+    if (workout.id) {
+      updated = dayWorkouts.map(w => w.id === workout.id ? workout : w);
+    } else {
+      updated = [...dayWorkouts, { ...workout, id: Date.now().toString() }];
+    }
+    save({ ...state, workouts: { ...state.workouts, [dateK]: updated } });
+  };
+
+  const deleteWorkout = (dateK, wid) => {
+    const dayWorkouts = (state.workouts[dateK] || []).filter(w => w.id !== wid);
+    const newWorkouts = { ...state.workouts };
+    if (dayWorkouts.length === 0) delete newWorkouts[dateK];
+    else newWorkouts[dateK] = dayWorkouts;
+    save({ ...state, workouts: newWorkouts });
+  };
+
+  if (!state.name) {
+    return <StartScreen onStart={(name) => save({ ...state, name, workouts: {} })} />;
+  }
+
+  // Calculate stats
+  const allWorkouts = Object.values(state.workouts).flat();
+  const totalCount = allWorkouts.length;
+
+  // Current streak (consecutive days with at least 1 workout, ending today or yesterday)
+  const calculateStreak = () => {
+    if (totalCount === 0) return 0;
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const k = dateKey(d);
+      if (state.workouts[k] && state.workouts[k].length > 0) {
+        streak++;
+      } else if (i > 0) {
+        break;
+      } else {
+        continue; // today might be empty, but check yesterday
+      }
+    }
+    return streak;
+  };
+  const streak = calculateStreak();
+
+  // This month count
+  const thisMonth = Object.keys(state.workouts).filter(k => {
+    const d = parseKey(k);
+    return d.getFullYear() === month.y && d.getMonth() === month.m;
+  }).reduce((acc, k) => acc + state.workouts[k].length, 0);
+
+  // Today workouts
+  const todayKey = dateKey(new Date());
+  const todayWorkouts = state.workouts[todayKey] || [];
+
+  // ── WORKOUT FORM MODAL ──
+  if (editingWorkout !== null) {
+    return (
+      <WorkoutForm
+        workout={editingWorkout.workout}
+        date={editingWorkout.date}
+        onSave={(w) => { saveWorkout(dateKey(editingWorkout.date), w); setEditingWorkout(null); }}
+        onCancel={() => setEditingWorkout(null)}
+        onDelete={editingWorkout.workout.id ? () => { deleteWorkout(dateKey(editingWorkout.date), editingWorkout.workout.id); setEditingWorkout(null); } : null}
+      />
+    );
+  }
+
+  // ── DAY DETAIL VIEW ──
+  if (view === "day" && selectedDate) {
+    const dk = dateKey(selectedDate);
+    const workouts = state.workouts[dk] || [];
+    const isToday = sameDay(selectedDate, new Date());
+
+    return (
+      <div style={sc}>
+        <PageHeader
+          onBack={() => { setView("home"); setSelectedDate(null); }}
+          center={
+            <div>
+              <div style={S.headLabel}>{isToday ? "Сегодня" : DAYS_FULL[selectedDate.getDay()]}</div>
+              <div style={S.headSub}>{selectedDate.getDate()} {MONTHS[selectedDate.getMonth()].toLowerCase()}</div>
+            </div>
+          }
+        />
+
+        <div style={{padding:`${SP.md}px ${SP.lg}px ${SP.xl}px`}}>
+          {workouts.length === 0 ? (
+            <div style={{
+              padding:`${SP.xxxl}px ${SP.lg}px`,
+              textAlign:"center",
+              background:C.card,
+              border:`1px dashed ${C.border}`,
+              borderRadius:20
+            }}>
+              <div style={{fontSize:48, marginBottom:SP.md}}>🌸</div>
+              <div style={{fontSize:17, fontWeight:700, color:C.text, marginBottom:6}}>Ещё нет тренировок</div>
+              <div style={{fontSize:13, color:C.textDim, lineHeight:1.5}}>
+                Добавь свою первую тренировку на этот день
+              </div>
+            </div>
+          ) : (
+            <div style={{display:"flex", flexDirection:"column", gap:SP.sm}}>
+              {workouts.map(w => (
+                <WorkoutCard key={w.id} workout={w}
+                  onClick={() => setEditingWorkout({ workout: w, date: selectedDate })}/>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={() => setEditingWorkout({ workout: {}, date: selectedDate })}
+            style={{
+              width:"100%",
+              marginTop:SP.md,
+              background:C.accent,
+              color:"#fff",
+              padding:"16px",
+              borderRadius:14,
+              fontSize:15,
+              fontWeight:700,
+              letterSpacing:0.2,
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              gap:8,
+              boxShadow:`0 4px 12px ${C.accentSoft}`
+            }}>
+            <Icon name="plus" size={18} color="#fff" stroke={2.5}/>
+            Добавить тренировку
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── STATS VIEW ──
+  if (view === "stats") {
+    // Category breakdown
+    const categoryCount = {};
+    allWorkouts.forEach(w => {
+      categoryCount[w.category] = (categoryCount[w.category] || 0) + 1;
+    });
+    const sortedCats = Object.entries(categoryCount).sort((a,b) => b[1] - a[1]);
+    const maxCat = sortedCats[0] ? sortedCats[0][1] : 1;
+
+    // Last 7 days activity
+    const last7 = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const k = dateKey(d);
+      last7.push({ date: d, count: (state.workouts[k] || []).length });
+    }
+    const max7 = Math.max(...last7.map(d => d.count), 1);
+
+    return (
+      <div style={sc}>
+        <PageHeader
+          onBack={() => setView("home")}
+          center={<div style={{fontSize:16, fontWeight:700}}>Статистика</div>}
+        />
+
+        <div style={{padding:`${SP.md}px ${SP.lg}px 40px`}}>
+          {/* Top stats */}
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
+            <div style={{...S.card, padding:SP.lg, textAlign:"center"}}>
+              <div style={{fontSize:32, marginBottom:4}}>🔥</div>
+              <div style={{fontSize:28, fontWeight:800, color:C.accentDark, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{streak}</div>
+              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:600, marginTop:6}}>
+                {streak === 1 ? "день подряд" : streak >= 2 && streak <= 4 ? "дня подряд" : "дней подряд"}
+              </div>
+            </div>
+            <div style={{...S.card, padding:SP.lg, textAlign:"center"}}>
+              <div style={{fontSize:32, marginBottom:4}}>🌸</div>
+              <div style={{fontSize:28, fontWeight:800, color:C.accentDark, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{totalCount}</div>
+              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:600, marginTop:6}}>всего</div>
+            </div>
+          </div>
+
+          {/* Last 7 days chart */}
+          <div style={{...S.card, padding:SP.lg, marginBottom:SP.md}}>
+            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
+              Последние 7 дней
+            </div>
+            <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:6, alignItems:"end", height:90}}>
+              {last7.map((d, i) => {
+                const h = d.count > 0 ? Math.max(20, (d.count / max7) * 80) : 6;
+                const isToday = sameDay(d.date, new Date());
+                return (
+                  <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, height:"100%", justifyContent:"flex-end"}}>
+                    <div style={{fontSize:10, fontWeight:700, color: d.count > 0 ? C.accentDark : C.textSoft, fontVariantNumeric:"tabular-nums"}}>
+                      {d.count > 0 ? d.count : ""}
+                    </div>
+                    <div style={{
+                      width:"100%",
+                      height: h,
+                      background: d.count > 0 ? C.accent : C.borderSoft,
+                      borderRadius:6,
+                      transition:"all .3s"
+                    }}/>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:6, marginTop:8}}>
+              {last7.map((d, i) => {
+                const isToday = sameDay(d.date, new Date());
+                return (
+                  <div key={i} style={{textAlign:"center", fontSize:10, color: isToday ? C.accentDark : C.textDim, fontWeight: isToday ? 700 : 500}}>
+                    {DAYS_SHORT[d.date.getDay()]}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Categories */}
+          {sortedCats.length > 0 && (
+            <div style={{...S.card, padding:SP.lg}}>
+              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
+                Любимые тренировки
+              </div>
+              <div style={{display:"flex", flexDirection:"column", gap:SP.md}}>
+                {sortedCats.slice(0, 5).map(([catId, count]) => {
+                  const cat = CATEGORIES.find(c => c.id === catId) || { name: catId, emoji: "✨" };
+                  const pct = (count / maxCat) * 100;
+                  return (
+                    <div key={catId}>
+                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+                        <div style={{display:"flex", alignItems:"center", gap:8}}>
+                          <span style={{fontSize:18}}>{cat.emoji}</span>
+                          <span style={{fontSize:14, fontWeight:600, color:C.text}}>{cat.name}</span>
+                        </div>
+                        <span style={{fontSize:13, fontWeight:700, color:C.accentDark, fontVariantNumeric:"tabular-nums"}}>{count}</span>
+                      </div>
+                      <div style={{height:6, background:C.borderSoft, borderRadius:3, overflow:"hidden"}}>
+                        <div style={{height:"100%", width:`${pct}%`, background:C.accent, borderRadius:3, transition:"width .4s"}}/>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── HOME (CALENDAR) VIEW ──
+  const now = new Date();
+  const firstOfMonth = new Date(month.y, month.m, 1);
+  const daysInMonth = new Date(month.y, month.m + 1, 0).getDate();
+  const startOffset = (firstOfMonth.getDay() + 6) % 7; // Make Monday first (Monday=0)
+
+  const calendarCells = [];
+  for (let i = 0; i < startOffset; i++) calendarCells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) calendarCells.push(d);
+
+  const prevMonth = () => {
+    const nm = month.m === 0 ? 11 : month.m - 1;
+    const ny = month.m === 0 ? month.y - 1 : month.y;
+    setMonth({ y: ny, m: nm });
+  };
+  const nextMonth = () => {
+    const nm = month.m === 11 ? 0 : month.m + 1;
+    const ny = month.m === 11 ? month.y + 1 : month.y;
+    setMonth({ y: ny, m: nm });
+  };
+
+  return (
+    <div style={sc}>
+      {/* HEADER */}
+      <div style={{padding:`${SP.lg}px ${SP.lg}px ${SP.md}px`, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:SP.md}}>
+        <div style={{flex:1, minWidth:0}}>
+          <div style={{fontSize:13, color:C.textDim, marginBottom:4, fontWeight:500}}>Привет, {state.name} 💗</div>
+          <h1 style={{fontSize:28, fontWeight:800, letterSpacing:-0.5, margin:0, lineHeight:1.15, color:C.text}}>
+            Дневник
+          </h1>
+        </div>
+        <button onClick={() => setView("stats")} style={S.iconButton}>
+          <Icon name="trending" size={18}/>
+        </button>
+      </div>
+
+      {/* STATS ROW */}
+      <div style={{padding:`0 ${SP.lg}px`, display:"flex", gap:SP.sm, marginBottom:SP.md}}>
+        <div style={{...S.statCard, flex:1}}>
+          <div style={{fontSize:28, marginBottom:2, lineHeight:1}}>🔥</div>
+          <div>
+            <div style={{fontSize:24, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{streak}</div>
+            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>подряд</div>
+          </div>
+        </div>
+        <div style={{...S.statCard, flex:1}}>
+          <div style={{fontSize:28, marginBottom:2, lineHeight:1}}>💪</div>
+          <div>
+            <div style={{fontSize:24, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{thisMonth}</div>
+            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>в месяц</div>
+          </div>
+        </div>
+        <div style={{...S.statCard, flex:1}}>
+          <div style={{fontSize:28, marginBottom:2, lineHeight:1}}>🌸</div>
+          <div>
+            <div style={{fontSize:24, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{totalCount}</div>
+            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>всего</div>
+          </div>
+        </div>
+      </div>
+
+      {/* TODAY CARD */}
+      <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.md}}>
+        <button
+          onClick={() => { setSelectedDate(new Date()); setView("day"); }}
+          style={{...S.todayCard, textAlign:"left"}}>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:SP.md}}>
+            <div style={{flex:1, minWidth:0}}>
+              <div style={{fontSize:10, color:"rgba(255,255,255,0.75)", textTransform:"uppercase", letterSpacing:1.2, fontWeight:700}}>Сегодня</div>
+              <div style={{fontSize:22, fontWeight:700, marginTop:6, color:"#fff", lineHeight:1.15}}>
+                {todayWorkouts.length === 0 ? "Новый день" : todayWorkouts.length === 1 ? "1 тренировка" : `${todayWorkouts.length} тренировок`}
+              </div>
+              <div style={{fontSize:13, color:"rgba(255,255,255,0.85)", fontWeight:500, marginTop:SP.sm}}>
+                {todayWorkouts.length === 0 ? "Записать тренировку →" : "Посмотреть и добавить →"}
+              </div>
+            </div>
+            <div style={{
+              width:56, height:56, borderRadius:28,
+              background:"rgba(255,255,255,0.25)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              flexShrink:0,
+              backdropFilter:"blur(10px)"
+            }}>
+              {todayWorkouts.length === 0 ? (
+                <Icon name="plus" size={24} color="#fff" stroke={2.5}/>
+              ) : (
+                <div style={{fontSize:22, fontWeight:800, color:"#fff"}}>{todayWorkouts.length}</div>
+              )}
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {/* CALENDAR */}
+      <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.md}}>
+        <div style={{...S.card, padding:SP.lg}}>
+          {/* Month header */}
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:SP.md}}>
+            <button onClick={prevMonth} style={{...S.iconButton, width:32, height:32, background:C.bg}}>
+              <Icon name="chevronL" size={16}/>
+            </button>
+            <div style={{fontSize:16, fontWeight:700, color:C.text, textAlign:"center"}}>
+              {MONTHS[month.m]} {month.y}
+            </div>
+            <button onClick={nextMonth} style={{...S.iconButton, width:32, height:32, background:C.bg}}>
+              <Icon name="chevronR" size={16}/>
+            </button>
+          </div>
+
+          {/* Weekday labels */}
+          <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4, marginBottom:6}}>
+            {["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map(d => (
+              <div key={d} style={{textAlign:"center", fontSize:10, color:C.textDim, fontWeight:600, textTransform:"uppercase", letterSpacing:0.5}}>
+                {d}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4}}>
+            {calendarCells.map((day, i) => {
+              if (day === null) return <div key={i}/>;
+              const d = new Date(month.y, month.m, day);
+              const dk = dateKey(d);
+              const workouts = state.workouts[dk] || [];
+              const count = workouts.length;
+              const isToday = sameDay(d, new Date());
+              const isFuture = d > now;
+              const weekday = d.getDay();
+              const isWeekend = weekday === 0 || weekday === 6;
+
+              return (
+                <button
+                  key={i}
+                  onClick={() => { setSelectedDate(d); setView("day"); }}
+                  disabled={isFuture}
+                  style={{
+                    aspectRatio:"1/1",
+                    display:"flex",
+                    flexDirection:"column",
+                    alignItems:"center",
+                    justifyContent:"center",
+                    gap:2,
+                    background: count > 0 ? C.accent : (isToday ? C.accentSoft : "transparent"),
+                    border: `1.5px solid ${isToday ? C.accent : "transparent"}`,
+                    borderRadius:10,
+                    color: count > 0 ? "#fff" : (isFuture ? C.textSoft : (isWeekend ? C.textDim : C.text)),
+                    opacity: isFuture ? 0.4 : 1,
+                    cursor: isFuture ? "default" : "pointer",
+                    transition:"all .15s",
+                    padding:2
+                  }}>
+                  <div style={{fontSize:14, fontWeight: count > 0 || isToday ? 700 : 500, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>
+                    {day}
+                  </div>
+                  {count > 0 && (
+                    <div style={{display:"flex", gap:2}}>
+                      {[...Array(Math.min(count, 3))].map((_, j) => (
+                        <div key={j} style={{width:4, height:4, borderRadius:2, background:"rgba(255,255,255,0.9)"}}/>
+                      ))}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* RECENT WORKOUTS */}
+      {allWorkouts.length > 0 && (
+        <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.xl}}>
+          <div style={{...S.card, padding:SP.lg}}>
+            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
+              Недавние
+            </div>
+            <div style={{display:"flex", flexDirection:"column", gap:SP.sm}}>
+              {Object.entries(state.workouts)
+                .sort((a,b) => b[0].localeCompare(a[0]))
+                .slice(0, 3)
+                .flatMap(([dk, ws]) => ws.slice(0, 2).map(w => ({ ...w, dk })))
+                .slice(0, 4)
+                .map(w => (
+                  <WorkoutCard
+                    key={w.id}
+                    workout={w}
+                    showDate={parseKey(w.dk)}
+                    onClick={() => { setSelectedDate(parseKey(w.dk)); setView("day"); }}
+                  />
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RESET */}
+      <button
+        onClick={() => { if(confirm("Удалить все данные?")) save({name:null, workouts:{}}); }}
+        style={{display:"block", margin:`${SP.sm}px auto 0`, background:"transparent", color:C.textSoft, padding:"10px 16px", fontSize:12, fontWeight:500}}>
+        Сбросить всё
+      </button>
+      <div style={{height:40}}/>
+    </div>
+  );
+}
+
+// ═══ WORKOUT CARD ════════════════════════════════════════════════════════════
+function WorkoutCard({ workout, onClick, showDate }) {
+  const cat = CATEGORIES.find(c => c.id === workout.category) || { name: "Другое", emoji: "✨" };
+  const mood = workout.mood ? MOODS.find(m => m.id === workout.mood) : null;
+
+  return (
+    <button onClick={onClick} style={{
+      display:"flex",
+      alignItems:"center",
+      gap:SP.md,
+      background:C.card,
+      border:`1px solid ${C.borderSoft}`,
+      borderRadius:14,
+      padding:SP.md,
+      textAlign:"left",
+      width:"100%",
+      transition:"all .15s"
+    }}>
+      <div style={{
+        width:44, height:44,
+        borderRadius:12,
+        background:C.accentSoft,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        flexShrink:0,
+        fontSize:22
+      }}>
+        {cat.emoji}
+      </div>
+      <div style={{flex:1, minWidth:0}}>
+        <div style={{fontSize:15, fontWeight:700, color:C.text, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
+          {workout.name || cat.name}
+        </div>
+        <div style={{fontSize:12, color:C.textDim, display:"flex", alignItems:"center", gap:6}}>
+          {showDate && (
+            <>
+              <span>{showDate.getDate()} {MONTHS_SHORT[showDate.getMonth()]}</span>
+              <span>·</span>
+            </>
+          )}
+          {workout.duration && <span>{workout.duration} мин</span>}
+          {workout.duration && (workout.time || mood) && <span>·</span>}
+          {workout.time && <span>{workout.time}</span>}
+          {workout.time && mood && <span>·</span>}
+          {mood && <span>{mood.emoji}</span>}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// ═══ WORKOUT FORM ════════════════════════════════════════════════════════════
+function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
+  const [name, setName] = useState(workout.name || "");
+  const [category, setCategory] = useState(workout.category || "strength");
+  const [duration, setDuration] = useState(workout.duration || "");
+  const [time, setTime] = useState(workout.time || "");
+  const [mood, setMood] = useState(workout.mood || "");
+  const [notes, setNotes] = useState(workout.notes || "");
+
+  const handleSave = () => {
+    const w = { ...workout };
+    if (workout.id) w.id = workout.id;
+    w.name = name.trim() || CATEGORIES.find(c => c.id === category).name;
+    w.category = category;
+    w.duration = duration;
+    w.time = time;
+    w.mood = mood;
+    w.notes = notes.trim();
+    onSave(w);
+  };
+
+  return (
+    <div style={sc}>
+      <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
+        <button onClick={onCancel} style={S.iconButton}>
+          <Icon name="close" size={18}/>
+        </button>
+        <div style={{textAlign:"center", minWidth:0}}>
+          <div style={S.headLabel}>{workout.id ? "Редактировать" : "Новая тренировка"}</div>
+          <div style={S.headSub}>{date.getDate()} {MONTHS[date.getMonth()].toLowerCase()}</div>
+        </div>
+        <div/>
+      </div>
+
+      <div style={{padding:`${SP.md}px ${SP.lg}px ${SP.xl}px`}}>
+        {/* Category */}
+        <div style={{marginBottom:SP.md}}>
+          <label style={S.fieldLabel}>Тип тренировки</label>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:6}}>
+            {CATEGORIES.map(c => {
+              const selected = c.id === category;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setCategory(c.id)}
+                  style={{
+                    display:"flex",
+                    flexDirection:"column",
+                    alignItems:"center",
+                    justifyContent:"center",
+                    gap:4,
+                    aspectRatio:"1/1.1",
+                    background: selected ? C.accent : C.card,
+                    border: `1.5px solid ${selected ? C.accent : C.border}`,
+                    borderRadius:12,
+                    padding:4,
+                    color: selected ? "#fff" : C.text,
+                    transition:"all .15s"
+                  }}>
+                  <div style={{fontSize:22, lineHeight:1}}>{c.emoji}</div>
+                  <div style={{fontSize:9, fontWeight:600, lineHeight:1, textAlign:"center"}}>{c.name}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Name */}
+        <div style={{marginBottom:SP.md}}>
+          <label style={S.fieldLabel}>Название (необязательно)</label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder={CATEGORIES.find(c => c.id === category).name}
+            style={S.input}
+          />
+        </div>
+
+        {/* Duration + Time */}
+        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
+          <div>
+            <label style={S.fieldLabel}>Длительность</label>
+            <div style={{position:"relative"}}>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={duration}
+                onChange={e => setDuration(e.target.value)}
+                placeholder="60"
+                style={{...S.input, paddingRight:40}}
+              />
+              <span style={{position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", fontSize:12, color:C.textDim, fontWeight:500, pointerEvents:"none"}}>мин</span>
+            </div>
+          </div>
+          <div>
+            <label style={S.fieldLabel}>Время</label>
+            <input
+              type="time"
+              value={time}
+              onChange={e => setTime(e.target.value)}
+              style={S.input}
+            />
+          </div>
+        </div>
+
+        {/* Mood */}
+        <div style={{marginBottom:SP.md}}>
+          <label style={S.fieldLabel}>Как прошло?</label>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:6}}>
+            {MOODS.map(m => {
+              const selected = m.id === mood;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setMood(selected ? "" : m.id)}
+                  style={{
+                    display:"flex",
+                    flexDirection:"column",
+                    alignItems:"center",
+                    justifyContent:"center",
+                    gap:4,
+                    paddingTop:10, paddingBottom:8,
+                    background: selected ? C.accent : C.card,
+                    border: `1.5px solid ${selected ? C.accent : C.border}`,
+                    borderRadius:12,
+                    color: selected ? "#fff" : C.text,
+                    transition:"all .15s"
+                  }}>
+                  <div style={{fontSize:22, lineHeight:1}}>{m.emoji}</div>
+                  <div style={{fontSize:9, fontWeight:600, lineHeight:1}}>{m.label}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div style={{marginBottom:SP.xl}}>
+          <label style={S.fieldLabel}>Заметка</label>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder="Что было, как себя чувствовала..."
+            rows={3}
+            style={{...S.input, minHeight:80, lineHeight:1.5, paddingTop:12}}
+          />
+        </div>
+
+        {/* Actions */}
+        <button
+          onClick={handleSave}
+          style={{
+            width:"100%",
+            background:C.accent,
+            color:"#fff",
+            padding:"16px",
+            borderRadius:14,
+            fontSize:15,
+            fontWeight:700,
+            letterSpacing:0.3,
+            display:"flex",
+            alignItems:"center",
+            justifyContent:"center",
+            gap:8,
+            marginBottom:SP.sm,
+            boxShadow:`0 4px 14px ${C.accentSoft}`
+          }}>
+          <Icon name="check" size={18} color="#fff" stroke={2.5}/>
+          Сохранить
+        </button>
+
+        {onDelete && (
+          <button
+            onClick={() => { if(confirm("Удалить эту тренировку?")) onDelete(); }}
+            style={{
+              width:"100%",
+              background:"transparent",
+              color:C.textDim,
+              padding:"12px",
+              fontSize:13,
+              fontWeight:500,
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              gap:6
+            }}>
+            <Icon name="trash" size={14} color={C.textDim}/>
+            Удалить
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══ PAGE HEADER ══════════════════════════════════════════════════════════════
+function PageHeader({ onBack, center }) {
+  return (
+    <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
+      <button onClick={onBack} style={S.iconButton}>
+        <Icon name="back" size={18}/>
+      </button>
+      <div style={{textAlign:"center", minWidth:0}}>{center}</div>
+      <div/>
+    </div>
+  );
+}
+
+// ═══ START SCREEN ═════════════════════════════════════════════════════════════
+function StartScreen({ onStart }) {
+  const [name, setName] = useState("");
+
+  return (
+    <div style={{
+      minHeight:"100vh",
+      background:C.bg,
+      display:"flex",
+      flexDirection:"column",
+      alignItems:"center",
+      justifyContent:"center",
+      padding:`${SP.xxxl}px ${SP.xxl}px`,
+      boxSizing:"border-box"
+    }}>
+      <div style={{textAlign:"center", marginBottom:SP.xxxl}}>
+        <div style={{
+          width:80, height:80, margin:"0 auto",
+          borderRadius:24,
+          background:`linear-gradient(135deg, ${C.accent}, ${C.accentDark})`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:42,
+          boxShadow:`0 8px 24px ${C.accentSoft}`
+        }}>
+          🌸
+        </div>
+        <h1 style={{fontSize:34, fontWeight:800, letterSpacing:-0.5, margin:`${SP.lg}px 0 ${SP.xs}px`, color:C.text, lineHeight:1.1}}>
+          BLOOM
+        </h1>
+        <p style={{fontSize:14, color:C.textDim, margin:0, fontWeight:500}}>
+          Дневник твоих тренировок 💗
+        </p>
+      </div>
+
+      <div style={{
+        width:"100%", maxWidth:320,
+        background:C.card,
+        border:`1px solid ${C.border}`,
+        borderRadius:18,
+        padding:SP.xl
+      }}>
+        <label style={{
+          display:"block",
+          fontSize:11, color:C.textDim, fontWeight:600,
+          textTransform:"uppercase", letterSpacing:1,
+          marginBottom:SP.sm
+        }}>
+          Как тебя зовут?
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="Имя"
+          style={{
+            width:"100%",
+            background:C.bg,
+            border:`1px solid ${C.border}`,
+            color:C.text,
+            padding:`14px ${SP.md}px`,
+            borderRadius:12,
+            fontSize:15,
+            fontWeight:500,
+            textAlign:"center",
+            marginBottom:SP.md
+          }}
+        />
+        <button
+          onClick={() => { if (name.trim()) onStart(name.trim()); }}
+          disabled={!name.trim()}
+          style={{
+            width:"100%",
+            background: name.trim() ? C.accent : C.borderSoft,
+            color: name.trim() ? "#fff" : C.textSoft,
+            padding:"15px",
+            borderRadius:12,
+            fontSize:15,
+            fontWeight:700,
+            letterSpacing:0.3,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+            transition:"all .2s",
+            boxShadow: name.trim() ? `0 4px 14px ${C.accentSoft}` : "none"
+          }}>
+          Начать
+          <Icon name="chevronR" size={16} color={name.trim() ? "#fff" : C.textSoft} stroke={2.5}/>
+        </button>
+      </div>
+
+      <div style={{marginTop:SP.xxxl, textAlign:"center", fontSize:12, color:C.textSoft, lineHeight:2}}>
+        <div>Календарь тренировок</div>
+        <div>Прогресс сохраняется на устройстве</div>
+      </div>
+    </div>
+  );
+}
+
+// ═══ STYLE OBJECTS ═══════════════════════════════════════════════════════════
+const sc = {
+  maxWidth:480, margin:"0 auto",
+  background:C.bg, minHeight:"100vh",
+  color:C.text
+};
+
+const S = {
+  iconButton: {
+    width:36, height:36,
+    borderRadius:10,
+    background:C.card,
+    border:`1px solid ${C.border}`,
+    display:"flex", alignItems:"center", justifyContent:"center",
+    color:C.text,
+    flexShrink:0
+  },
+
+  headLabel: {
+    fontSize:10, color:C.textDim,
+    textTransform:"uppercase", letterSpacing:1.5, fontWeight:700
+  },
+
+  headSub: {
+    fontSize:14, color:C.text, marginTop:3, fontWeight:600
+  },
+
+  card: {
+    background:C.card,
+    border:`1px solid ${C.borderSoft}`,
+    borderRadius:18
+  },
+
+  statCard: {
+    background:C.card,
+    border:`1px solid ${C.borderSoft}`,
+    borderRadius:16,
+    padding:SP.md,
+    display:"flex",
+    flexDirection:"column",
+    justifyContent:"space-between",
+    gap:SP.sm,
+    minHeight:120
+  },
+
+  todayCard: {
+    width:"100%",
+    background: `linear-gradient(135deg, ${C.accent}, ${C.accentDark})`,
+    border:"none",
+    borderRadius:20,
+    padding:SP.xl,
+    color:"#fff",
+    boxShadow:`0 6px 20px ${C.accentSoft}`
+  },
+
+  fieldLabel: {
+    display:"block",
+    fontSize:11, color:C.textDim, fontWeight:600,
+    textTransform:"uppercase", letterSpacing:0.8,
+    marginBottom:SP.sm
+  },
+
+  input: {
+    width:"100%",
+    background:C.card,
+    border:`1.5px solid ${C.border}`,
+    color:C.text,
+    padding:`14px ${SP.md}px`,
+    borderRadius:12,
+    fontSize:15,
+    fontWeight:500,
+    outline:"none",
+    transition:"border-color .15s"
+  },
+};
+
+ReactDOM.render(<App/>, document.getElementById("root"));
+</script>
+</body>
+</html>
