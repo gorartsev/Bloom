@@ -19,7 +19,7 @@
   html, body {
     background: #F6EFEE;
     color: #2B1F26;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
@@ -40,9 +40,30 @@
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   textarea { resize: none; }
-
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    width: 100%;
+    height: 32px;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    background: linear-gradient(to right, #EFD5E3, #E396DF);
+    border-radius: 4px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid #E396DF;
+    margin-top: -10px;
+    box-shadow: 0 2px 8px rgba(227,150,223,0.3);
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -69,7 +90,6 @@ const C = {
   accentDark: "#C872C4",
   accentSoft: "#F8DCEF",
   success: "#9BC791",
-  successSoft: "#E8F1E4",
 };
 
 const SP = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 };
@@ -98,19 +118,59 @@ const parseKey = (k) => {
 };
 const sameDay = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
 
-// Workout category presets
 const CATEGORIES = [
   { id: "fitness", name: "Фитнес", emoji: "💪" },
   { id: "run", name: "Бег", emoji: "🏃‍♀️" },
 ];
 
-const MOODS = [
-  { id: "amazing", emoji: "🤩", label: "Супер" },
-  { id: "great", emoji: "😊", label: "Отлично" },
-  { id: "ok", emoji: "🙂", label: "Нормально" },
-  { id: "tired", emoji: "😮‍💨", label: "Устала" },
-  { id: "tough", emoji: "🥵", label: "Тяжело" },
+// Mood scale 1-5 with emoji and descriptive label
+const MOOD_LABELS = {
+  1: { emoji: "😔", label: "Грустно" },
+  2: { emoji: "😐", label: "Так себе" },
+  3: { emoji: "🙂", label: "Нормально" },
+  4: { emoji: "😊", label: "Хорошо" },
+  5: { emoji: "🥰", label: "Супер" },
+};
+
+// Motivational quotes (rotate daily based on day of year)
+const QUOTES = [
+  "Ты сильнее, чем думаешь 💪",
+  "Каждый шаг приближает к цели 🌸",
+  "Сегодня ты на шаг ближе к себе лучшей ✨",
+  "Красота в постоянстве, а не в совершенстве 💗",
+  "Ты уже делаешь больше, чем вчерашняя ты 🌷",
+  "Твоё тело благодарит тебя за заботу 💖",
+  "Маленькие шаги → большие перемены 🦋",
+  "Гордись собой каждый день 🌺",
+  "Движение — это любовь к себе 💕",
+  "Ты достойна быть здоровой и счастливой 🌹",
+  "Верь в себя — ты способна на всё 🌟",
+  "Сила не в весе, а в характере 💪",
+  "Твоя дисциплина вдохновляет ✨",
+  "Лучшая версия себя ждёт тебя впереди 🌸",
+  "Не сдавайся, ты уже прошла так далеко 💗",
+  "Каждая тренировка делает тебя крепче 🌷",
+  "Ты — цветок, который расцветает с каждым днём 🌺",
+  "Здоровое тело — счастливая жизнь 💖",
+  "Ты — своя главная поддержка 🦋",
+  "Один день без движения — нормально. Два — уже сложнее 💕",
+  "Улыбайся, ты делаешь всё правильно 😊",
+  "Твоё упорство — это суперсила 🌟",
+  "Тренировка = свидание с собой 💗",
+  "Ты растёшь и это видно 🌸",
+  "Гордись даже маленькими победами 🌹",
+  "Сегодняшний пот — завтрашняя гордость 💪",
+  "Ты — не обязана быть идеальной, просто стараться 💖",
+  "Движение = энергия = радость ✨",
+  "Никто не делает это лучше, чем ты сама 🌺",
+  "Продолжай — и увидишь, как сильно изменишься 🦋",
+  "Ты красивая и сильная одновременно 💕",
 ];
+const getTodayQuote = () => {
+  const d = new Date();
+  const dayOfYear = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+  return QUOTES[dayOfYear % QUOTES.length];
+};
 
 // ═══ ICONS ═══════════════════════════════════════════════════════════════════
 const Icon = ({ name, size = 20, color = "currentColor", stroke = 2 }) => {
@@ -122,11 +182,9 @@ const Icon = ({ name, size = 20, color = "currentColor", stroke = 2 }) => {
     chevronR: <polyline points="9 18 15 12 9 6"/>,
     close: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
     trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></>,
-    flame: <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/>,
-    heart: <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>,
-    calendar: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
     trending: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
-    flower: <><circle cx="12" cy="12" r="3"/><path d="M12 3c1.5 2 3 4 3 6 0 1.657-1.343 3-3 3s-3-1.343-3-3c0-2 1.5-4 3-6z"/><path d="M12 21c-1.5-2-3-4-3-6 0-1.657 1.343-3 3-3s3 1.343 3 3c0 2-1.5 4-3 6z"/><path d="M3 12c2-1.5 4-3 6-3 1.657 0 3 1.343 3 3s-1.343 3-3 3c-2 0-4-1.5-6-3z"/><path d="M21 12c-2 1.5-4 3-6 3-1.657 0-3-1.343-3-3s1.343-3 3-3c2 0 4 1.5 6 3z"/></>,
+    scale: <><path d="M12 3v18"/><path d="M3 12h18"/><circle cx="12" cy="12" r="9"/></>,
+    edit: <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={{display:"block"}}>
@@ -137,7 +195,12 @@ const Icon = ({ name, size = 20, color = "currentColor", stroke = 2 }) => {
 
 // ═══ APP ═════════════════════════════════════════════════════════════════════
 function App() {
-  const [state, setState] = useState(() => storage.get("bloom") || { name: null, workouts: {} });
+  const [state, setState] = useState(() => storage.get("bloom") || {
+    name: null,
+    workouts: {},    // { "2026-04-18": [{...}] }
+    moods: {},       // { "2026-04-18": 4 }
+    weights: {},     // { "2026-04-18": 58.5 }
+  });
   const [view, setView] = useState("home");
   const [month, setMonth] = useState(() => {
     const d = new Date();
@@ -145,6 +208,8 @@ function App() {
   });
   const [selectedDate, setSelectedDate] = useState(null);
   const [editingWorkout, setEditingWorkout] = useState(null);
+  const [editingWeight, setEditingWeight] = useState(null);
+  const [editingMood, setEditingMood] = useState(null);
 
   const save = (s) => { setState(s); storage.set("bloom", s); };
 
@@ -167,15 +232,70 @@ function App() {
     save({ ...state, workouts: newWorkouts });
   };
 
+  const saveMood = (dateK, moodValue) => {
+    const newMoods = { ...state.moods };
+    if (moodValue === null) delete newMoods[dateK];
+    else newMoods[dateK] = moodValue;
+    save({ ...state, moods: newMoods });
+  };
+
+  const saveWeight = (dateK, weight) => {
+    const newWeights = { ...state.weights };
+    if (weight === null || weight === "") delete newWeights[dateK];
+    else newWeights[dateK] = parseFloat(weight);
+    save({ ...state, weights: newWeights });
+  };
+
   if (!state.name) {
-    return <StartScreen onStart={(name) => save({ ...state, name, workouts: {} })} />;
+    return <StartScreen onStart={(name) => save({ ...state, name })} />;
   }
 
-  // Calculate stats
+  const todayKey = dateKey(new Date());
+  const todayWorkouts = state.workouts[todayKey] || [];
+  const todayMood = state.moods[todayKey];
+  const todayWeight = state.weights[todayKey];
+
+  // ── MODALS ──
+  if (editingWorkout !== null) {
+    return (
+      <WorkoutForm
+        workout={editingWorkout.workout}
+        date={editingWorkout.date}
+        onSave={(w) => { saveWorkout(dateKey(editingWorkout.date), w); setEditingWorkout(null); }}
+        onCancel={() => setEditingWorkout(null)}
+        onDelete={editingWorkout.workout.id ? () => { deleteWorkout(dateKey(editingWorkout.date), editingWorkout.workout.id); setEditingWorkout(null); } : null}
+      />
+    );
+  }
+
+  if (editingWeight !== null) {
+    return (
+      <WeightForm
+        date={editingWeight}
+        currentValue={state.weights[dateKey(editingWeight)]}
+        onSave={(v) => { saveWeight(dateKey(editingWeight), v); setEditingWeight(null); }}
+        onCancel={() => setEditingWeight(null)}
+        onDelete={state.weights[dateKey(editingWeight)] ? () => { saveWeight(dateKey(editingWeight), null); setEditingWeight(null); } : null}
+      />
+    );
+  }
+
+  if (editingMood !== null) {
+    return (
+      <MoodForm
+        date={editingMood}
+        currentValue={state.moods[dateKey(editingMood)]}
+        onSave={(v) => { saveMood(dateKey(editingMood), v); setEditingMood(null); }}
+        onCancel={() => setEditingMood(null)}
+        onDelete={state.moods[dateKey(editingMood)] ? () => { saveMood(dateKey(editingMood), null); setEditingMood(null); } : null}
+      />
+    );
+  }
+
+  // Stats
   const allWorkouts = Object.values(state.workouts).flat();
   const totalCount = allWorkouts.length;
 
-  // Current streak (consecutive days with at least 1 workout, ending today or yesterday)
   const calculateStreak = () => {
     if (totalCount === 0) return 0;
     let streak = 0;
@@ -190,40 +310,28 @@ function App() {
       } else if (i > 0) {
         break;
       } else {
-        continue; // today might be empty, but check yesterday
+        continue;
       }
     }
     return streak;
   };
   const streak = calculateStreak();
 
-  // This month count
   const thisMonth = Object.keys(state.workouts).filter(k => {
     const d = parseKey(k);
     return d.getFullYear() === month.y && d.getMonth() === month.m;
   }).reduce((acc, k) => acc + state.workouts[k].length, 0);
 
-  // Today workouts
-  const todayKey = dateKey(new Date());
-  const todayWorkouts = state.workouts[todayKey] || [];
+  // Weight stats
+  const weightEntries = Object.entries(state.weights).sort((a,b) => a[0].localeCompare(b[0]));
+  const latestWeight = weightEntries.length > 0 ? weightEntries[weightEntries.length - 1] : null;
 
-  // ── WORKOUT FORM MODAL ──
-  if (editingWorkout !== null) {
-    return (
-      <WorkoutForm
-        workout={editingWorkout.workout}
-        date={editingWorkout.date}
-        onSave={(w) => { saveWorkout(dateKey(editingWorkout.date), w); setEditingWorkout(null); }}
-        onCancel={() => setEditingWorkout(null)}
-        onDelete={editingWorkout.workout.id ? () => { deleteWorkout(dateKey(editingWorkout.date), editingWorkout.workout.id); setEditingWorkout(null); } : null}
-      />
-    );
-  }
-
-  // ── DAY DETAIL VIEW ──
+  // ── DAY DETAIL ──
   if (view === "day" && selectedDate) {
     const dk = dateKey(selectedDate);
     const workouts = state.workouts[dk] || [];
+    const dayMood = state.moods[dk];
+    const dayWeight = state.weights[dk];
     const isToday = sameDay(selectedDate, new Date());
 
     return (
@@ -239,18 +347,63 @@ function App() {
         />
 
         <div style={{padding:`${SP.md}px ${SP.lg}px ${SP.xl}px`}}>
+          {/* Mood + Weight row */}
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
+            <button onClick={() => setEditingMood(selectedDate)}
+              style={{...S.miniCard, alignItems:"center", textAlign:"center"}}>
+              <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.8, fontWeight:700}}>
+                Настроение
+              </div>
+              {dayMood ? (
+                <>
+                  <div style={{fontSize:32, lineHeight:1}}>{MOOD_LABELS[dayMood].emoji}</div>
+                  <div style={{fontSize:12, color:C.text, fontWeight:600}}>{MOOD_LABELS[dayMood].label}</div>
+                </>
+              ) : (
+                <>
+                  <div style={{fontSize:24, lineHeight:1, opacity:0.3}}>🙂</div>
+                  <div style={{fontSize:12, color:C.textSoft, fontWeight:500}}>Отметить</div>
+                </>
+              )}
+            </button>
+
+            <button onClick={() => setEditingWeight(selectedDate)}
+              style={{...S.miniCard, alignItems:"center", textAlign:"center"}}>
+              <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.8, fontWeight:700}}>
+                Вес
+              </div>
+              {dayWeight ? (
+                <>
+                  <div style={{fontSize:24, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>
+                    {dayWeight}
+                  </div>
+                  <div style={{fontSize:11, color:C.textDim, fontWeight:600}}>кг</div>
+                </>
+              ) : (
+                <>
+                  <div style={{fontSize:24, lineHeight:1, opacity:0.3}}>⚖️</div>
+                  <div style={{fontSize:12, color:C.textSoft, fontWeight:500}}>Записать</div>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.sm, marginTop:SP.md, paddingLeft:4}}>
+            Тренировки
+          </div>
+
           {workouts.length === 0 ? (
             <div style={{
-              padding:`${SP.xxxl}px ${SP.lg}px`,
+              padding:`${SP.xxl}px ${SP.lg}px`,
               textAlign:"center",
               background:C.card,
               border:`1px dashed ${C.border}`,
-              borderRadius:20
+              borderRadius:16
             }}>
-              <div style={{fontSize:48, marginBottom:SP.md}}>🌸</div>
-              <div style={{fontSize:17, fontWeight:700, color:C.text, marginBottom:6}}>Ещё нет тренировок</div>
-              <div style={{fontSize:13, color:C.textDim, lineHeight:1.5}}>
-                Добавь свою первую тренировку на этот день
+              <div style={{fontSize:36, marginBottom:SP.sm}}>🌸</div>
+              <div style={{fontSize:14, fontWeight:600, color:C.text, marginBottom:4}}>Пока пусто</div>
+              <div style={{fontSize:12, color:C.textDim}}>
+                Добавь тренировку ниже
               </div>
             </div>
           ) : (
@@ -288,9 +441,166 @@ function App() {
     );
   }
 
+  // ── WEIGHT TRACKER VIEW ──
+  if (view === "weight") {
+    // Build chart data - last 30 days
+    const chartData = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const k = dateKey(d);
+      chartData.push({ date: d, weight: state.weights[k] || null });
+    }
+    const weightsOnly = chartData.filter(d => d.weight !== null).map(d => d.weight);
+    const minW = weightsOnly.length > 0 ? Math.min(...weightsOnly) : 0;
+    const maxW = weightsOnly.length > 0 ? Math.max(...weightsOnly) : 0;
+    const range = maxW - minW;
+    const padMin = range > 0 ? minW - range * 0.2 : minW - 2;
+    const padMax = range > 0 ? maxW + range * 0.2 : maxW + 2;
+    const chartHeight = 140;
+
+    const allSorted = [...weightEntries].reverse();
+
+    return (
+      <div style={sc}>
+        <PageHeader
+          onBack={() => setView("home")}
+          center={<div style={{fontSize:16, fontWeight:700}}>Вес</div>}
+        />
+
+        <div style={{padding:`${SP.md}px ${SP.lg}px 40px`}}>
+          {/* Current weight card */}
+          <div style={{...S.card, padding:SP.xl, marginBottom:SP.md, textAlign:"center"}}>
+            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.sm}}>
+              {latestWeight ? "Последний вес" : "Ещё не записан"}
+            </div>
+            {latestWeight ? (
+              <>
+                <div style={{fontSize:48, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums", letterSpacing:-1}}>
+                  {latestWeight[1]}
+                  <span style={{fontSize:18, color:C.textDim, fontWeight:600, marginLeft:6}}>кг</span>
+                </div>
+                <div style={{fontSize:12, color:C.textDim, marginTop:SP.sm, fontWeight:500}}>
+                  {(() => {
+                    const d = parseKey(latestWeight[0]);
+                    return sameDay(d, new Date()) ? "сегодня" : `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
+                  })()}
+                </div>
+              </>
+            ) : (
+              <div style={{fontSize:36, opacity:0.3, lineHeight:1, margin:`${SP.sm}px 0`}}>⚖️</div>
+            )}
+            <button
+              onClick={() => setEditingWeight(new Date())}
+              style={{
+                marginTop:SP.lg,
+                background:C.accent,
+                color:"#fff",
+                padding:"12px 24px",
+                borderRadius:12,
+                fontSize:14,
+                fontWeight:700,
+                display:"inline-flex",
+                alignItems:"center",
+                gap:6,
+                boxShadow:`0 4px 12px ${C.accentSoft}`
+              }}>
+              <Icon name="plus" size={16} color="#fff" stroke={2.5}/>
+              Записать вес
+            </button>
+          </div>
+
+          {/* Chart */}
+          {weightsOnly.length > 1 && (
+            <div style={{...S.card, padding:SP.lg, marginBottom:SP.md}}>
+              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
+                Последние 30 дней
+              </div>
+              <WeightChart
+                data={chartData}
+                height={chartHeight}
+                minVal={padMin}
+                maxVal={padMax}
+              />
+              <div style={{display:"flex", justifyContent:"space-between", marginTop:SP.sm, fontSize:10, color:C.textDim, fontVariantNumeric:"tabular-nums"}}>
+                <span>30 дней назад</span>
+                <span>Сегодня</span>
+              </div>
+
+              {/* Min/Max */}
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginTop:SP.md, paddingTop:SP.md, borderTop:`1px solid ${C.borderSoft}`}}>
+                <div>
+                  <div style={{fontSize:10, color:C.textDim, fontWeight:600, textTransform:"uppercase", letterSpacing:0.5}}>Мин</div>
+                  <div style={{fontSize:16, fontWeight:700, color:C.text, fontVariantNumeric:"tabular-nums"}}>
+                    {minW} <span style={{fontSize:11, color:C.textDim, fontWeight:500}}>кг</span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontSize:10, color:C.textDim, fontWeight:600, textTransform:"uppercase", letterSpacing:0.5}}>Макс</div>
+                  <div style={{fontSize:16, fontWeight:700, color:C.text, fontVariantNumeric:"tabular-nums"}}>
+                    {maxW} <span style={{fontSize:11, color:C.textDim, fontWeight:500}}>кг</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* History list */}
+          {allSorted.length > 0 && (
+            <div style={{...S.card, padding:SP.lg}}>
+              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
+                История
+              </div>
+              <div style={{display:"flex", flexDirection:"column", gap:SP.xs}}>
+                {allSorted.slice(0, 30).map(([dk, w], idx) => {
+                  const prevW = idx < allSorted.length - 1 ? allSorted[idx + 1][1] : null;
+                  const diff = prevW !== null ? (w - prevW).toFixed(1) : null;
+                  const d = parseKey(dk);
+                  return (
+                    <button
+                      key={dk}
+                      onClick={() => setEditingWeight(d)}
+                      style={{
+                        display:"flex",
+                        alignItems:"center",
+                        justifyContent:"space-between",
+                        padding:`${SP.sm}px ${SP.md}px`,
+                        background: C.cardDim,
+                        border:"none",
+                        borderRadius:10,
+                        textAlign:"left",
+                        width:"100%"
+                      }}>
+                      <div style={{fontSize:13, color:C.text, fontWeight:500}}>
+                        {sameDay(d, new Date()) ? "Сегодня" : `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`}
+                      </div>
+                      <div style={{display:"flex", alignItems:"center", gap:SP.sm}}>
+                        {diff !== null && diff !== "0.0" && (
+                          <span style={{
+                            fontSize:11, fontWeight:600,
+                            color: parseFloat(diff) < 0 ? C.success : C.accentDark,
+                            fontVariantNumeric:"tabular-nums"
+                          }}>
+                            {parseFloat(diff) > 0 ? "+" : ""}{diff}
+                          </span>
+                        )}
+                        <div style={{fontSize:15, fontWeight:700, color:C.text, fontVariantNumeric:"tabular-nums"}}>
+                          {w} <span style={{fontSize:11, color:C.textDim, fontWeight:500}}>кг</span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // ── STATS VIEW ──
   if (view === "stats") {
-    // Category breakdown
     const categoryCount = {};
     allWorkouts.forEach(w => {
       categoryCount[w.category] = (categoryCount[w.category] || 0) + 1;
@@ -298,7 +608,6 @@ function App() {
     const sortedCats = Object.entries(categoryCount).sort((a,b) => b[1] - a[1]);
     const maxCat = sortedCats[0] ? sortedCats[0][1] : 1;
 
-    // Last 7 days activity
     const last7 = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -307,6 +616,14 @@ function App() {
       last7.push({ date: d, count: (state.workouts[k] || []).length });
     }
     const max7 = Math.max(...last7.map(d => d.count), 1);
+
+    // Mood stats
+    const moodValues = Object.values(state.moods);
+    const avgMood = moodValues.length > 0
+      ? (moodValues.reduce((a,b) => a+b, 0) / moodValues.length).toFixed(1)
+      : null;
+    const moodCounts = { 1:0, 2:0, 3:0, 4:0, 5:0 };
+    moodValues.forEach(v => moodCounts[v] = (moodCounts[v] || 0) + 1);
 
     return (
       <div style={sc}>
@@ -319,20 +636,22 @@ function App() {
           {/* Top stats */}
           <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
             <div style={{...S.card, padding:SP.lg, textAlign:"center"}}>
-              <div style={{fontSize:32, marginBottom:4}}>🔥</div>
+              <div style={{fontSize:28, marginBottom:4}}>🔥</div>
               <div style={{fontSize:28, fontWeight:800, color:C.accentDark, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{streak}</div>
-              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:600, marginTop:6}}>
+              <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:600, marginTop:6}}>
                 {streak === 1 ? "день подряд" : streak >= 2 && streak <= 4 ? "дня подряд" : "дней подряд"}
               </div>
             </div>
             <div style={{...S.card, padding:SP.lg, textAlign:"center"}}>
-              <div style={{fontSize:32, marginBottom:4}}>🌸</div>
+              <div style={{fontSize:28, marginBottom:4}}>🌸</div>
               <div style={{fontSize:28, fontWeight:800, color:C.accentDark, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{totalCount}</div>
-              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:600, marginTop:6}}>всего</div>
+              <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:600, marginTop:6}}>
+                всего тренировок
+              </div>
             </div>
           </div>
 
-          {/* Last 7 days chart */}
+          {/* Activity last 7 days */}
           <div style={{...S.card, padding:SP.lg, marginBottom:SP.md}}>
             <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
               Последние 7 дней
@@ -340,19 +659,12 @@ function App() {
             <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:6, alignItems:"end", height:90}}>
               {last7.map((d, i) => {
                 const h = d.count > 0 ? Math.max(20, (d.count / max7) * 80) : 6;
-                const isToday = sameDay(d.date, new Date());
                 return (
                   <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, height:"100%", justifyContent:"flex-end"}}>
                     <div style={{fontSize:10, fontWeight:700, color: d.count > 0 ? C.accentDark : C.textSoft, fontVariantNumeric:"tabular-nums"}}>
                       {d.count > 0 ? d.count : ""}
                     </div>
-                    <div style={{
-                      width:"100%",
-                      height: h,
-                      background: d.count > 0 ? C.accent : C.borderSoft,
-                      borderRadius:6,
-                      transition:"all .3s"
-                    }}/>
+                    <div style={{width:"100%", height: h, background: d.count > 0 ? C.accent : C.borderSoft, borderRadius:6, transition:"all .3s"}}/>
                   </div>
                 );
               })}
@@ -369,14 +681,44 @@ function App() {
             </div>
           </div>
 
+          {/* Mood stats */}
+          {avgMood && (
+            <div style={{...S.card, padding:SP.lg, marginBottom:SP.md}}>
+              <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:SP.md}}>
+                <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700}}>
+                  Настроение
+                </div>
+                <div style={{fontSize:13, color:C.textDim, fontVariantNumeric:"tabular-nums"}}>
+                  Среднее: <span style={{fontWeight:700, color:C.text}}>{avgMood}</span>
+                </div>
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:SP.sm}}>
+                {[1,2,3,4,5].map(v => {
+                  const count = moodCounts[v] || 0;
+                  const maxCount = Math.max(...Object.values(moodCounts));
+                  const h = maxCount > 0 ? Math.max(20, (count / maxCount) * 60) : 6;
+                  return (
+                    <div key={v} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
+                      <div style={{fontSize:11, fontWeight:700, color: count > 0 ? C.accentDark : C.textSoft, fontVariantNumeric:"tabular-nums", height:14}}>
+                        {count > 0 ? count : ""}
+                      </div>
+                      <div style={{width:"100%", height: h, background: count > 0 ? C.accent : C.borderSoft, borderRadius:6}}/>
+                      <div style={{fontSize:18, lineHeight:1}}>{MOOD_LABELS[v].emoji}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Categories */}
           {sortedCats.length > 0 && (
             <div style={{...S.card, padding:SP.lg}}>
               <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
-                Любимые тренировки
+                Типы тренировок
               </div>
               <div style={{display:"flex", flexDirection:"column", gap:SP.md}}>
-                {sortedCats.slice(0, 5).map(([catId, count]) => {
+                {sortedCats.map(([catId, count]) => {
                   const cat = CATEGORIES.find(c => c.id === catId) || { name: catId, emoji: "✨" };
                   const pct = (count / maxCat) * 100;
                   return (
@@ -406,7 +748,7 @@ function App() {
   const now = new Date();
   const firstOfMonth = new Date(month.y, month.m, 1);
   const daysInMonth = new Date(month.y, month.m + 1, 0).getDate();
-  const startOffset = (firstOfMonth.getDay() + 6) % 7; // Make Monday first (Monday=0)
+  const startOffset = (firstOfMonth.getDay() + 6) % 7;
 
   const calendarCells = [];
   for (let i = 0; i < startOffset; i++) calendarCells.push(null);
@@ -423,6 +765,8 @@ function App() {
     setMonth({ y: ny, m: nm });
   };
 
+  const quote = getTodayQuote();
+
   return (
     <div style={sc}>
       {/* HEADER */}
@@ -438,27 +782,42 @@ function App() {
         </button>
       </div>
 
-      {/* STATS ROW */}
+      {/* MOTIVATION QUOTE */}
+      <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.md}}>
+        <div style={{
+          background:`linear-gradient(135deg, ${C.accentSoft}, ${C.borderSoft})`,
+          border:`1px solid ${C.borderSoft}`,
+          borderRadius:14,
+          padding:`${SP.md}px ${SP.lg}px`,
+          textAlign:"center"
+        }}>
+          <div style={{fontSize:14, color:C.text, fontWeight:600, lineHeight:1.4}}>
+            {quote}
+          </div>
+        </div>
+      </div>
+
+      {/* QUICK STATS ROW */}
       <div style={{padding:`0 ${SP.lg}px`, display:"flex", gap:SP.sm, marginBottom:SP.md}}>
         <div style={{...S.statCard, flex:1}}>
-          <div style={{fontSize:28, marginBottom:2, lineHeight:1}}>🔥</div>
+          <div style={{fontSize:24, marginBottom:2, lineHeight:1}}>🔥</div>
           <div>
-            <div style={{fontSize:24, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{streak}</div>
-            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>подряд</div>
+            <div style={{fontSize:22, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{streak}</div>
+            <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>подряд</div>
           </div>
         </div>
         <div style={{...S.statCard, flex:1}}>
-          <div style={{fontSize:28, marginBottom:2, lineHeight:1}}>💪</div>
+          <div style={{fontSize:24, marginBottom:2, lineHeight:1}}>💪</div>
           <div>
-            <div style={{fontSize:24, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{thisMonth}</div>
-            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>в месяц</div>
+            <div style={{fontSize:22, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{thisMonth}</div>
+            <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>в месяц</div>
           </div>
         </div>
         <div style={{...S.statCard, flex:1}}>
-          <div style={{fontSize:28, marginBottom:2, lineHeight:1}}>🌸</div>
+          <div style={{fontSize:24, marginBottom:2, lineHeight:1}}>🌸</div>
           <div>
-            <div style={{fontSize:24, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{totalCount}</div>
-            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>всего</div>
+            <div style={{fontSize:22, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{totalCount}</div>
+            <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>всего</div>
           </div>
         </div>
       </div>
@@ -474,8 +833,11 @@ function App() {
               <div style={{fontSize:22, fontWeight:700, marginTop:6, color:"#fff", lineHeight:1.15}}>
                 {todayWorkouts.length === 0 ? "Новый день" : todayWorkouts.length === 1 ? "1 тренировка" : `${todayWorkouts.length} тренировок`}
               </div>
-              <div style={{fontSize:13, color:"rgba(255,255,255,0.85)", fontWeight:500, marginTop:SP.sm}}>
-                {todayWorkouts.length === 0 ? "Записать тренировку →" : "Посмотреть и добавить →"}
+              <div style={{fontSize:13, color:"rgba(255,255,255,0.85)", fontWeight:500, marginTop:SP.sm, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
+                {todayMood && <span>{MOOD_LABELS[todayMood].emoji} {MOOD_LABELS[todayMood].label}</span>}
+                {todayMood && todayWeight && <span style={{opacity:0.5}}>·</span>}
+                {todayWeight && <span>{todayWeight} кг</span>}
+                {!todayMood && !todayWeight && <span>Записать день →</span>}
               </div>
             </div>
             <div style={{
@@ -495,10 +857,38 @@ function App() {
         </button>
       </div>
 
+      {/* QUICK ACTIONS: Mood + Weight */}
+      <div style={{padding:`0 ${SP.lg}px`, display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
+        <button onClick={() => setEditingMood(new Date())} style={{...S.quickCard, textAlign:"left"}}>
+          <div style={{display:"flex", alignItems:"center", gap:SP.sm, marginBottom:6}}>
+            <span style={{fontSize:22}}>
+              {todayMood ? MOOD_LABELS[todayMood].emoji : "🙂"}
+            </span>
+            <span style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:700}}>
+              Настроение
+            </span>
+          </div>
+          <div style={{fontSize:14, fontWeight:700, color:C.text, lineHeight:1.2}}>
+            {todayMood ? MOOD_LABELS[todayMood].label : "Отметить"}
+          </div>
+        </button>
+
+        <button onClick={() => setView("weight")} style={{...S.quickCard, textAlign:"left"}}>
+          <div style={{display:"flex", alignItems:"center", gap:SP.sm, marginBottom:6}}>
+            <span style={{fontSize:22}}>⚖️</span>
+            <span style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:700}}>
+              Вес
+            </span>
+          </div>
+          <div style={{fontSize:14, fontWeight:700, color:C.text, lineHeight:1.2, fontVariantNumeric:"tabular-nums"}}>
+            {todayWeight ? `${todayWeight} кг` : latestWeight ? `${latestWeight[1]} кг` : "Записать"}
+          </div>
+        </button>
+      </div>
+
       {/* CALENDAR */}
       <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.md}}>
         <div style={{...S.card, padding:SP.lg}}>
-          {/* Month header */}
           <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:SP.md}}>
             <button onClick={prevMonth} style={{...S.iconButton, width:32, height:32, background:C.bg}}>
               <Icon name="chevronL" size={16}/>
@@ -511,7 +901,6 @@ function App() {
             </button>
           </div>
 
-          {/* Weekday labels */}
           <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4, marginBottom:6}}>
             {["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map(d => (
               <div key={d} style={{textAlign:"center", fontSize:10, color:C.textDim, fontWeight:600, textTransform:"uppercase", letterSpacing:0.5}}>
@@ -520,7 +909,6 @@ function App() {
             ))}
           </div>
 
-          {/* Calendar grid */}
           <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4}}>
             {calendarCells.map((day, i) => {
               if (day === null) return <div key={i}/>;
@@ -571,35 +959,9 @@ function App() {
         </div>
       </div>
 
-      {/* RECENT WORKOUTS */}
-      {allWorkouts.length > 0 && (
-        <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.xl}}>
-          <div style={{...S.card, padding:SP.lg}}>
-            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
-              Недавние
-            </div>
-            <div style={{display:"flex", flexDirection:"column", gap:SP.sm}}>
-              {Object.entries(state.workouts)
-                .sort((a,b) => b[0].localeCompare(a[0]))
-                .slice(0, 3)
-                .flatMap(([dk, ws]) => ws.slice(0, 2).map(w => ({ ...w, dk })))
-                .slice(0, 4)
-                .map(w => (
-                  <WorkoutCard
-                    key={w.id}
-                    workout={w}
-                    showDate={parseKey(w.dk)}
-                    onClick={() => { setSelectedDate(parseKey(w.dk)); setView("day"); }}
-                  />
-                ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* RESET */}
       <button
-        onClick={() => { if(confirm("Удалить все данные?")) save({name:null, workouts:{}}); }}
+        onClick={() => { if(confirm("Удалить все данные?")) save({name:null, workouts:{}, moods:{}, weights:{}}); }}
         style={{display:"block", margin:`${SP.sm}px auto 0`, background:"transparent", color:C.textSoft, padding:"10px 16px", fontSize:12, fontWeight:500}}>
         Сбросить всё
       </button>
@@ -608,10 +970,65 @@ function App() {
   );
 }
 
-// ═══ WORKOUT CARD ════════════════════════════════════════════════════════════
+// ═══ WEIGHT CHART ═══════════════════════════════════════════════════════════
+function WeightChart({ data, height, minVal, maxVal }) {
+  const validPoints = data.map((d, i) => ({ ...d, idx: i })).filter(d => d.weight !== null);
+  if (validPoints.length < 2) {
+    return (
+      <div style={{height, display:"flex", alignItems:"center", justifyContent:"center", color:C.textDim, fontSize:13}}>
+        Нужно минимум 2 замера для графика
+      </div>
+    );
+  }
+
+  const width = 100; // percent-based
+  const range = maxVal - minVal || 1;
+  const xStep = width / (data.length - 1);
+
+  const getY = (w) => height - ((w - minVal) / range) * (height - 20) - 10;
+  const getX = (i) => i * xStep;
+
+  // Build smooth path
+  let path = "";
+  validPoints.forEach((p, i) => {
+    const x = getX(p.idx);
+    const y = getY(p.weight);
+    if (i === 0) path += `M ${x} ${y}`;
+    else {
+      const prev = validPoints[i - 1];
+      const prevX = getX(prev.idx);
+      const prevY = getY(prev.weight);
+      const cx1 = prevX + (x - prevX) / 2;
+      const cx2 = prevX + (x - prevX) / 2;
+      path += ` C ${cx1} ${prevY}, ${cx2} ${y}, ${x} ${y}`;
+    }
+  });
+
+  // Area path (fill under line)
+  const firstX = getX(validPoints[0].idx);
+  const lastX = getX(validPoints[validPoints.length-1].idx);
+  const areaPath = path + ` L ${lastX} ${height} L ${firstX} ${height} Z`;
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" style={{width:"100%", height, display:"block", overflow:"visible"}}>
+      <defs>
+        <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={C.accent} stopOpacity="0.3"/>
+          <stop offset="100%" stopColor={C.accent} stopOpacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill="url(#wg)"/>
+      <path d={path} fill="none" stroke={C.accent} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round"/>
+      {validPoints.map((p, i) => (
+        <circle key={i} cx={getX(p.idx)} cy={getY(p.weight)} r="0.8" fill={C.accent} vectorEffect="non-scaling-stroke"/>
+      ))}
+    </svg>
+  );
+}
+
+// ═══ WORKOUT CARD ═══════════════════════════════════════════════════════════
 function WorkoutCard({ workout, onClick, showDate }) {
-  const cat = CATEGORIES.find(c => c.id === workout.category) || { name: "Другое", emoji: "✨" };
-  const mood = workout.mood ? MOODS.find(m => m.id === workout.mood) : null;
+  const cat = CATEGORIES.find(c => c.id === workout.category) || { name: "Фитнес", emoji: "💪" };
 
   return (
     <button onClick={onClick} style={{
@@ -640,7 +1057,7 @@ function WorkoutCard({ workout, onClick, showDate }) {
         <div style={{fontSize:15, fontWeight:700, color:C.text, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
           {workout.name || cat.name}
         </div>
-        <div style={{fontSize:12, color:C.textDim, display:"flex", alignItems:"center", gap:6}}>
+        <div style={{fontSize:12, color:C.textDim, display:"flex", alignItems:"center", gap:6, flexWrap:"wrap"}}>
           {showDate && (
             <>
               <span>{showDate.getDate()} {MONTHS_SHORT[showDate.getMonth()]}</span>
@@ -648,23 +1065,20 @@ function WorkoutCard({ workout, onClick, showDate }) {
             </>
           )}
           {workout.duration && <span>{workout.duration} мин</span>}
-          {workout.duration && (workout.time || mood) && <span>·</span>}
+          {workout.duration && workout.time && <span>·</span>}
           {workout.time && <span>{workout.time}</span>}
-          {workout.time && mood && <span>·</span>}
-          {mood && <span>{mood.emoji}</span>}
         </div>
       </div>
     </button>
   );
 }
 
-// ═══ WORKOUT FORM ════════════════════════════════════════════════════════════
+// ═══ WORKOUT FORM ═══════════════════════════════════════════════════════════
 function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
   const [name, setName] = useState(workout.name || "");
   const [category, setCategory] = useState(workout.category || "fitness");
   const [duration, setDuration] = useState(workout.duration || "");
   const [time, setTime] = useState(workout.time || "");
-  const [mood, setMood] = useState(workout.mood || "");
   const [notes, setNotes] = useState(workout.notes || "");
 
   const handleSave = () => {
@@ -674,7 +1088,6 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
     w.category = category;
     w.duration = duration;
     w.time = time;
-    w.mood = mood;
     w.notes = notes.trim();
     onSave(w);
   };
@@ -693,7 +1106,6 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
       </div>
 
       <div style={{padding:`${SP.md}px ${SP.lg}px ${SP.xl}px`}}>
-        {/* Category */}
         <div style={{marginBottom:SP.md}}>
           <label style={S.fieldLabel}>Тип тренировки</label>
           <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:SP.sm}}>
@@ -724,7 +1136,6 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
           </div>
         </div>
 
-        {/* Name */}
         <div style={{marginBottom:SP.md}}>
           <label style={S.fieldLabel}>Название (необязательно)</label>
           <input
@@ -736,7 +1147,6 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
           />
         </div>
 
-        {/* Duration + Time */}
         <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
           <div>
             <label style={S.fieldLabel}>Длительность</label>
@@ -763,38 +1173,6 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
           </div>
         </div>
 
-        {/* Mood */}
-        <div style={{marginBottom:SP.md}}>
-          <label style={S.fieldLabel}>Как прошло?</label>
-          <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:6}}>
-            {MOODS.map(m => {
-              const selected = m.id === mood;
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => setMood(selected ? "" : m.id)}
-                  style={{
-                    display:"flex",
-                    flexDirection:"column",
-                    alignItems:"center",
-                    justifyContent:"center",
-                    gap:4,
-                    paddingTop:10, paddingBottom:8,
-                    background: selected ? C.accent : C.card,
-                    border: `1.5px solid ${selected ? C.accent : C.border}`,
-                    borderRadius:12,
-                    color: selected ? "#fff" : C.text,
-                    transition:"all .15s"
-                  }}>
-                  <div style={{fontSize:22, lineHeight:1}}>{m.emoji}</div>
-                  <div style={{fontSize:9, fontWeight:600, lineHeight:1}}>{m.label}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Notes */}
         <div style={{marginBottom:SP.xl}}>
           <label style={S.fieldLabel}>Заметка</label>
           <textarea
@@ -806,7 +1184,6 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
           />
         </div>
 
-        {/* Actions */}
         <button
           onClick={handleSave}
           style={{
@@ -853,7 +1230,215 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
   );
 }
 
-// ═══ PAGE HEADER ══════════════════════════════════════════════════════════════
+// ═══ WEIGHT FORM ═══════════════════════════════════════════════════════════
+function WeightForm({ date, currentValue, onSave, onCancel, onDelete }) {
+  const [value, setValue] = useState(currentValue ? String(currentValue) : "");
+
+  const handleSave = () => {
+    const num = parseFloat(value);
+    if (!isNaN(num) && num > 0) onSave(num);
+  };
+
+  return (
+    <div style={sc}>
+      <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
+        <button onClick={onCancel} style={S.iconButton}>
+          <Icon name="close" size={18}/>
+        </button>
+        <div style={{textAlign:"center", minWidth:0}}>
+          <div style={S.headLabel}>Вес</div>
+          <div style={S.headSub}>{sameDay(date, new Date()) ? "Сегодня" : `${date.getDate()} ${MONTHS[date.getMonth()].toLowerCase()}`}</div>
+        </div>
+        <div/>
+      </div>
+
+      <div style={{padding:`${SP.xxl}px ${SP.lg}px ${SP.xl}px`, display:"flex", flexDirection:"column", alignItems:"center"}}>
+        <div style={{fontSize:48, marginBottom:SP.lg}}>⚖️</div>
+
+        <div style={{...S.card, width:"100%", padding:SP.xl, marginBottom:SP.md}}>
+          <label style={{...S.fieldLabel, textAlign:"center", marginBottom:SP.md}}>Сколько ты весишь?</label>
+          <div style={{display:"flex", alignItems:"baseline", justifyContent:"center", gap:SP.sm}}>
+            <input
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              value={value}
+              onChange={e => setValue(e.target.value)}
+              placeholder="58.5"
+              autoFocus
+              style={{
+                background:"transparent",
+                border:"none",
+                borderBottom:`2px solid ${C.border}`,
+                fontSize:48,
+                fontWeight:800,
+                color:C.text,
+                textAlign:"center",
+                width:180,
+                padding:"6px 0",
+                fontVariantNumeric:"tabular-nums",
+                outline:"none"
+              }}
+            />
+            <span style={{fontSize:18, color:C.textDim, fontWeight:600}}>кг</span>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={!value || parseFloat(value) <= 0}
+          style={{
+            width:"100%",
+            background: value && parseFloat(value) > 0 ? C.accent : C.borderSoft,
+            color: value && parseFloat(value) > 0 ? "#fff" : C.textSoft,
+            padding:"16px",
+            borderRadius:14,
+            fontSize:15,
+            fontWeight:700,
+            letterSpacing:0.3,
+            display:"flex",
+            alignItems:"center",
+            justifyContent:"center",
+            gap:8,
+            marginBottom:SP.sm,
+            boxShadow: value && parseFloat(value) > 0 ? `0 4px 14px ${C.accentSoft}` : "none",
+            transition:"all .2s"
+          }}>
+          <Icon name="check" size={18} color={value && parseFloat(value) > 0 ? "#fff" : C.textSoft} stroke={2.5}/>
+          Сохранить
+        </button>
+
+        {onDelete && (
+          <button
+            onClick={() => { if(confirm("Удалить запись?")) onDelete(); }}
+            style={{
+              width:"100%",
+              background:"transparent",
+              color:C.textDim,
+              padding:"12px",
+              fontSize:13,
+              fontWeight:500,
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              gap:6
+            }}>
+            <Icon name="trash" size={14} color={C.textDim}/>
+            Удалить
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══ MOOD FORM ═══════════════════════════════════════════════════════════
+function MoodForm({ date, currentValue, onSave, onCancel, onDelete }) {
+  const [value, setValue] = useState(currentValue || 3);
+  const label = MOOD_LABELS[value];
+
+  return (
+    <div style={sc}>
+      <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
+        <button onClick={onCancel} style={S.iconButton}>
+          <Icon name="close" size={18}/>
+        </button>
+        <div style={{textAlign:"center", minWidth:0}}>
+          <div style={S.headLabel}>Настроение</div>
+          <div style={S.headSub}>{sameDay(date, new Date()) ? "Сегодня" : `${date.getDate()} ${MONTHS[date.getMonth()].toLowerCase()}`}</div>
+        </div>
+        <div/>
+      </div>
+
+      <div style={{padding:`${SP.xxl}px ${SP.lg}px ${SP.xl}px`, display:"flex", flexDirection:"column", alignItems:"center"}}>
+        {/* Big emoji */}
+        <div style={{fontSize:96, lineHeight:1, marginBottom:SP.md, transition:"transform .2s", animation:"fadeIn .3s"}}>
+          {label.emoji}
+        </div>
+        <div style={{fontSize:24, fontWeight:700, color:C.text, marginBottom:SP.xxl}}>
+          {label.label}
+        </div>
+
+        {/* Slider */}
+        <div style={{...S.card, width:"100%", padding:SP.xl, marginBottom:SP.md}}>
+          <div style={{display:"flex", justifyContent:"space-between", marginBottom:SP.sm, fontSize:22, lineHeight:1}}>
+            {[1,2,3,4,5].map(v => (
+              <button
+                key={v}
+                onClick={() => setValue(v)}
+                style={{
+                  opacity: v === value ? 1 : 0.35,
+                  transform: v === value ? "scale(1.15)" : "scale(1)",
+                  transition:"all .2s",
+                  background:"none",
+                  padding:4
+                }}>
+                {MOOD_LABELS[v].emoji}
+              </button>
+            ))}
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="5"
+            step="1"
+            value={value}
+            onChange={e => setValue(parseInt(e.target.value))}
+            style={{width:"100%", marginTop:SP.sm}}
+          />
+          <div style={{display:"flex", justifyContent:"space-between", marginTop:6, fontSize:10, color:C.textDim, fontWeight:600}}>
+            <span>Грустно</span>
+            <span>Супер</span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onSave(value)}
+          style={{
+            width:"100%",
+            background:C.accent,
+            color:"#fff",
+            padding:"16px",
+            borderRadius:14,
+            fontSize:15,
+            fontWeight:700,
+            letterSpacing:0.3,
+            display:"flex",
+            alignItems:"center",
+            justifyContent:"center",
+            gap:8,
+            marginBottom:SP.sm,
+            boxShadow:`0 4px 14px ${C.accentSoft}`
+          }}>
+          <Icon name="check" size={18} color="#fff" stroke={2.5}/>
+          Сохранить
+        </button>
+
+        {onDelete && (
+          <button
+            onClick={() => { if(confirm("Удалить запись?")) onDelete(); }}
+            style={{
+              width:"100%",
+              background:"transparent",
+              color:C.textDim,
+              padding:"12px",
+              fontSize:13,
+              fontWeight:500,
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              gap:6
+            }}>
+            <Icon name="trash" size={14} color={C.textDim}/>
+            Удалить
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══ PAGE HEADER ═══════════════════════════════════════════════════════════
 function PageHeader({ onBack, center }) {
   return (
     <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
@@ -866,7 +1451,7 @@ function PageHeader({ onBack, center }) {
   );
 }
 
-// ═══ START SCREEN ═════════════════════════════════════════════════════════════
+// ═══ START SCREEN ═══════════════════════════════════════════════════════════
 function StartScreen({ onStart }) {
   const [name, setName] = useState("");
 
@@ -896,7 +1481,7 @@ function StartScreen({ onStart }) {
           BLOOM
         </h1>
         <p style={{fontSize:14, color:C.textDim, margin:0, fontWeight:500}}>
-          Дневник твоих тренировок 💗
+          Твой дневник здоровья 💗
         </p>
       </div>
 
@@ -955,14 +1540,14 @@ function StartScreen({ onStart }) {
       </div>
 
       <div style={{marginTop:SP.xxxl, textAlign:"center", fontSize:12, color:C.textSoft, lineHeight:2}}>
-        <div>Календарь тренировок</div>
+        <div>Тренировки · Вес · Настроение</div>
         <div>Прогресс сохраняется на устройстве</div>
       </div>
     </div>
   );
 }
 
-// ═══ STYLE OBJECTS ═══════════════════════════════════════════════════════════
+// ═══ STYLES ═══════════════════════════════════════════════════════════
 const sc = {
   maxWidth:480, margin:"0 auto",
   background:C.bg, minHeight:"100vh",
@@ -995,6 +1580,25 @@ const S = {
     borderRadius:18
   },
 
+  miniCard: {
+    display:"flex",
+    flexDirection:"column",
+    gap:6,
+    background:C.card,
+    border:`1px solid ${C.borderSoft}`,
+    borderRadius:14,
+    padding:SP.md,
+    minHeight:90,
+    justifyContent:"center"
+  },
+
+  quickCard: {
+    background:C.card,
+    border:`1px solid ${C.borderSoft}`,
+    borderRadius:14,
+    padding:SP.md
+  },
+
   statCard: {
     background:C.card,
     border:`1px solid ${C.borderSoft}`,
@@ -1004,7 +1608,7 @@ const S = {
     flexDirection:"column",
     justifyContent:"space-between",
     gap:SP.sm,
-    minHeight:120
+    minHeight:110
   },
 
   todayCard: {
