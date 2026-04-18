@@ -98,18 +98,10 @@ const parseKey = (k) => {
 };
 const sameDay = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
 
-// Workout category presets (with emojis for visual appeal)
+// Workout category presets
 const CATEGORIES = [
-  { id: "cardio", name: "Кардио", emoji: "🏃‍♀️" },
-  { id: "strength", name: "Силовая", emoji: "💪" },
-  { id: "yoga", name: "Йога", emoji: "🧘‍♀️" },
-  { id: "pilates", name: "Пилатес", emoji: "🤸‍♀️" },
-  { id: "dance", name: "Танцы", emoji: "💃" },
-  { id: "stretch", name: "Растяжка", emoji: "🌸" },
-  { id: "swim", name: "Плавание", emoji: "🏊‍♀️" },
-  { id: "walk", name: "Прогулка", emoji: "🚶‍♀️" },
-  { id: "bike", name: "Велосипед", emoji: "🚴‍♀️" },
-  { id: "other", name: "Другое", emoji: "✨" },
+  { id: "fitness", name: "Фитнес", emoji: "💪" },
+  { id: "run", name: "Бег", emoji: "🏃‍♀️" },
 ];
 
 const MOODS = [
@@ -669,7 +661,7 @@ function WorkoutCard({ workout, onClick, showDate }) {
 // ═══ WORKOUT FORM ════════════════════════════════════════════════════════════
 function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
   const [name, setName] = useState(workout.name || "");
-  const [category, setCategory] = useState(workout.category || "strength");
+  const [category, setCategory] = useState(workout.category || "fitness");
   const [duration, setDuration] = useState(workout.duration || "");
   const [time, setTime] = useState(workout.time || "");
   const [mood, setMood] = useState(workout.mood || "");
@@ -704,7 +696,7 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
         {/* Category */}
         <div style={{marginBottom:SP.md}}>
           <label style={S.fieldLabel}>Тип тренировки</label>
-          <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:6}}>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:SP.sm}}>
             {CATEGORIES.map(c => {
               const selected = c.id === category;
               return (
@@ -716,17 +708,16 @@ function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
                     flexDirection:"column",
                     alignItems:"center",
                     justifyContent:"center",
-                    gap:4,
-                    aspectRatio:"1/1.1",
+                    gap:8,
+                    paddingTop:18, paddingBottom:16,
                     background: selected ? C.accent : C.card,
                     border: `1.5px solid ${selected ? C.accent : C.border}`,
-                    borderRadius:12,
-                    padding:4,
+                    borderRadius:14,
                     color: selected ? "#fff" : C.text,
                     transition:"all .15s"
                   }}>
-                  <div style={{fontSize:22, lineHeight:1}}>{c.emoji}</div>
-                  <div style={{fontSize:9, fontWeight:600, lineHeight:1, textAlign:"center"}}>{c.name}</div>
+                  <div style={{fontSize:32, lineHeight:1}}>{c.emoji}</div>
+                  <div style={{fontSize:13, fontWeight:700, lineHeight:1}}>{c.name}</div>
                 </button>
               );
             })}
