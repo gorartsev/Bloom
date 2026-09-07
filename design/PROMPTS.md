@@ -1,175 +1,219 @@
-# Промпты для персонажей и шмота
+# Промпты
 
-Три слоя, в таком порядке: **база** (персонаж в трусах), **причёска**, **одежда**.
-База генерится один раз на персонажа. Всё остальное надевается поверх.
+Каждый промпт полный. Копируешь блок целиком, вставляешь в ChatGPT, получаешь картинку. Ничего подставлять не надо.
 
----
-
-## Сначала честно про метод
-
-Идеально собрать персонажа из независимо сгенерированных PNG-слоёв не выйдет: генератор каждый раз чуть двигает пропорции, и рукав не сядет на плечо. Есть два рабочих пути.
-
-**Путь A, надёжный (рекомендую начать с него).** Генеришь базу. Дальше каждый образ делаешь **image-to-image**: кидаешь картинку базы в чат и пишешь «этот же персонаж, та же поза, то же лицо, надень на него X». Получаешь готовый образ целиком. Слоёв нет, зато ничего не разъезжается. Минус: каждая комбинация это отдельная картинка.
-
-**Путь B, гибкий.** Одежда генерится как **плоский предмет на прозрачном фоне**, без тела, и накладывается кодом в фиксированные координаты. Работает для шапок, очков, футболок анфас. Плохо работает для всего, что должно облегать. Минус: подгонять придётся руками.
-
-Практично: базы и причёски по пути B, одежду по пути A. Гардероб тогда собирается из готовых образов, а мелочёвка накладывается сверху.
+Порядок работы: сначала база (персонаж в трусах), потом причёска отдельным файлом, потом одежда поверх базы.
 
 ---
 
-## Общий канон
+## Как это работает, коротко
 
-Он одинаковый для базы, причёсок и шмота. Не меняй ни слова между генерациями, иначе стиль поедет.
+Собрать персонажа из независимо сгенерированных слоёв идеально не выйдет: генератор каждый раз чуть двигает пропорции, и рукав не сядет на плечо.
 
-```
-Flat vector cartoon, thick uniform black outline, no shading, no gradients, no texture.
-Front view, symmetrical, standing straight, arms relaxed slightly away from the body.
-Chibi proportions: head is one third of total height, short sturdy body.
-Simple face: white rectangular eyes with black outline, thick straight eyebrows,
-tiny nose, single line mouth, one small hoop earring in the left ear.
-Transparent background, character centered, even margins, full body visible including feet.
-Sticker style, clean edges, high contrast.
-```
+Поэтому:
 
-**Убрать из выдачи:**
-```
-no shading, no gradient, no glow, no background, no shadow under feet, no text,
-no perspective, not 3d, not realistic, no extra characters, no props in hands
-```
+- **База и причёски** генерятся отдельными файлами на прозрачном фоне.
+- **Одежда** генерится поверх готовой базы: кидаешь в чат картинку базы и следом промпт из раздела «Одежда». Это image-to-image, персонаж остаётся тем же.
 
-**Палитра**
+Сохраняй так:
 
 ```
-чернила    #252323    обводка, тёмные вещи
-белый      #FFFFFF    фон интерфейса, белые вещи
-мята       #8EFF8E    главный акцент
-барвинок   #9F9FED    вторичный
-слейт      #736CED    вторичный тёмный
-кожа       #F2C89C / #C98A5E / #8D5524
+assets/base/<имя>.png       персонаж в трусах, лысый, 512 высотой
+assets/hair/<имя>.png       причёска накладкой
+assets/outfit/<имя>.png     готовый образ целиком
 ```
 
 ---
 
-## Слой 1 · База: персонаж в трусах
+# 1 · Базы
 
-Это стартовый вид. Персонаж стоит в одних трусах, немного нелепо, и это нормально: смешной старт делает первую одежду наградой.
+Персонаж стоит в одних трусах. Голова лысая, причёска надевается потом.
 
-**Шаблон:**
+## Леопард
 
 ```
-[КАНОН]
-The character wears only [ТРУСЫ] boxer briefs and nothing else. Bare chest, bare feet.
-[ТЕЛО] build. [КОЖА] skin. Bald head, no hair (hair is added separately).
-Slightly awkward confident pose, faintly amused expression.
+Flat vector cartoon character, full body, front view, standing straight, symmetrical, arms relaxed slightly away from the body. Chibi proportions: the head is one third of the total height, the body is short and sturdy. The character is a young man wearing only leopard print boxer briefs, nothing else, bare chest, bare feet. Average build, light skin. Completely bald head, no hair at all. Slightly awkward but confident pose, faintly amused expression. Simple face: white rectangular eyes with a black outline, thick straight black eyebrows, tiny nose, single line mouth, one small hoop earring in the left ear. Thick uniform black outline of even weight across the whole figure, flat fills only, no shading, no gradients, no texture. Transparent background, character centered with even margins, full body visible including feet. Sticker style, clean edges, high contrast. No background, no shadow under the feet, no text, no perspective, not 3d, not realistic, no props.
 ```
 
-**Варианты трусов:**
+## Чёрные
 
-| Ключ | Подстановка |
-|---|---|
-| `leopard` | `leopard print` |
-| `black` | `plain black` |
-| `white` | `plain white with a thin waistband` |
-| `hearts` | `white with small red hearts` |
-| `stripes` | `blue and white horizontal stripes` |
-| `mint` | `mint green #8EFF8E` |
-| `flames` | `black with orange flame print` |
-| `banana` | `yellow with banana print` |
+```
+Flat vector cartoon character, full body, front view, standing straight, symmetrical, arms relaxed slightly away from the body. Chibi proportions: the head is one third of the total height, the body is short and sturdy. The character is a young man wearing only plain black boxer briefs with a thin white waistband, nothing else, bare chest, bare feet. Athletic build, tan skin. Completely bald head, no hair at all. Slightly awkward but confident pose, faintly amused expression. Simple face: white rectangular eyes with a black outline, thick straight black eyebrows, tiny nose, single line mouth, one small hoop earring in the left ear. Thick uniform black outline of even weight across the whole figure, flat fills only, no shading, no gradients, no texture. Transparent background, character centered with even margins, full body visible including feet. Sticker style, clean edges, high contrast. No background, no shadow under the feet, no text, no perspective, not 3d, not realistic, no props.
+```
 
-**Варианты тела:** `slim` · `average` · `stocky` · `athletic`
-**Варианты кожи:** `light` · `tan` · `brown` · `dark`
+## Белые
 
-Голова генерится **лысой**. Причёска отдельным слоем, иначе не переоденешь.
+```
+Flat vector cartoon character, full body, front view, standing straight, symmetrical, arms relaxed slightly away from the body. Chibi proportions: the head is one third of the total height, the body is short and sturdy. The character is a young man wearing only plain white boxer briefs with a grey waistband, nothing else, bare chest, bare feet. Slim build, light skin. Completely bald head, no hair at all. Slightly awkward but confident pose, faintly amused expression. Simple face: white rectangular eyes with a black outline, thick straight black eyebrows, tiny nose, single line mouth, one small hoop earring in the left ear. Thick uniform black outline of even weight across the whole figure, flat fills only, no shading, no gradients, no texture. Transparent background, character centered with even margins, full body visible including feet. Sticker style, clean edges, high contrast. No background, no shadow under the feet, no text, no perspective, not 3d, not realistic, no props.
+```
+
+## Сердечки
+
+```
+Flat vector cartoon character, full body, front view, standing straight, symmetrical, arms relaxed slightly away from the body. Chibi proportions: the head is one third of the total height, the body is short and sturdy. The character is a young man wearing only white boxer briefs covered in small red hearts, nothing else, bare chest, bare feet. Stocky build, light skin. Completely bald head, no hair at all. Slightly embarrassed but proud pose, faintly amused expression. Simple face: white rectangular eyes with a black outline, thick straight black eyebrows, tiny nose, single line mouth, one small hoop earring in the left ear. Thick uniform black outline of even weight across the whole figure, flat fills only, no shading, no gradients, no texture. Transparent background, character centered with even margins, full body visible including feet. Sticker style, clean edges, high contrast. No background, no shadow under the feet, no text, no perspective, not 3d, not realistic, no props.
+```
+
+## Полоска
+
+```
+Flat vector cartoon character, full body, front view, standing straight, symmetrical, arms relaxed slightly away from the body. Chibi proportions: the head is one third of the total height, the body is short and sturdy. The character is a young man wearing only blue and white horizontally striped boxer briefs, nothing else, bare chest, bare feet. Average build, brown skin. Completely bald head, no hair at all. Slightly awkward but confident pose, faintly amused expression. Simple face: white rectangular eyes with a black outline, thick straight black eyebrows, tiny nose, single line mouth, one small hoop earring in the left ear. Thick uniform black outline of even weight across the whole figure, flat fills only, no shading, no gradients, no texture. Transparent background, character centered with even margins, full body visible including feet. Sticker style, clean edges, high contrast. No background, no shadow under the feet, no text, no perspective, not 3d, not realistic, no props.
+```
+
+## Огонь
+
+```
+Flat vector cartoon character, full body, front view, standing straight, symmetrical, arms relaxed slightly away from the body. Chibi proportions: the head is one third of the total height, the body is short and sturdy. The character is a young man wearing only black boxer briefs with an orange flame print along the sides, nothing else, bare chest, bare feet. Athletic build, dark skin. Completely bald head, no hair at all. Slightly awkward but confident pose, faintly amused expression. Simple face: white rectangular eyes with a black outline, thick straight black eyebrows, tiny nose, single line mouth, one small hoop earring in the left ear. Thick uniform black outline of even weight across the whole figure, flat fills only, no shading, no gradients, no texture. Transparent background, character centered with even margins, full body visible including feet. Sticker style, clean edges, high contrast. No background, no shadow under the feet, no text, no perspective, not 3d, not realistic, no props.
+```
+
+## Бананы
+
+```
+Flat vector cartoon character, full body, front view, standing straight, symmetrical, arms relaxed slightly away from the body. Chibi proportions: the head is one third of the total height, the body is short and sturdy. The character is a young man wearing only bright yellow boxer briefs covered in small banana prints, nothing else, bare chest, bare feet. Slim build, tan skin. Completely bald head, no hair at all. Slightly ridiculous but very confident pose, faintly amused expression. Simple face: white rectangular eyes with a black outline, thick straight black eyebrows, tiny nose, single line mouth, one small hoop earring in the left ear. Thick uniform black outline of even weight across the whole figure, flat fills only, no shading, no gradients, no texture. Transparent background, character centered with even margins, full body visible including feet. Sticker style, clean edges, high contrast. No background, no shadow under the feet, no text, no perspective, not 3d, not realistic, no props.
+```
+
+## Мятные
+
+```
+Flat vector cartoon character, full body, front view, standing straight, symmetrical, arms relaxed slightly away from the body. Chibi proportions: the head is one third of the total height, the body is short and sturdy. The character is a young man wearing only mint green boxer briefs, color hex 8EFF8E, nothing else, bare chest, bare feet. Average build, light skin. Completely bald head, no hair at all. Slightly awkward but confident pose, faintly amused expression. Simple face: white rectangular eyes with a black outline, thick straight black eyebrows, tiny nose, single line mouth, one small hoop earring in the left ear. Thick uniform black outline of even weight across the whole figure, flat fills only, no shading, no gradients, no texture. Transparent background, character centered with even margins, full body visible including feet. Sticker style, clean edges, high contrast. No background, no shadow under the feet, no text, no perspective, not 3d, not realistic, no props.
+```
 
 ---
 
-## Слой 2 · Причёски
+# 2 · Причёски
 
-Генерятся отдельно, по пути B, как накладка.
+Отдельные файлы. Без головы, без лица, без тела. Накладываются на лысую базу.
+
+## Ирокез
 
 ```
-[КАНОН, но только про стиль линии и заливки]
-A single hairstyle asset only: [ПРИЧЁСКА], flat vector, thick black outline, flat fill,
-no head, no face, no body, transparent background, front view, centered.
-The hairstyle is drawn as if worn on a head 260 pixels wide, sitting on top of the skull line.
+A single hairstyle asset only, nothing else in the image. A bright orange mohawk with sharp spikes, drawn as a flat vector shape with a thick uniform black outline and a flat fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
 ```
 
-| Ключ | Подстановка |
-|---|---|
-| `mohawk` | `bright orange mohawk` |
-| `curly` | `short dark curly hair` |
-| `buzz` | `black buzz cut` |
-| `long` | `shoulder length straight black hair` |
-| `bleached` | `bleached blond short hair with dark roots` |
-| `braids` | `cornrow braids` |
-| `bun` | `top knot bun` |
-| `cap` | `black snapback cap worn backwards` |
-| `bandana` | `mint green bandana tied at the back` |
+## Кудри
+
+```
+A single hairstyle asset only, nothing else in the image. Short dark brown curly hair with a rounded silhouette and a few visible curl shapes, drawn as a flat vector shape with a thick uniform black outline and a flat fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
+```
+
+## Бокс
+
+```
+A single hairstyle asset only, nothing else in the image. A very short black buzz cut with a clean straight hairline, drawn as a flat vector shape with a thick uniform black outline and a flat fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
+```
+
+## Обесцвеченные
+
+```
+A single hairstyle asset only, nothing else in the image. Short bleached blond hair with visible dark roots at the top, slightly messy, drawn as a flat vector shape with a thick uniform black outline and flat two tone fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
+```
+
+## Косички
+
+```
+A single hairstyle asset only, nothing else in the image. Black cornrow braids running straight back across the scalp, with the braid lines visible as simple parallel strokes, drawn as a flat vector shape with a thick uniform black outline and a flat fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
+```
+
+## Длинные
+
+```
+A single hairstyle asset only, nothing else in the image. Straight black shoulder length hair with a center part, framing where the face would be, drawn as a flat vector shape with a thick uniform black outline and a flat fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
+```
+
+## Пучок
+
+```
+A single hairstyle asset only, nothing else in the image. Dark hair pulled back into a top knot bun, with the bun sitting high above the skull line and the sides smooth, drawn as a flat vector shape with a thick uniform black outline and a flat fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
+```
+
+## Кепка
+
+```
+A single headwear asset only, nothing else in the image. A black snapback cap worn backwards, with the flat brim pointing behind the head and the strap visible at the front, drawn as a flat vector shape with a thick uniform black outline and a flat fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
+```
+
+## Бандана
+
+```
+A single headwear asset only, nothing else in the image. A mint green bandana, hex 8EFF8E, tied around the head with the knot and two short tails hanging on the right side, drawn as a flat vector shape with a thick uniform black outline and a flat fill, no shading and no gradients. It is drawn as if worn on a bald head that is 260 pixels wide, sitting along the top of the skull line, so it can be layered onto a character. Front view, symmetrical, centered on a transparent background. No head, no face, no ears, no neck, no body, no background, no shadow, no text. Sticker style, clean edges.
+```
 
 ---
 
-## Слой 3 · Одежда
+# 3 · Одежда
 
-Путь A, на базовом персонаже. В чат кидаешь PNG базы и пишешь:
+Работает поверх базы. Порядок: прикрепи в чат PNG базы, следом вставь промпт.
+
+## Бэнд-ти и бэгги
 
 ```
-Same character, same pose, same face, same proportions, same style.
-Now dressed in: [ВЕРХ], [НИЗ], [ОБУВЬ].
-Keep the thick black outline, flat colors, no shading, transparent background.
-Do not change the head, the face or the body proportions.
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in an oversized black band t-shirt with a white skull print on the chest, wide baggy light blue jeans that break over the shoes, black low top canvas sneakers with white soles and white crew socks. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
 ```
 
-**Верх:**
+## Худи и карго
 
-| Ключ | Подстановка |
-|---|---|
-| `bandtee` | `oversized black band t-shirt with a white skull print` |
-| `crewneck` | `oversized navy crewneck sweatshirt` |
-| `tank` | `white ribbed tank top` |
-| `hoodie` | `mint green #8EFF8E oversized hoodie` |
-| `longsleeve` | `washed black long sleeve tee` |
-| `rashguard` | `purple #736CED long sleeve rashguard` |
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in an oversized mint green hoodie, hex 8EFF8E, with the hood down and a front pocket, olive green cargo shorts ending above the knee with visible side pockets, chunky white sneakers with white crew socks. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
 
-**Низ:**
+## Майка и чёрные шорты
 
-| Ключ | Подстановка |
-|---|---|
-| `baggy` | `wide baggy light blue jeans` |
-| `cargo` | `olive cargo shorts` |
-| `black_shorts` | `plain black shorts above the knee` |
-| `ripped` | `ripped wide grey jeans` |
-| `sweats` | `dark grey sweatpants` |
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in a white ribbed tank top, plain black shorts ending above the knee, black slides worn with white crew socks. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
 
-**Обувь:**
+## Свитшот и рваные джинсы
 
-| Ключ | Подстановка |
-|---|---|
-| `converse` | `black low top canvas sneakers with white soles and white crew socks` |
-| `chunky` | `chunky white sneakers with white crew socks` |
-| `slides` | `black slides` |
-| `barefoot` | `barefoot` |
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in an oversized navy blue crewneck sweatshirt, wide ripped grey jeans with torn knees, black low top canvas sneakers with white soles and white crew socks. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
+
+## Рашгард и шорты для грепплинга
+
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in a purple long sleeve rashguard, hex 736CED, fitted to the body, black grappling shorts ending above the knee, and he is barefoot. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
+
+## Ги
+
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in a white brazilian jiu jitsu gi: a thick white jacket with a wide overlapping collar, matching white trousers, and a white belt tied at the waist with a simple knot. He is barefoot. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
+
+## Беговой комплект
+
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in a bright yellow sleeveless running singlet, short black running shorts, mint green running shoes, hex 8EFF8E, with white ankle socks. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
+
+## Домашний комплект
+
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in a washed black long sleeve tee with the sleeves slightly pushed up, dark grey sweatpants, and white crew socks with no shoes. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
+
+## Косуха
+
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in a black leather biker jacket with silver studs on the shoulders worn over a white t-shirt, black skinny jeans, and black boots. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
+
+## Разгрузочный день
+
+```
+Use the attached character image. Same character, same pose, same face, same body proportions, same art style. Now he is dressed in an oversized plain white t-shirt, loose light beige linen trousers, and purple slides, hex 9F9FED, worn with white socks. Keep the thick uniform black outline of even weight, flat fills only, no shading, no gradients, no texture. Keep the head, the face and the proportions exactly as they are, change only the clothing. Transparent background, character centered with even margins, full body visible. Sticker style, clean edges. No background, no shadow under the feet, no text, not 3d, not realistic.
+```
 
 ---
 
-## Что делать с выдачей
+# 4 · Приёмка
 
-Годится, только если проходит все четыре:
+Картинка годится, только если проходит все четыре проверки:
 
-1. **Силуэт.** Залей персонажа сплошным чёрным. Узнаётся? Если нет, форма дробная.
-2. **Толщина линии.** Одна на всей фигуре. Тоньше на мелочах значит другой стиль, и рядом с остальными будет видно.
-3. **64 пикселя.** Уменьши до иконки. Лицо читается? Если нет, деталей много.
-4. **Поля.** По центру, без тени под ногами, фон реально прозрачный.
+1. **Силуэт.** Залей фигуру сплошным чёрным. Узнаётся? Если нет, форма слишком дробная.
+2. **Толщина линии.** Одна на всей фигуре. Если на мелких деталях линия тоньше, это уже другой стиль, и рядом с остальными будет заметно.
+3. **64 пикселя.** Уменьши до размера иконки. Лицо читается? Если нет, деталей слишком много.
+4. **Поля.** По центру, фон реально прозрачный, тени под ногами нет.
 
-Не прошло хоть одно, перегенерируй тем же промптом. Руками не правь: ручная правка одного персонажа и есть то, из-за чего потом разъезжается весь набор.
+Не прошло хотя бы одну, перегенерируй тем же промптом. Руками не правь: ручная правка одной картинки и есть то, из-за чего потом разъезжается весь набор.
 
----
-
-## Файлы
-
-```
-assets/base/<трусы>_<тело>_<кожа>.png     512 высотой, прозрачный
-assets/hair/<ключ>.png                     накладка, прозрачный
-assets/outfit/<верх>_<низ>_<обувь>.png     готовый образ целиком
-```
-
-Начни с малого: две базы, три причёски, три образа. Проверь, что они смотрятся как один набор, и только потом разгоняй.
+Начни с двух баз, двух причёсок и двух образов. Посмотри их рядом в одном масштабе, и только потом делай остальные.

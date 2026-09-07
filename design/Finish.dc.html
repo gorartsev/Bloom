@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #736CED; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+    @keyframes count { from { transform: translateY(6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .cnt { animation: count 400ms cubic-bezier(.2,.9,.3,1) both; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 22px 20px 0;">
+    <div class="lbl" style="color: #9A9694;">Тренировка закончена</div>
+    <div class="dsp" style="font-size: 32px; line-height: 1; margin-top: 8px;">Как прошло?</div>
+  </div>
+
+  <!-- сколько длилось: пресеты и подстройка -->
+  <div style="padding: 20px 20px 0;">
+    <div class="lbl" style="color: #9A9694;">Сколько шло</div>
+    <div style="display: flex; align-items: center; gap: 12px; margin-top: 12px;">
+      <div class="tap" onClick="{{decD}}" style="width: 54px; height: 54px; border-radius: 27px; background: #F4F4F8; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
+      </div>
+      <div style="flex-grow: 1; text-align: center;">
+        <span class="dsp num" style="font-size: 46px; line-height: 1;">{{dur}}</span>
+        <span class="lbl" style="color: #9A9694; margin-left: 6px;">мин</span>
+      </div>
+      <div class="tap" onClick="{{incD}}" style="width: 54px; height: 54px; border-radius: 27px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative;">
+        <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
+        <div style="width: 3px; height: 18px; border-radius: 2px; background: #252323; position: absolute;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- главное: RPE лесенкой -->
+  <div style="padding: 22px 20px 0;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+      <span class="lbl" style="color: #9A9694;">Насколько тяжело</span>
+      <span style="font-size: 13px; font-weight: 700; color: #736CED;">{{rpeWord}}</span>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: 3px; margin-top: 12px;">
+      <sc-for list="{{scale}}" as="s" hint-placeholder-count="10">
+        <div class="tap" onClick="{{s.pick}}" style="flex-grow: 1; height: {{s.h}}; border-radius: 8px; background: {{s.bg}}; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;">
+          <span class="num" style="font-size: 11px; font-weight: 700; color: {{s.fg}};">{{s.v}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- итог: считается на глазах -->
+  <div style="background: #8EFF8E; border-radius: 26px; margin: 22px 16px 0; padding: 18px 20px;">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+      <div>
+        <div class="lbl" style="color: #2C6B2C;">Нагрузка сессии</div>
+        <div class="dsp num cnt" style="font-size: 40px; line-height: 1; margin-top: 4px;">{{load}}</div>
+      </div>
+      <div style="text-align: right;">
+        <div class="lbl" style="color: #2C6B2C;">Опыт</div>
+        <div class="dsp num cnt" style="font-size: 24px; line-height: 1; margin-top: 4px;">+{{xp}}</div>
+      </div>
+    </div>
+    <div style="font-size: 12px; font-weight: 600; color: #2C6B2C; margin-top: 12px; line-height: 1.4;">
+      {{verdict}}
+    </div>
+  </div>
+
+  <!-- заметка тренеру -->
+  <div style="padding: 20px 20px 0;">
+    <div class="lbl" style="color: #9A9694;">Что сказать тренеру</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px;">
+      <sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+        <div class="tap" onClick="{{c.pick}}" style="background: {{c.bg}}; color: {{c.fg}}; border-radius: 999px; padding: 10px 15px;">
+          <span style="font-size: 13px; font-weight: 600;">{{c.name}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="tap" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 62px; margin: auto 16px 0; display: flex; align-items: center; justify-content: center;">
+    <span class="dsp" style="font-size: 18px;">Сохранить</span>
+  </div>
+  <div style="text-align: center; padding: 14px 0 24px;">
+    <span class="lbl" style="color: #B4B0AE;">Не сохранять</span>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { dur: 40, rpe: 7, chips: { 0: true } };
+  }
+
+  renderVals() {
+    const WORDS = ['', 'совсем легко', 'легко', 'комфортно', 'умеренно', 'ощутимо',
+                   'тяжеловато', 'тяжело', 'очень тяжело', 'на пределе', 'всё, максимум'];
+    const CHIPS = ['После мата', 'Шея устала', 'Локоть щёлкал', 'Спал мало', 'Летел как ракета'];
+    const load = this.state.dur * this.state.rpe;
+
+    let verdict = 'Неделя укладывается в коридор, ничего менять не надо.';
+    if (this.state.rpe >= 9) verdict = 'Девять и выше два раза подряд значит следующая сессия легче. Тренер это учтёт.';
+    else if (this.state.rpe <= 3) verdict = 'Совсем легко: в следующий раз можно добавить вес, если техника держится.';
+
+    return {
+      dur: this.state.dur,
+      incD: () => this.setState({ dur: this.state.dur + 5 }),
+      decD: () => this.setState({ dur: Math.max(5, this.state.dur - 5) }),
+      rpeWord: WORDS[this.state.rpe],
+      load,
+      xp: Math.round(load / 3),
+      verdict,
+      scale: Array.from({ length: 10 }, (_, i) => i + 1).map((v) => ({
+        v,
+        h: (26 + v * 4) + 'px',
+        bg: v === this.state.rpe ? '#736CED' : (v < this.state.rpe ? '#D8D6F5' : '#F4F4F8'),
+        fg: v === this.state.rpe ? '#FFFFFF' : '#9A9694',
+        pick: () => this.setState({ rpe: v }),
+      })),
+      chips: CHIPS.map((name, i) => {
+        const on = !!this.state.chips[i];
+        return {
+          name,
+          bg: on ? '#9F9FED' : '#F4F4F8',
+          fg: on ? '#FFFFFF' : '#6E6A68',
+          pick: () => this.setState({ chips: { ...this.state.chips, [i]: !on } }),
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>
