@@ -1,5 +1,5 @@
 /* BLOOM service worker. Меняй VERSION при каждом деплое, иначе телефон будет держать старую версию. */
-const VERSION = "bloom-v2.0.0";
+const VERSION = "bloom-v2.0.1";
 const SHELL = [
   "./",
   "./index.html",

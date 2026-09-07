@@ -250,8 +250,11 @@ function vHome() {
 
     ${ST.flags.length ? `
       <div class="card flags">
-        <div class="lbl">🚩 От тренера</div>
-        ${ST.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("")}
+        <button class="flags-h" data-act="flags">
+          <span class="lbl" style="margin:0">🚩 От тренера · ${ST.flags.length}</span>
+          <span class="flags-x">${VIEW.flagsOpen ? "свернуть" : "показать"}</span>
+        </button>
+        ${VIEW.flagsOpen ? ST.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("") : ""}
       </div>` : ""}
 
     ${plan ? `
@@ -681,7 +684,7 @@ function vProgress() {
         return `<div class="tr">
           <div class="tr-n">${t.ic} ${t.n}</div>
           <div class="tr-bar"><i style="width:${(v/totalT)*100}%;background:${t.c}"></i></div>
-          <div class="tr-v">${Math.round(v/totalT*100)}%</div>
+          <div class="tr-v">${v/totalT < 0.005 ? "&lt;1" : Math.round(v/totalT*100)}%</div>
         </div>`;
       }).join("")}
     </div>` : ""}
@@ -1025,6 +1028,7 @@ document.addEventListener("click", ev => {
     }
     case "rest-skip": REST.until = 0; tickRest(); break;
 
+    case "flags": VIEW.flagsOpen = !VIEW.flagsOpen; rerender(); break;
     case "w-log": logWeight(); break;
     case "mon": {
       const m = VIEW.month || { y:new Date().getFullYear(), m:new Date().getMonth() };
