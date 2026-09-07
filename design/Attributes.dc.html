@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #FF5A3C; } a:hover { color: #111111; }
+    .dsp { font-family: Oswald, Haettenschweiler, Impact, sans-serif; text-transform: uppercase; font-weight: 700; }
+    .ui  { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #F7F4EC; color: #111111; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 8px;">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <span class="dsp" style="font-size: 13px; letter-spacing: 1.6px;">Сумма 53</span>
+  </div>
+
+  <div class="dsp" style="font-size: 54px; line-height: 0.84; letter-spacing: -1px; padding: 0 16px 4px;">Атрибуты</div>
+  <div style="font-size: 12px; font-weight: 500; padding: 0 16px 14px; color: #6B6459;">Ничего не распределяется руками. Цифры считаются из лога.</div>
+
+  <div style="flex-grow: 1; padding: 0 16px; display: flex; flex-direction: column; gap: 7px;">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+      <div onClick="{{r.pick}}" style="border: 3px solid #111111; background: {{r.bg}}; cursor: pointer; padding: 10px 12px;">
+        <div style="display: flex; align-items: center; gap: 11px;">
+          <div class="dsp" style="font-size: 34px; line-height: 1; width: 44px; color: {{r.fg}};">{{r.val}}</div>
+          <div style="flex-grow: 1;">
+            <div class="dsp" style="font-size: 15px; line-height: 1.05; color: {{r.fg}};">{{r.name}}</div>
+            <div style="height: 11px; border: 3px solid #111111; background: #FFFFFF; display: flex; margin-top: 5px;">
+              <div style="width: {{r.pct}}; background: {{r.color}};"></div>
+            </div>
+          </div>
+          <div class="dsp" style="font-size: 13px; color: {{r.deltaFg}};">{{r.delta}}</div>
+        </div>
+        <sc-if value="{{r.open}}" hint-placeholder-val="{{ true }}">
+          <div style="border-top: 3px solid {{r.sepColor}}; margin-top: 10px; padding-top: 9px; display: flex; flex-direction: column; gap: 5px;">
+            <sc-for list="{{r.parts}}" as="p" hint-placeholder-count="3">
+              <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px; font-weight: 500; color: {{r.subFg}};">
+                <span>{{p.k}}</span>
+                <span class="dsp" style="font-size: 13px; color: {{r.fg}};">{{p.v}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="border-top: 3px solid #111111; background: #FF5A3C; padding: 11px 16px 14px;">
+    <div class="dsp" style="font-size: 11px; letter-spacing: 1.4px;">Перекос</div>
+    <div style="font-size: 12px; font-weight: 600; margin-top: 3px; line-height: 1.35;">Выносливость 15 против подвижности 6. Мат и бег тянут вверх, тело не успевает за ними раскрываться.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 3px solid #111111;">
+    <div style="padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; background: #FFC700;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 3.5-6 7-6s7 2 7 6"/></svg>
+      <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Герой</span>
+    </div>
+    <div style="padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+      <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Лог</span>
+    </div>
+    <div style="padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16l-7-4-7 4z"/></svg>
+      <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Квесты</span>
+    </div>
+    <div style="padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7z"/></svg>
+      <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Снаряга</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: 'mob' };
+  }
+
+  renderVals() {
+    const defs = [
+      { id: 'str', name: 'Сила', val: 12, pct: '60%', delta: '+1', color: '#FF5A3C', parts: [
+        { k: 'Румынская тяга, оценка максимума', v: '78 кг' },
+        { k: 'Фронтальный присед', v: '66 кг' },
+        { k: 'Подтягивания, лучший подход', v: '6 повт' },
+      ] },
+      { id: 'end', name: 'Выносливость', val: 15, pct: '75%', delta: '+1', color: '#3FBF5F', parts: [
+        { k: 'Бег за 4 недели', v: '78 км' },
+        { k: 'Минут на мате', v: '1 080' },
+        { k: 'Средний RPE мата', v: '7.4' },
+      ] },
+      { id: 'mob', name: 'Подвижность', val: 6, pct: '30%', delta: '0', color: '#B569FF', parts: [
+        { k: 'Сессий мобильности за 4 недели', v: '4 из 12' },
+        { k: 'Глубокий сед, удержание', v: '45 сек' },
+        { k: 'Запястья, регулярность', v: 'редко' },
+      ] },
+      { id: 'vit', name: 'Стойкость', val: 9, pct: '45%', delta: '+2', color: '#2F6BFF', parts: [
+        { k: 'Изометрия шеи, сессий', v: '11' },
+        { k: 'Вис на перекладине', v: '47 сек' },
+        { k: 'Прогулка фермера', v: '28 кг × 40 сек' },
+      ] },
+      { id: 'wil', name: 'Воля', val: 11, pct: '55%', delta: '+1', color: '#FFC700', parts: [
+        { k: 'Недель без пропуска', v: '3' },
+        { k: 'Сессий по плану', v: '17 из 20' },
+        { k: 'Отказов, RIR 0', v: '2 (лимит 1)' },
+      ] },
+    ];
+
+    const rows = defs.map((d) => {
+      const open = this.state.open === d.id;
+      return {
+        name: d.name,
+        val: d.val,
+        pct: d.pct,
+        delta: d.delta === '0' ? 'без роста' : d.delta,
+        color: d.color,
+        parts: d.parts,
+        open,
+        bg: open ? '#111111' : '#FFFFFF',
+        fg: open ? '#F7F4EC' : '#111111',
+        subFg: open ? '#C9C3B6' : '#6B6459',
+        sepColor: open ? '#3A342C' : '#111111',
+        deltaFg: d.delta === '0' ? '#FF5A3C' : (open ? '#FFC700' : '#6B6459'),
+        pick: () => this.setState({ open: open ? null : d.id }),
+      };
+    });
+
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

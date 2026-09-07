@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #FF5A3C; } a:hover { color: #111111; }
+    .dsp { font-family: Oswald, Haettenschweiler, Impact, sans-serif; text-transform: uppercase; font-weight: 700; }
+    .ui  { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 940px; height: 720px; background: #F7F4EC; color: #111111; padding: 24px; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 16px;">
+    <div class="dsp" style="font-size: 64px; line-height: 0.82; letter-spacing: -1.5px;">Один силуэт,<br>сорок образов</div>
+    <div style="max-width: 340px; font-size: 13px; font-weight: 500; line-height: 1.45; text-align: right;">
+      Персонаж собирается слоями поверх одного рига: голова, волосы, одежда, пояс, обувь, головной убор.
+      Генерации рисуют только слои в готовых координатах, поэтому ничего не разъезжается между предметами.
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; flex-grow: 1;">
+    <sc-for list="{{chars}}" as="c" hint-placeholder-count="10">
+      <div style="border: 3px solid #111111; background: {{c.stage}}; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; position: relative;">
+        <svg viewBox="0 0 200 230" style="display: block; width: 100%; margin-bottom: -4px;">
+      <g stroke-linecap="round" stroke-linejoin="round">
+        <path d="M80 166 L75 206 M120 166 L125 206" stroke="#111111" stroke-width="28" fill="none"/>
+        <path d="M80 166 L75 206 M120 166 L125 206" stroke="{{c.pants}}" stroke-width="22" fill="none"/>
+        <rect x="52" y="198" width="42" height="20" rx="6" fill="{{c.shoes}}" stroke="#111111" stroke-width="5"/>
+        <rect x="106" y="198" width="42" height="20" rx="6" fill="{{c.shoes}}" stroke="#111111" stroke-width="5"/>
+        <path d="M68 104 L46 150 M132 104 L154 150" stroke="#111111" stroke-width="28" fill="none"/>
+        <path d="M68 104 L46 150 M132 104 L154 150" stroke="{{c.top}}" stroke-width="20" fill="none"/>
+        <circle cx="44" cy="155" r="12" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
+        <circle cx="156" cy="155" r="12" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
+        <path d="M100 84 L66 96 L62 172 H138 L134 96 Z" fill="{{c.top}}" stroke="#111111" stroke-width="5"/>
+        <path d="M100 84 L84 132 M100 84 L116 132" stroke="#111111" stroke-width="5" fill="none"/>
+        <rect x="60" y="136" width="80" height="18" fill="{{c.belt}}" stroke="#111111" stroke-width="5"/>
+        <path d="M94 154 v20 M108 154 v15" stroke="#111111" stroke-width="6" fill="none"/>
+        <rect x="88" y="72" width="24" height="18" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
+        <rect x="64" y="14" width="72" height="70" rx="22" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
+        <rect x="78" y="44" width="16" height="13" rx="3" fill="#FFFFFF" stroke="#111111" stroke-width="4"/>
+        <rect x="106" y="44" width="16" height="13" rx="3" fill="#FFFFFF" stroke="#111111" stroke-width="4"/>
+        <path d="M79 36 h15 M106 36 h15" stroke="#111111" stroke-width="5" fill="none"/>
+        <path d="M100 59 v6 h4" stroke="#111111" stroke-width="4" fill="none"/>
+        <path d="M91 71 h18" stroke="#111111" stroke-width="4" fill="none"/>
+        <path d="M64 38 C64 15 82 7 100 7 C118 7 136 15 136 38 C128 26 116 22 100 22 C84 22 72 26 64 38 Z" fill="#2A211C" stroke="#111111" stroke-width="5"/>
+      </g>
+      <g stroke="#111111" stroke-width="5" stroke-linejoin="round">
+        <sc-if value="{{c.hasHat}}" hint-placeholder-val="{{ true }}">
+          <path d="M62 34 C62 10 80 2 100 2 C120 2 138 10 138 34 Z" fill="{{c.hat}}"/>
+          <rect x="58" y="31" width="84" height="15" rx="5" fill="{{c.hat}}"/>
+        </sc-if>
+        <sc-if value="{{c.hasBand}}" hint-placeholder-val="{{ true }}">
+          <rect x="60" y="28" width="80" height="14" rx="3" fill="{{c.band}}"/>
+          <path d="M140 34 L164 26 M140 39 L164 47" fill="none" stroke-linecap="round"/>
+        </sc-if>
+      </g>
+    </svg>
+        <div style="border-top: 3px solid #111111; background: #FFFFFF; padding: 6px 8px 7px;">
+          <div class="dsp" style="font-size: 13px; line-height: 1.05;">{{c.name}}</div>
+          <div style="font-size: 10px; font-weight: 500; color: #6B6459; line-height: 1.25; margin-top: 2px;">{{c.cond}}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const GI = '#F3EEE0';
+    const base = { top: GI, pants: GI, shoes: '#111111', belt: '#FFFFFF', hasHat: false, hasBand: false, hat: '#FF5A3C', band: '#FFC700' };
+    const defs = [
+      { name: 'Старт',        cond: 'Первый вход',            stage: '#F7F4EC' },
+      { name: 'Белый пояс',   cond: '10 сессий на мате',      stage: '#FFC700' },
+      { name: 'Хатимаки',     cond: '30 сессий шеи',          stage: '#FF5A3C', hasBand: true },
+      { name: 'Рашгард',      cond: '5 недель без пропуска',  stage: '#2F6BFF', top: '#2F6BFF', pants: '#111111' },
+      { name: 'Беговые',      cond: '100 км за блок',         stage: '#3FBF5F', top: '#FFC700', pants: '#111111', shoes: '#3FBF5F' },
+      { name: 'Синий пояс',   cond: 'Отмечается вручную',     stage: '#F7F4EC', belt: '#2F6BFF' },
+      { name: 'Шапка',        cond: 'Зимний блок закрыт',     stage: '#B569FF', hasHat: true },
+      { name: 'Пурпур',       cond: 'Отмечается вручную',     stage: '#FFC700', belt: '#B569FF', top: '#F7F4EC' },
+      { name: 'Чёрный пояс',  cond: 'Далеко',                 stage: '#111111', belt: '#111111' },
+      { name: 'Венок',        cond: 'Все квесты блока',       stage: '#FF5A3C', belt: '#FFC700', hasBand: true, band: '#3FBF5F', top: '#FFFFFF' },
+    ];
+    return { chars: defs.map((d) => ({ ...base, ...d })) };
+  }
+}
+</script>
+</body>
+</html>
