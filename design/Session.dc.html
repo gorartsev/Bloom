@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #FF4D26; } a:hover { color: #16151A; }
+    .dsp { font-family: Oswald, Haettenschweiler, Impact, sans-serif; font-weight: 700; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .step { transition: background-color 140ms ease; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #F5F2EA; color: #16151A; display: flex; flex-direction: column; overflow: hidden;">
+
+  <!-- контекст сессии, тихо -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0;">
+    <div class="lbl" style="color: #8A8579;">Упражнение 2 из 4 · 34 мин</div>
+    <div class="lbl" style="color: #FF4D26;">Готово</div>
+  </div>
+
+  <!-- что делаем прямо сейчас -->
+  <div style="padding: 16px 24px 0;">
+    <div class="dsp" style="font-size: 34px; line-height: 1; letter-spacing: -0.3px;">Жим гантелей</div>
+    <div style="font-size: 14px; color: #8A8579; margin-top: 8px;">Цель 3 × 8 · прошлый раз 22 кг × 8, запас 2</div>
+    <div style="font-size: 14px; margin-top: 12px; line-height: 1.45;">
+      Локти под 45 градусов, не разводить в стороны.
+    </div>
+  </div>
+
+  <!-- уже записано: тихая строка, не карточки -->
+  <div style="padding: 20px 24px 0; display: flex; gap: 20px;">
+    <sc-for list="{{done}}" as="d" hint-placeholder-count="2">
+      <div>
+        <div class="lbl" style="color: #8A8579;">Подход {{d.n}}</div>
+        <div class="num" style="font-size: 18px; font-weight: 600; margin-top: 2px;">{{d.txt}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- доминанта: ввод. Гигантские цифры, всё остальное молчит -->
+  <div style="background: #EDE9DC; margin-top: 20px; padding: 24px 24px 28px;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div class="step" onClick="{{decW}}" style="width: 68px; height: 68px; background: #16151A; color: #F5F2EA; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <div style="width: 22px; height: 3px; background: #F5F2EA;"></div>
+      </div>
+      <div style="text-align: center;">
+        <div class="dsp num" style="font-size: 64px; line-height: 0.9;">{{w}}</div>
+        <div class="lbl" style="color: #8A8579; margin-top: 2px;">кг</div>
+      </div>
+      <div class="step" onClick="{{incW}}" style="width: 68px; height: 68px; background: #16151A; color: #F5F2EA; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;">
+        <div style="width: 22px; height: 3px; background: #F5F2EA;"></div>
+        <div style="width: 3px; height: 22px; background: #F5F2EA; position: absolute;"></div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+      <div class="step" onClick="{{decR}}" style="width: 68px; height: 68px; background: #16151A; color: #F5F2EA; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <div style="width: 22px; height: 3px; background: #F5F2EA;"></div>
+      </div>
+      <div style="text-align: center;">
+        <div class="dsp num" style="font-size: 64px; line-height: 0.9;">{{r}}</div>
+        <div class="lbl" style="color: #8A8579; margin-top: 2px;">повторов</div>
+      </div>
+      <div class="step" onClick="{{incR}}" style="width: 68px; height: 68px; background: #16151A; color: #F5F2EA; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;">
+        <div style="width: 22px; height: 3px; background: #F5F2EA;"></div>
+        <div style="width: 3px; height: 22px; background: #F5F2EA; position: absolute;"></div>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <div class="lbl" style="color: #8A8579;">Сколько осталось в запасе</div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <sc-for list="{{rirs}}" as="x" hint-placeholder-count="5">
+          <div class="step" onClick="{{x.pick}}" style="flex-grow: 1; height: 52px; background: {{x.bg}}; color: {{x.fg}}; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            <span class="num" style="font-size: 18px; font-weight: 600;">{{x.v}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- одно действие, во всю ширину, ничего рядом -->
+  <div onClick="{{save}}" style="background: #FF4D26; height: 72px; margin-top: auto; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+    <span class="dsp" style="font-size: 20px; letter-spacing: 0.5px;">Записать подход</span>
+  </div>
+
+  <div style="background: #16151A; color: #F5F2EA; padding: 14px 24px 22px; display: flex; align-items: center; justify-content: space-between;">
+    <span class="lbl" style="opacity: 0.6;">Отдых</span>
+    <span class="dsp num" style="font-size: 20px;">1:30</span>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { w: 22, r: 8, rir: 2 };
+  }
+
+  renderVals() {
+    const bump = (k, d, min) => () => this.setState({ [k]: Math.max(min, this.state[k] + d) });
+    return {
+      w: this.state.w,
+      r: this.state.r,
+      incW: bump('w', 2, 0),
+      decW: bump('w', -2, 0),
+      incR: bump('r', 1, 1),
+      decR: bump('r', -1, 1),
+      done: [
+        { n: 1, txt: '22 × 8' },
+        { n: 2, txt: '22 × 8' },
+      ],
+      rirs: [0, 1, 2, 3, 4].map((v) => ({
+        v: v === 4 ? '4+' : v,
+        bg: v === this.state.rir ? '#16151A' : '#F5F2EA',
+        fg: v === this.state.rir ? '#F5F2EA' : '#16151A',
+        pick: () => this.setState({ rir: v }),
+      })),
+      save: () => this.setState({ r: this.state.r }),
+    };
+  }
+}
+</script>
+</body>
+</html>
