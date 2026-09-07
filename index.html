@@ -3,1650 +3,270 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>BLOOM Journal</title>
-
+<title>BLOOM</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLOOM">
-<meta name="theme-color" content="#F6EFEE">
+<meta name="theme-color" content="#0D0F14">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
 
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
-  html, body {
-    background: #F6EFEE;
-    color: #2B1F26;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
-    line-height: 1.4;
-    font-size: 15px;
-  }
-  body {
-    min-height: 100vh;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  button { font-family: inherit; border: none; cursor: pointer; background: none; color: inherit; font-size: inherit; }
-  input, textarea { font-family: inherit; font-size: inherit; color: inherit; }
-  h1, h2, h3, h4 { font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
-  ::-webkit-scrollbar { display: none; }
-  input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: none; min-height: 48px; }
-  input[type="number"] { -webkit-appearance: none; appearance: none; }
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  textarea { resize: none; }
-  input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent;
-    width: 100%;
-    height: 32px;
-  }
-  input[type="range"]::-webkit-slider-runnable-track {
-    height: 8px;
-    background: linear-gradient(to right, #EFD5E3, #E396DF);
-    border-radius: 4px;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #FFFFFF;
-    border: 3px solid #E396DF;
-    margin-top: -10px;
-    box-shadow: 0 2px 8px rgba(227,150,223,0.3);
-    cursor: pointer;
-  }
+:root{
+  --bg:#0D0F14; --card:#161A22; --cardDim:#1E2430; --text:#EDF0F5;
+  --dim:#8D97A8; --soft:#5A6373; --line:#252B37;
+  --accent:#FF5A3C; --accentSoft:#FF5A3C22; --ok:#4ADE80; --warn:#FBBF24; --bad:#F43F5E;
+  --pad:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html,body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.4;
+  overflow-wrap:break-word;
+}
+/* overflow-x:hidden тут ставить нельзя: он ломает position:sticky у шапки и таймера */
+body{min-height:100vh;padding-top:env(safe-area-inset-top)}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,textarea{font-family:inherit;font-size:16px;color:inherit}
+::-webkit-scrollbar{display:none}
+h1{font-weight:800;letter-spacing:-.02em}
+b{font-weight:700}
+
+.scr{max-width:520px;margin:0 auto;padding:0 var(--pad) 90px}
+.sp{height:24px}
+.pad{padding-left:4px}
+
+/* ── шапки ── */
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 2px 14px}
+.top-hi{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.top-d{font-size:13px;color:var(--dim);margin-top:3px}
+.hdr{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;gap:10px;padding:14px 0 12px;
+  position:sticky;top:0;background:var(--bg);z-index:20}
+.hdr-t{text-align:center;min-width:0}
+.hdr-title{font-size:16px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-sub{font-size:12px;color:var(--dim);margin-top:1px}
+.hdr-r{display:flex;justify-content:flex-end}
+.ic{width:40px;height:40px;border-radius:12px;background:var(--card);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ic.sm{width:32px;height:32px;font-size:16px}
+.ic-sp{width:40px}
+
+/* ── карточки ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;
+  width:100%;text-align:left;display:block}
+.lbl{display:block;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.9px;
+  font-weight:700;margin-bottom:8px}
+.hint{font-size:12px;color:var(--dim);line-height:1.5;margin:6px 0}
+.cue{font-size:13px;color:var(--text);background:var(--cardDim);border-radius:10px;padding:10px 12px;margin-bottom:10px;line-height:1.45}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:13px;color:var(--dim)}
+.kv b{color:var(--text)}
+.mini{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  background:var(--accentSoft);color:var(--accent);padding:2px 6px;border-radius:5px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.tag{font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;background:var(--cardDim)}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.bad{color:var(--bad)} .tag.dim{color:var(--dim)}
+
+/* ── кнопки ── */
+.btn{width:100%;background:var(--accent);color:#fff;padding:15px;border-radius:13px;font-size:15px;
+  font-weight:700;margin-top:10px;display:block;text-align:center}
+.btn.ghost{background:var(--cardDim);color:var(--text);border:1px solid var(--line)}
+.btn.flat{background:none;color:var(--dim);font-weight:500;font-size:13px;padding:11px}
+.inp{width:100%;background:var(--cardDim);border:1px solid var(--line);border-radius:11px;
+  padding:13px 12px;outline:none;margin-bottom:10px}
+.inp:focus{border-color:var(--accent)}
+.ta{min-height:80px;line-height:1.5;resize:none}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── онбординг ── */
+.onb{max-width:380px;margin:0 auto;padding:60px 24px;text-align:center}
+.onb-logo{width:76px;height:76px;margin:0 auto;border-radius:22px;font-size:38px;
+  background:linear-gradient(135deg,var(--accent),#B93A22);display:flex;align-items:center;justify-content:center}
+.onb-h1{font-size:32px;margin:16px 0 4px}
+.onb-p{font-size:14px;color:var(--dim);margin-bottom:28px}
+.onb-card{text-align:left}
+.onb-foot{font-size:12px;color:var(--soft);margin-top:24px;line-height:1.8}
+
+/* ── плитки старта ── */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.tile{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--tc);
+  border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.tile-i{font-size:24px;line-height:1}
+.tile-n{font-size:12px;font-weight:600}
+
+/* ── живая сессия ── */
+.live{border-color:var(--accent);background:linear-gradient(160deg,var(--accentSoft),var(--card))}
+.live-l{font-size:11px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.9px;
+  display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:4px;background:var(--accent);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.live-n{font-size:19px;font-weight:800;margin:5px 0 2px}
+.live-s{font-size:13px;color:var(--dim)}
+
+/* ── флаги и план ── */
+.flags{border-color:var(--warn)}
+.flag{font-size:13px;line-height:1.5;padding:7px 0;border-top:1px solid var(--line)}
+.plan-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.plan-n{font-size:14px;font-weight:700}
+.plan-i{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 0;border-top:1px solid var(--line)}
+.plan-t{color:var(--dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.plan-note{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.5}
+
+/* ── неделя ── */
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;align-items:end;margin-bottom:10px}
+.wk-d{display:flex;flex-direction:column;align-items:center;gap:4px}
+.wk-bars{display:flex;gap:2px;align-items:flex-end;height:56px}
+.wk-bar{width:7px;border-radius:3px;background:var(--accent)}
+.wk-bar.empty{background:var(--line)}
+.wk-n{font-size:10px;color:var(--dim);font-weight:600}
+.wk-d.now .wk-n{color:var(--accent)}
+.wk-p{font-size:10px;height:13px;line-height:13px}
+.wk-sum{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:10px}
+.wk-v{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.wk-l{font-size:11px;color:var(--dim);margin-top:3px}
+
+/* ── строка сессии ── */
+.srow{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.srow-i{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:19px;flex-shrink:0}
+.srow-b{flex:1;min-width:0}
+.srow-n{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow-s{font-size:12px;color:var(--dim);margin-top:2px}
+.srow-l{font-size:15px;font-weight:800;color:var(--dim);font-variant-numeric:tabular-nums}
+
+/* ── вес ── */
+.wcard{display:flex;justify-content:space-between;align-items:center}
+.wcard-v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.wcard-v span{font-size:13px;color:var(--dim);font-weight:600}
+.wcard-d{font-size:12px;color:var(--dim)}
+.wrow{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-top:6px}
+.chart{width:100%;height:70px;display:block;overflow:visible}
+
+/* ── упражнение в сессии ── */
+.ex{padding:0;overflow:hidden}
+.ex.open{border-color:var(--accent)}
+.ex-h{display:flex;align-items:center;gap:10px;padding:14px;width:100%;text-align:left}
+.ex-hb{flex:1;min-width:0}
+.ex-n{font-size:15px;font-weight:700}
+.ex-s{font-size:12px;color:var(--dim);margin-top:2px}
+.ex-c{width:30px;height:30px;border-radius:9px;background:var(--cardDim);display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:800;color:var(--dim);flex-shrink:0}
+.ex.open .ex-c{background:var(--accent);color:#fff}
+.sets{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 12px}
+.set{display:flex;align-items:baseline;gap:3px;background:var(--cardDim);border:1px solid var(--line);
+  border-radius:9px;padding:7px 9px;font-variant-numeric:tabular-nums}
+.set-n{font-size:10px;color:var(--soft);font-weight:700;margin-right:2px}
+.set-w,.set-r{font-size:14px;font-weight:700}
+.set-u{font-size:10px;color:var(--dim)}
+.set-rir{font-size:10px;color:var(--accent);font-weight:700;margin-left:3px}
+.pane{padding:0 14px 14px;border-top:1px solid var(--line);padding-top:12px}
+.sug{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:12px}
+
+/* ── степперы ── */
+.stepper{display:grid;grid-template-columns:64px 1fr 64px;gap:8px;align-items:center;margin-bottom:10px}
+.st-b{height:56px;border-radius:13px;background:var(--cardDim);border:1px solid var(--line);
+  font-size:26px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.st-b:active{background:var(--accent);color:#fff}
+.st-v{height:56px;background:var(--cardDim);border-radius:13px;display:flex;align-items:baseline;
+  justify-content:center;gap:5px;padding-top:12px}
+.st-v span{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.st-v small{font-size:12px;color:var(--dim);font-weight:600}
+.rirs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px}
+.rir{height:46px;border-radius:11px;background:var(--cardDim);border:1px solid var(--line);
+  font-size:16px;font-weight:700}
+.rir.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rir-h{font-size:11px;color:var(--dim);text-align:center;margin-bottom:4px}
+
+/* ── быстрая сессия ── */
+.qcard{text-align:center}
+.qbig{font-size:56px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.qlbl{font-size:12px;color:var(--dim);margin:4px 0 18px}
+.qcard .lbl,.qcard .row2{text-align:left}
+
+/* ── RPE ── */
+.rpe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+.rpe-b{height:50px;border-radius:11px;background:var(--cardDim);border:1px solid var(--line);
+  font-size:16px;font-weight:700}
+.rpe-b.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rpe-l{text-align:center;font-size:14px;font-weight:700;margin-bottom:6px}
+.rpe-load{text-align:center;font-size:12px;color:var(--dim);margin-bottom:14px}
+
+/* ── отдых ── */
+.rest{position:sticky;top:66px;z-index:19;background:var(--cardDim);border:1px solid var(--accent);
+  border-radius:12px;padding:11px 14px;margin-bottom:10px;display:flex;align-items:center;
+  justify-content:space-between;font-size:14px;font-weight:700;overflow:hidden}
+.rest.hide{display:none}
+.rest-b{position:absolute;left:0;top:0;bottom:0;background:var(--accentSoft);transition:width 1s linear}
+.rest span,.rest-x{position:relative;z-index:1}
+.rest-x{font-size:12px;color:var(--dim);font-weight:500}
+
+/* ── выбор упражнения ── */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:2px}
+.chip{padding:9px 14px;border-radius:20px;background:var(--card);border:1px solid var(--line);
+  font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.prow{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:6px}
+.prow-b{flex:1;min-width:0}
+.prow-n{font-size:14px;font-weight:600}
+.prow-s{font-size:11px;color:var(--dim);margin-top:2px}
+.prow-a{width:30px;height:30px;border-radius:9px;background:var(--accentSoft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;flex-shrink:0}
+
+/* ── календарь ── */
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-t{font-size:15px;font-weight:700}
+.cal-w{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px}
+.cal-w div{text-align:center;font-size:10px;color:var(--dim);font-weight:600}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-d{aspect-ratio:1;border-radius:9px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;font-size:13px;color:var(--dim);border:1.5px solid transparent}
+.cal-d.has{background:var(--cardDim);color:var(--text);font-weight:700}
+.cal-d.today{border-color:var(--accent);color:var(--accent)}
+.cal-dots{display:flex;gap:2px;height:5px}
+.cal-dots i{width:4px;height:4px;border-radius:2px}
+
+/* ── прогресс ── */
+.bars{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;align-items:end;margin-bottom:8px}
+.bar-c{display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar-v{font-size:9px;color:var(--dim);font-variant-numeric:tabular-nums;height:12px}
+.bar{width:100%;background:var(--accent);border-radius:4px;min-height:3px}
+.bar-l{font-size:9px;color:var(--soft)}
+.ratio{display:flex;gap:12px;align-items:center;border-top:1px solid var(--line);padding-top:12px;margin-top:8px}
+.ratio-v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;flex-shrink:0}
+.ratio-v.ok{color:var(--ok)} .ratio-v.warn{color:var(--warn)}
+.ratio-v.bad{color:var(--bad)} .ratio-v.dim{color:var(--dim)}
+.ratio-t{font-size:11px;color:var(--dim);line-height:1.5}
+.tr{display:grid;grid-template-columns:100px 1fr 38px;gap:8px;align-items:center;padding:6px 0;font-size:12px}
+.tr-bar{height:7px;background:var(--cardDim);border-radius:4px;overflow:hidden}
+.tr-bar i{display:block;height:100%;border-radius:4px}
+.tr-v{text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
+.pr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;
+  border-top:1px solid var(--line);width:100%;text-align:left}
+.pr-n{font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr-v{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pr-v small{color:var(--dim);font-weight:600}
+.hrow{display:flex;gap:12px;align-items:center;padding:10px 14px}
+.hrow-d{font-size:12px;color:var(--dim);width:64px;flex-shrink:0}
+.hrow-s{display:flex;gap:6px;flex-wrap:wrap;font-size:13px;font-variant-numeric:tabular-nums}
+.hrow-s span{background:var(--cardDim);border-radius:7px;padding:3px 7px}
+.hrow-s i{color:var(--accent);font-style:normal;font-size:10px;margin-left:3px}
+
+/* ── нижняя навигация ── */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--card);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);max-width:520px;margin:0 auto}
+.nav-b{padding:9px 0 8px;font-size:10px;font-weight:600;color:var(--soft);display:flex;
+  flex-direction:column;align-items:center;gap:3px}
+.nav-b.on{color:var(--accent)}
+.nav-i{font-size:17px;line-height:1}
 </style>
 </head>
 <body>
 <div id="root"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-
-<script type="text/babel">
-const { useState, useEffect, useRef } = React;
-
-// ═══ DESIGN TOKENS ══════════════════════════════════════════════════════════
-const C = {
-  bg: "#F6EFEE",
-  card: "#FFFFFF",
-  cardDim: "#FBF4F3",
-  text: "#2B1F26",
-  textDim: "#8E7A84",
-  textSoft: "#C4AEBA",
-  border: "#E2B6CF",
-  borderSoft: "#EFD5E3",
-  accent: "#E396DF",
-  accentDark: "#C872C4",
-  accentSoft: "#F8DCEF",
-  success: "#9BC791",
-};
-
-const SP = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 };
-
-// ═══ STORAGE ════════════════════════════════════════════════════════════════
-const storage = {
-  get: (k) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
-};
-
-// ═══ HELPERS ═══════════════════════════════════════════════════════════════
-const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
-const MONTHS_SHORT = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
-const DAYS_FULL = ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
-const DAYS_SHORT = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
-
-const dateKey = (d) => {
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-};
-const parseKey = (k) => {
-  const [y,m,d] = k.split('-').map(Number);
-  return new Date(y, m-1, d);
-};
-const sameDay = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
-
-const CATEGORIES = [
-  { id: "fitness", name: "Фитнес", emoji: "💪" },
-  { id: "run", name: "Бег", emoji: "🏃‍♀️" },
-];
-
-// Mood scale 1-5 with emoji and descriptive label
-const MOOD_LABELS = {
-  1: { emoji: "😔", label: "Грустно" },
-  2: { emoji: "😐", label: "Так себе" },
-  3: { emoji: "🙂", label: "Нормально" },
-  4: { emoji: "😊", label: "Хорошо" },
-  5: { emoji: "🥰", label: "Супер" },
-};
-
-// Motivational quotes (rotate daily based on day of year)
-const QUOTES = [
-  "Ты сильнее, чем думаешь 💪",
-  "Каждый шаг приближает к цели 🌸",
-  "Сегодня ты на шаг ближе к себе лучшей ✨",
-  "Красота в постоянстве, а не в совершенстве 💗",
-  "Ты уже делаешь больше, чем вчерашняя ты 🌷",
-  "Твоё тело благодарит тебя за заботу 💖",
-  "Маленькие шаги → большие перемены 🦋",
-  "Гордись собой каждый день 🌺",
-  "Движение — это любовь к себе 💕",
-  "Ты достойна быть здоровой и счастливой 🌹",
-  "Верь в себя — ты способна на всё 🌟",
-  "Сила не в весе, а в характере 💪",
-  "Твоя дисциплина вдохновляет ✨",
-  "Лучшая версия себя ждёт тебя впереди 🌸",
-  "Не сдавайся, ты уже прошла так далеко 💗",
-  "Каждая тренировка делает тебя крепче 🌷",
-  "Ты — цветок, который расцветает с каждым днём 🌺",
-  "Здоровое тело — счастливая жизнь 💖",
-  "Ты — своя главная поддержка 🦋",
-  "Один день без движения — нормально. Два — уже сложнее 💕",
-  "Улыбайся, ты делаешь всё правильно 😊",
-  "Твоё упорство — это суперсила 🌟",
-  "Тренировка = свидание с собой 💗",
-  "Ты растёшь и это видно 🌸",
-  "Гордись даже маленькими победами 🌹",
-  "Сегодняшний пот — завтрашняя гордость 💪",
-  "Ты — не обязана быть идеальной, просто стараться 💖",
-  "Движение = энергия = радость ✨",
-  "Никто не делает это лучше, чем ты сама 🌺",
-  "Продолжай — и увидишь, как сильно изменишься 🦋",
-  "Ты красивая и сильная одновременно 💕",
-];
-const getTodayQuote = () => {
-  const d = new Date();
-  const dayOfYear = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
-  return QUOTES[dayOfYear % QUOTES.length];
-};
-
-// ═══ ICONS ═══════════════════════════════════════════════════════════════════
-const Icon = ({ name, size = 20, color = "currentColor", stroke = 2 }) => {
-  const paths = {
-    back: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
-    plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
-    check: <polyline points="20 6 9 17 4 12"/>,
-    chevronL: <polyline points="15 18 9 12 15 6"/>,
-    chevronR: <polyline points="9 18 15 12 9 6"/>,
-    close: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
-    trash: <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></>,
-    trending: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
-    scale: <><path d="M12 3v18"/><path d="M3 12h18"/><circle cx="12" cy="12" r="9"/></>,
-    edit: <><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></>,
-  };
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={{display:"block"}}>
-      {paths[name]}
-    </svg>
-  );
-};
-
-// ═══ APP ═════════════════════════════════════════════════════════════════════
-function App() {
-  const [state, setState] = useState(() => {
-    const saved = storage.get("bloom");
-    // Migrate old data: ensure moods and weights exist
-    return {
-      name: saved?.name || null,
-      workouts: saved?.workouts || {},
-      moods: saved?.moods || {},
-      weights: saved?.weights || {},
-    };
-  });
-  const [view, setView] = useState("home");
-  const [month, setMonth] = useState(() => {
-    const d = new Date();
-    return { y: d.getFullYear(), m: d.getMonth() };
-  });
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [editingWorkout, setEditingWorkout] = useState(null);
-  const [editingWeight, setEditingWeight] = useState(null);
-  const [editingMood, setEditingMood] = useState(null);
-
-  const save = (s) => { setState(s); storage.set("bloom", s); };
-
-  const saveWorkout = (dateK, workout) => {
-    const dayWorkouts = state.workouts[dateK] || [];
-    let updated;
-    if (workout.id) {
-      updated = dayWorkouts.map(w => w.id === workout.id ? workout : w);
-    } else {
-      updated = [...dayWorkouts, { ...workout, id: Date.now().toString() }];
-    }
-    save({ ...state, workouts: { ...state.workouts, [dateK]: updated } });
-  };
-
-  const deleteWorkout = (dateK, wid) => {
-    const dayWorkouts = (state.workouts[dateK] || []).filter(w => w.id !== wid);
-    const newWorkouts = { ...state.workouts };
-    if (dayWorkouts.length === 0) delete newWorkouts[dateK];
-    else newWorkouts[dateK] = dayWorkouts;
-    save({ ...state, workouts: newWorkouts });
-  };
-
-  const saveMood = (dateK, moodValue) => {
-    const newMoods = { ...state.moods };
-    if (moodValue === null) delete newMoods[dateK];
-    else newMoods[dateK] = moodValue;
-    save({ ...state, moods: newMoods });
-  };
-
-  const saveWeight = (dateK, weight) => {
-    const newWeights = { ...state.weights };
-    if (weight === null || weight === "") delete newWeights[dateK];
-    else newWeights[dateK] = parseFloat(weight);
-    save({ ...state, weights: newWeights });
-  };
-
-  if (!state.name) {
-    return <StartScreen onStart={(name) => save({ ...state, name })} />;
-  }
-
-  const todayKey = dateKey(new Date());
-  const todayWorkouts = state.workouts[todayKey] || [];
-  const todayMood = state.moods[todayKey];
-  const todayWeight = state.weights[todayKey];
-
-  // ── MODALS ──
-  if (editingWorkout !== null) {
-    return (
-      <WorkoutForm
-        workout={editingWorkout.workout}
-        date={editingWorkout.date}
-        onSave={(w) => { saveWorkout(dateKey(editingWorkout.date), w); setEditingWorkout(null); }}
-        onCancel={() => setEditingWorkout(null)}
-        onDelete={editingWorkout.workout.id ? () => { deleteWorkout(dateKey(editingWorkout.date), editingWorkout.workout.id); setEditingWorkout(null); } : null}
-      />
-    );
-  }
-
-  if (editingWeight !== null) {
-    return (
-      <WeightForm
-        date={editingWeight}
-        currentValue={state.weights[dateKey(editingWeight)]}
-        onSave={(v) => { saveWeight(dateKey(editingWeight), v); setEditingWeight(null); }}
-        onCancel={() => setEditingWeight(null)}
-        onDelete={state.weights[dateKey(editingWeight)] ? () => { saveWeight(dateKey(editingWeight), null); setEditingWeight(null); } : null}
-      />
-    );
-  }
-
-  if (editingMood !== null) {
-    return (
-      <MoodForm
-        date={editingMood}
-        currentValue={state.moods[dateKey(editingMood)]}
-        onSave={(v) => { saveMood(dateKey(editingMood), v); setEditingMood(null); }}
-        onCancel={() => setEditingMood(null)}
-        onDelete={state.moods[dateKey(editingMood)] ? () => { saveMood(dateKey(editingMood), null); setEditingMood(null); } : null}
-      />
-    );
-  }
-
-  // Stats
-  const allWorkouts = Object.values(state.workouts).flat();
-  const totalCount = allWorkouts.length;
-
-  const calculateStreak = () => {
-    if (totalCount === 0) return 0;
-    let streak = 0;
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const k = dateKey(d);
-      if (state.workouts[k] && state.workouts[k].length > 0) {
-        streak++;
-      } else if (i > 0) {
-        break;
-      } else {
-        continue;
-      }
-    }
-    return streak;
-  };
-  const streak = calculateStreak();
-
-  const thisMonth = Object.keys(state.workouts).filter(k => {
-    const d = parseKey(k);
-    return d.getFullYear() === month.y && d.getMonth() === month.m;
-  }).reduce((acc, k) => acc + state.workouts[k].length, 0);
-
-  // Weight stats
-  const weightEntries = Object.entries(state.weights).sort((a,b) => a[0].localeCompare(b[0]));
-  const latestWeight = weightEntries.length > 0 ? weightEntries[weightEntries.length - 1] : null;
-
-  // ── DAY DETAIL ──
-  if (view === "day" && selectedDate) {
-    const dk = dateKey(selectedDate);
-    const workouts = state.workouts[dk] || [];
-    const dayMood = state.moods[dk];
-    const dayWeight = state.weights[dk];
-    const isToday = sameDay(selectedDate, new Date());
-
-    return (
-      <div style={sc}>
-        <PageHeader
-          onBack={() => { setView("home"); setSelectedDate(null); }}
-          center={
-            <div>
-              <div style={S.headLabel}>{isToday ? "Сегодня" : DAYS_FULL[selectedDate.getDay()]}</div>
-              <div style={S.headSub}>{selectedDate.getDate()} {MONTHS[selectedDate.getMonth()].toLowerCase()}</div>
-            </div>
-          }
-        />
-
-        <div style={{padding:`${SP.md}px ${SP.lg}px ${SP.xl}px`}}>
-          {/* Mood + Weight row */}
-          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
-            <button onClick={() => setEditingMood(selectedDate)}
-              style={{...S.miniCard, alignItems:"center", textAlign:"center"}}>
-              <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.8, fontWeight:700}}>
-                Настроение
-              </div>
-              {dayMood ? (
-                <>
-                  <div style={{fontSize:32, lineHeight:1}}>{MOOD_LABELS[dayMood].emoji}</div>
-                  <div style={{fontSize:12, color:C.text, fontWeight:600}}>{MOOD_LABELS[dayMood].label}</div>
-                </>
-              ) : (
-                <>
-                  <div style={{fontSize:24, lineHeight:1, opacity:0.3}}>🙂</div>
-                  <div style={{fontSize:12, color:C.textSoft, fontWeight:500}}>Отметить</div>
-                </>
-              )}
-            </button>
-
-            <button onClick={() => setEditingWeight(selectedDate)}
-              style={{...S.miniCard, alignItems:"center", textAlign:"center"}}>
-              <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.8, fontWeight:700}}>
-                Вес
-              </div>
-              {dayWeight ? (
-                <>
-                  <div style={{fontSize:24, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>
-                    {dayWeight}
-                  </div>
-                  <div style={{fontSize:11, color:C.textDim, fontWeight:600}}>кг</div>
-                </>
-              ) : (
-                <>
-                  <div style={{fontSize:24, lineHeight:1, opacity:0.3}}>⚖️</div>
-                  <div style={{fontSize:12, color:C.textSoft, fontWeight:500}}>Записать</div>
-                </>
-              )}
-            </button>
-          </div>
-
-          <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.sm, marginTop:SP.md, paddingLeft:4}}>
-            Тренировки
-          </div>
-
-          {workouts.length === 0 ? (
-            <div style={{
-              padding:`${SP.xxl}px ${SP.lg}px`,
-              textAlign:"center",
-              background:C.card,
-              border:`1px dashed ${C.border}`,
-              borderRadius:16
-            }}>
-              <div style={{fontSize:36, marginBottom:SP.sm}}>🌸</div>
-              <div style={{fontSize:14, fontWeight:600, color:C.text, marginBottom:4}}>Пока пусто</div>
-              <div style={{fontSize:12, color:C.textDim}}>
-                Добавь тренировку ниже
-              </div>
-            </div>
-          ) : (
-            <div style={{display:"flex", flexDirection:"column", gap:SP.sm}}>
-              {workouts.map(w => (
-                <WorkoutCard key={w.id} workout={w}
-                  onClick={() => setEditingWorkout({ workout: w, date: selectedDate })}/>
-              ))}
-            </div>
-          )}
-
-          <button
-            onClick={() => setEditingWorkout({ workout: {}, date: selectedDate })}
-            style={{
-              width:"100%",
-              marginTop:SP.md,
-              background:C.accent,
-              color:"#fff",
-              padding:"16px",
-              borderRadius:14,
-              fontSize:15,
-              fontWeight:700,
-              letterSpacing:0.2,
-              display:"flex",
-              alignItems:"center",
-              justifyContent:"center",
-              gap:8,
-              boxShadow:`0 4px 12px ${C.accentSoft}`
-            }}>
-            <Icon name="plus" size={18} color="#fff" stroke={2.5}/>
-            Добавить тренировку
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── WEIGHT TRACKER VIEW ──
-  if (view === "weight") {
-    // Build chart data - last 30 days
-    const chartData = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const k = dateKey(d);
-      chartData.push({ date: d, weight: state.weights[k] || null });
-    }
-    const weightsOnly = chartData.filter(d => d.weight !== null).map(d => d.weight);
-    const minW = weightsOnly.length > 0 ? Math.min(...weightsOnly) : 0;
-    const maxW = weightsOnly.length > 0 ? Math.max(...weightsOnly) : 0;
-    const range = maxW - minW;
-    const padMin = range > 0 ? minW - range * 0.2 : minW - 2;
-    const padMax = range > 0 ? maxW + range * 0.2 : maxW + 2;
-    const chartHeight = 140;
-
-    const allSorted = [...weightEntries].reverse();
-
-    return (
-      <div style={sc}>
-        <PageHeader
-          onBack={() => setView("home")}
-          center={<div style={{fontSize:16, fontWeight:700}}>Вес</div>}
-        />
-
-        <div style={{padding:`${SP.md}px ${SP.lg}px 40px`}}>
-          {/* Current weight card */}
-          <div style={{...S.card, padding:SP.xl, marginBottom:SP.md, textAlign:"center"}}>
-            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.sm}}>
-              {latestWeight ? "Последний вес" : "Ещё не записан"}
-            </div>
-            {latestWeight ? (
-              <>
-                <div style={{fontSize:48, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums", letterSpacing:-1}}>
-                  {latestWeight[1]}
-                  <span style={{fontSize:18, color:C.textDim, fontWeight:600, marginLeft:6}}>кг</span>
-                </div>
-                <div style={{fontSize:12, color:C.textDim, marginTop:SP.sm, fontWeight:500}}>
-                  {(() => {
-                    const d = parseKey(latestWeight[0]);
-                    return sameDay(d, new Date()) ? "сегодня" : `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
-                  })()}
-                </div>
-              </>
-            ) : (
-              <div style={{fontSize:36, opacity:0.3, lineHeight:1, margin:`${SP.sm}px 0`}}>⚖️</div>
-            )}
-            <button
-              onClick={() => setEditingWeight(new Date())}
-              style={{
-                marginTop:SP.lg,
-                background:C.accent,
-                color:"#fff",
-                padding:"12px 24px",
-                borderRadius:12,
-                fontSize:14,
-                fontWeight:700,
-                display:"inline-flex",
-                alignItems:"center",
-                gap:6,
-                boxShadow:`0 4px 12px ${C.accentSoft}`
-              }}>
-              <Icon name="plus" size={16} color="#fff" stroke={2.5}/>
-              Записать вес
-            </button>
-          </div>
-
-          {/* Chart */}
-          {weightsOnly.length > 1 && (
-            <div style={{...S.card, padding:SP.lg, marginBottom:SP.md}}>
-              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
-                Последние 30 дней
-              </div>
-              <WeightChart
-                data={chartData}
-                height={chartHeight}
-                minVal={padMin}
-                maxVal={padMax}
-              />
-              <div style={{display:"flex", justifyContent:"space-between", marginTop:SP.sm, fontSize:10, color:C.textDim, fontVariantNumeric:"tabular-nums"}}>
-                <span>30 дней назад</span>
-                <span>Сегодня</span>
-              </div>
-
-              {/* Min/Max */}
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginTop:SP.md, paddingTop:SP.md, borderTop:`1px solid ${C.borderSoft}`}}>
-                <div>
-                  <div style={{fontSize:10, color:C.textDim, fontWeight:600, textTransform:"uppercase", letterSpacing:0.5}}>Мин</div>
-                  <div style={{fontSize:16, fontWeight:700, color:C.text, fontVariantNumeric:"tabular-nums"}}>
-                    {minW} <span style={{fontSize:11, color:C.textDim, fontWeight:500}}>кг</span>
-                  </div>
-                </div>
-                <div>
-                  <div style={{fontSize:10, color:C.textDim, fontWeight:600, textTransform:"uppercase", letterSpacing:0.5}}>Макс</div>
-                  <div style={{fontSize:16, fontWeight:700, color:C.text, fontVariantNumeric:"tabular-nums"}}>
-                    {maxW} <span style={{fontSize:11, color:C.textDim, fontWeight:500}}>кг</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* History list */}
-          {allSorted.length > 0 && (
-            <div style={{...S.card, padding:SP.lg}}>
-              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
-                История
-              </div>
-              <div style={{display:"flex", flexDirection:"column", gap:SP.xs}}>
-                {allSorted.slice(0, 30).map(([dk, w], idx) => {
-                  const prevW = idx < allSorted.length - 1 ? allSorted[idx + 1][1] : null;
-                  const diff = prevW !== null ? (w - prevW).toFixed(1) : null;
-                  const d = parseKey(dk);
-                  return (
-                    <button
-                      key={dk}
-                      onClick={() => setEditingWeight(d)}
-                      style={{
-                        display:"flex",
-                        alignItems:"center",
-                        justifyContent:"space-between",
-                        padding:`${SP.sm}px ${SP.md}px`,
-                        background: C.cardDim,
-                        border:"none",
-                        borderRadius:10,
-                        textAlign:"left",
-                        width:"100%"
-                      }}>
-                      <div style={{fontSize:13, color:C.text, fontWeight:500}}>
-                        {sameDay(d, new Date()) ? "Сегодня" : `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`}
-                      </div>
-                      <div style={{display:"flex", alignItems:"center", gap:SP.sm}}>
-                        {diff !== null && diff !== "0.0" && (
-                          <span style={{
-                            fontSize:11, fontWeight:600,
-                            color: parseFloat(diff) < 0 ? C.success : C.accentDark,
-                            fontVariantNumeric:"tabular-nums"
-                          }}>
-                            {parseFloat(diff) > 0 ? "+" : ""}{diff}
-                          </span>
-                        )}
-                        <div style={{fontSize:15, fontWeight:700, color:C.text, fontVariantNumeric:"tabular-nums"}}>
-                          {w} <span style={{fontSize:11, color:C.textDim, fontWeight:500}}>кг</span>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // ── STATS VIEW ──
-  if (view === "stats") {
-    const categoryCount = {};
-    allWorkouts.forEach(w => {
-      categoryCount[w.category] = (categoryCount[w.category] || 0) + 1;
-    });
-    const sortedCats = Object.entries(categoryCount).sort((a,b) => b[1] - a[1]);
-    const maxCat = sortedCats[0] ? sortedCats[0][1] : 1;
-
-    const last7 = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const k = dateKey(d);
-      last7.push({ date: d, count: (state.workouts[k] || []).length });
-    }
-    const max7 = Math.max(...last7.map(d => d.count), 1);
-
-    // Mood stats
-    const moodValues = Object.values(state.moods);
-    const avgMood = moodValues.length > 0
-      ? (moodValues.reduce((a,b) => a+b, 0) / moodValues.length).toFixed(1)
-      : null;
-    const moodCounts = { 1:0, 2:0, 3:0, 4:0, 5:0 };
-    moodValues.forEach(v => moodCounts[v] = (moodCounts[v] || 0) + 1);
-
-    return (
-      <div style={sc}>
-        <PageHeader
-          onBack={() => setView("home")}
-          center={<div style={{fontSize:16, fontWeight:700}}>Статистика</div>}
-        />
-
-        <div style={{padding:`${SP.md}px ${SP.lg}px 40px`}}>
-          {/* Top stats */}
-          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
-            <div style={{...S.card, padding:SP.lg, textAlign:"center"}}>
-              <div style={{fontSize:28, marginBottom:4}}>🔥</div>
-              <div style={{fontSize:28, fontWeight:800, color:C.accentDark, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{streak}</div>
-              <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:600, marginTop:6}}>
-                {streak === 1 ? "день подряд" : streak >= 2 && streak <= 4 ? "дня подряд" : "дней подряд"}
-              </div>
-            </div>
-            <div style={{...S.card, padding:SP.lg, textAlign:"center"}}>
-              <div style={{fontSize:28, marginBottom:4}}>🌸</div>
-              <div style={{fontSize:28, fontWeight:800, color:C.accentDark, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{totalCount}</div>
-              <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:600, marginTop:6}}>
-                всего тренировок
-              </div>
-            </div>
-          </div>
-
-          {/* Activity last 7 days */}
-          <div style={{...S.card, padding:SP.lg, marginBottom:SP.md}}>
-            <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
-              Последние 7 дней
-            </div>
-            <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:6, alignItems:"end", height:90}}>
-              {last7.map((d, i) => {
-                const h = d.count > 0 ? Math.max(20, (d.count / max7) * 80) : 6;
-                return (
-                  <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:4, height:"100%", justifyContent:"flex-end"}}>
-                    <div style={{fontSize:10, fontWeight:700, color: d.count > 0 ? C.accentDark : C.textSoft, fontVariantNumeric:"tabular-nums"}}>
-                      {d.count > 0 ? d.count : ""}
-                    </div>
-                    <div style={{width:"100%", height: h, background: d.count > 0 ? C.accent : C.borderSoft, borderRadius:6, transition:"all .3s"}}/>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:6, marginTop:8}}>
-              {last7.map((d, i) => {
-                const isToday = sameDay(d.date, new Date());
-                return (
-                  <div key={i} style={{textAlign:"center", fontSize:10, color: isToday ? C.accentDark : C.textDim, fontWeight: isToday ? 700 : 500}}>
-                    {DAYS_SHORT[d.date.getDay()]}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Mood stats */}
-          {avgMood && (
-            <div style={{...S.card, padding:SP.lg, marginBottom:SP.md}}>
-              <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:SP.md}}>
-                <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700}}>
-                  Настроение
-                </div>
-                <div style={{fontSize:13, color:C.textDim, fontVariantNumeric:"tabular-nums"}}>
-                  Среднее: <span style={{fontWeight:700, color:C.text}}>{avgMood}</span>
-                </div>
-              </div>
-              <div style={{display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:SP.sm}}>
-                {[1,2,3,4,5].map(v => {
-                  const count = moodCounts[v] || 0;
-                  const maxCount = Math.max(...Object.values(moodCounts));
-                  const h = maxCount > 0 ? Math.max(20, (count / maxCount) * 60) : 6;
-                  return (
-                    <div key={v} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:6}}>
-                      <div style={{fontSize:11, fontWeight:700, color: count > 0 ? C.accentDark : C.textSoft, fontVariantNumeric:"tabular-nums", height:14}}>
-                        {count > 0 ? count : ""}
-                      </div>
-                      <div style={{width:"100%", height: h, background: count > 0 ? C.accent : C.borderSoft, borderRadius:6}}/>
-                      <div style={{fontSize:18, lineHeight:1}}>{MOOD_LABELS[v].emoji}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Categories */}
-          {sortedCats.length > 0 && (
-            <div style={{...S.card, padding:SP.lg}}>
-              <div style={{fontSize:11, color:C.textDim, textTransform:"uppercase", letterSpacing:1.2, fontWeight:700, marginBottom:SP.md}}>
-                Типы тренировок
-              </div>
-              <div style={{display:"flex", flexDirection:"column", gap:SP.md}}>
-                {sortedCats.map(([catId, count]) => {
-                  const cat = CATEGORIES.find(c => c.id === catId) || { name: catId, emoji: "✨" };
-                  const pct = (count / maxCat) * 100;
-                  return (
-                    <div key={catId}>
-                      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
-                        <div style={{display:"flex", alignItems:"center", gap:8}}>
-                          <span style={{fontSize:18}}>{cat.emoji}</span>
-                          <span style={{fontSize:14, fontWeight:600, color:C.text}}>{cat.name}</span>
-                        </div>
-                        <span style={{fontSize:13, fontWeight:700, color:C.accentDark, fontVariantNumeric:"tabular-nums"}}>{count}</span>
-                      </div>
-                      <div style={{height:6, background:C.borderSoft, borderRadius:3, overflow:"hidden"}}>
-                        <div style={{height:"100%", width:`${pct}%`, background:C.accent, borderRadius:3, transition:"width .4s"}}/>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // ── HOME (CALENDAR) VIEW ──
-  const now = new Date();
-  const firstOfMonth = new Date(month.y, month.m, 1);
-  const daysInMonth = new Date(month.y, month.m + 1, 0).getDate();
-  const startOffset = (firstOfMonth.getDay() + 6) % 7;
-
-  const calendarCells = [];
-  for (let i = 0; i < startOffset; i++) calendarCells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) calendarCells.push(d);
-
-  const prevMonth = () => {
-    const nm = month.m === 0 ? 11 : month.m - 1;
-    const ny = month.m === 0 ? month.y - 1 : month.y;
-    setMonth({ y: ny, m: nm });
-  };
-  const nextMonth = () => {
-    const nm = month.m === 11 ? 0 : month.m + 1;
-    const ny = month.m === 11 ? month.y + 1 : month.y;
-    setMonth({ y: ny, m: nm });
-  };
-
-  const quote = getTodayQuote();
-
-  return (
-    <div style={sc}>
-      {/* HEADER */}
-      <div style={{padding:`${SP.lg}px ${SP.lg}px ${SP.md}px`, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:SP.md}}>
-        <div style={{flex:1, minWidth:0}}>
-          <div style={{fontSize:13, color:C.textDim, marginBottom:4, fontWeight:500}}>Привет, {state.name} 💗</div>
-          <h1 style={{fontSize:28, fontWeight:800, letterSpacing:-0.5, margin:0, lineHeight:1.15, color:C.text}}>
-            Дневник
-          </h1>
-        </div>
-        <button onClick={() => setView("stats")} style={S.iconButton}>
-          <Icon name="trending" size={18}/>
-        </button>
-      </div>
-
-      {/* MOTIVATION QUOTE */}
-      <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.md}}>
-        <div style={{
-          background:`linear-gradient(135deg, ${C.accentSoft}, ${C.borderSoft})`,
-          border:`1px solid ${C.borderSoft}`,
-          borderRadius:14,
-          padding:`${SP.md}px ${SP.lg}px`,
-          textAlign:"center"
-        }}>
-          <div style={{fontSize:14, color:C.text, fontWeight:600, lineHeight:1.4}}>
-            {quote}
-          </div>
-        </div>
-      </div>
-
-      {/* QUICK STATS ROW */}
-      <div style={{padding:`0 ${SP.lg}px`, display:"flex", gap:SP.sm, marginBottom:SP.md}}>
-        <div style={{...S.statCard, flex:1}}>
-          <div style={{fontSize:24, marginBottom:2, lineHeight:1}}>🔥</div>
-          <div>
-            <div style={{fontSize:22, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{streak}</div>
-            <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>подряд</div>
-          </div>
-        </div>
-        <div style={{...S.statCard, flex:1}}>
-          <div style={{fontSize:24, marginBottom:2, lineHeight:1}}>💪</div>
-          <div>
-            <div style={{fontSize:22, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{thisMonth}</div>
-            <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>в месяц</div>
-          </div>
-        </div>
-        <div style={{...S.statCard, flex:1}}>
-          <div style={{fontSize:24, marginBottom:2, lineHeight:1}}>🌸</div>
-          <div>
-            <div style={{fontSize:22, fontWeight:800, color:C.text, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>{totalCount}</div>
-            <div style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, fontWeight:600, marginTop:4}}>всего</div>
-          </div>
-        </div>
-      </div>
-
-      {/* TODAY CARD */}
-      <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.md}}>
-        <button
-          onClick={() => { setSelectedDate(new Date()); setView("day"); }}
-          style={{...S.todayCard, textAlign:"left"}}>
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:SP.md}}>
-            <div style={{flex:1, minWidth:0}}>
-              <div style={{fontSize:10, color:"rgba(255,255,255,0.75)", textTransform:"uppercase", letterSpacing:1.2, fontWeight:700}}>Сегодня</div>
-              <div style={{fontSize:22, fontWeight:700, marginTop:6, color:"#fff", lineHeight:1.15}}>
-                {todayWorkouts.length === 0 ? "Новый день" : todayWorkouts.length === 1 ? "1 тренировка" : `${todayWorkouts.length} тренировок`}
-              </div>
-              <div style={{fontSize:13, color:"rgba(255,255,255,0.85)", fontWeight:500, marginTop:SP.sm, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap"}}>
-                {todayMood && <span>{MOOD_LABELS[todayMood].emoji} {MOOD_LABELS[todayMood].label}</span>}
-                {todayMood && todayWeight && <span style={{opacity:0.5}}>·</span>}
-                {todayWeight && <span>{todayWeight} кг</span>}
-                {!todayMood && !todayWeight && <span>Записать день →</span>}
-              </div>
-            </div>
-            <div style={{
-              width:56, height:56, borderRadius:28,
-              background:"rgba(255,255,255,0.25)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              flexShrink:0,
-              backdropFilter:"blur(10px)"
-            }}>
-              {todayWorkouts.length === 0 ? (
-                <Icon name="plus" size={24} color="#fff" stroke={2.5}/>
-              ) : (
-                <div style={{fontSize:22, fontWeight:800, color:"#fff"}}>{todayWorkouts.length}</div>
-              )}
-            </div>
-          </div>
-        </button>
-      </div>
-
-      {/* QUICK ACTIONS: Mood + Weight */}
-      <div style={{padding:`0 ${SP.lg}px`, display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
-        <button onClick={() => setEditingMood(new Date())} style={{...S.quickCard, textAlign:"left"}}>
-          <div style={{display:"flex", alignItems:"center", gap:SP.sm, marginBottom:6}}>
-            <span style={{fontSize:22}}>
-              {todayMood ? MOOD_LABELS[todayMood].emoji : "🙂"}
-            </span>
-            <span style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:700}}>
-              Настроение
-            </span>
-          </div>
-          <div style={{fontSize:14, fontWeight:700, color:C.text, lineHeight:1.2}}>
-            {todayMood ? MOOD_LABELS[todayMood].label : "Отметить"}
-          </div>
-        </button>
-
-        <button onClick={() => setView("weight")} style={{...S.quickCard, textAlign:"left"}}>
-          <div style={{display:"flex", alignItems:"center", gap:SP.sm, marginBottom:6}}>
-            <span style={{fontSize:22}}>⚖️</span>
-            <span style={{fontSize:10, color:C.textDim, textTransform:"uppercase", letterSpacing:1, fontWeight:700}}>
-              Вес
-            </span>
-          </div>
-          <div style={{fontSize:14, fontWeight:700, color:C.text, lineHeight:1.2, fontVariantNumeric:"tabular-nums"}}>
-            {todayWeight ? `${todayWeight} кг` : latestWeight ? `${latestWeight[1]} кг` : "Записать"}
-          </div>
-        </button>
-      </div>
-
-      {/* CALENDAR */}
-      <div style={{padding:`0 ${SP.lg}px`, marginBottom:SP.md}}>
-        <div style={{...S.card, padding:SP.lg}}>
-          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:SP.md}}>
-            <button onClick={prevMonth} style={{...S.iconButton, width:32, height:32, background:C.bg}}>
-              <Icon name="chevronL" size={16}/>
-            </button>
-            <div style={{fontSize:16, fontWeight:700, color:C.text, textAlign:"center"}}>
-              {MONTHS[month.m]} {month.y}
-            </div>
-            <button onClick={nextMonth} style={{...S.iconButton, width:32, height:32, background:C.bg}}>
-              <Icon name="chevronR" size={16}/>
-            </button>
-          </div>
-
-          <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4, marginBottom:6}}>
-            {["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map(d => (
-              <div key={d} style={{textAlign:"center", fontSize:10, color:C.textDim, fontWeight:600, textTransform:"uppercase", letterSpacing:0.5}}>
-                {d}
-              </div>
-            ))}
-          </div>
-
-          <div style={{display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:4}}>
-            {calendarCells.map((day, i) => {
-              if (day === null) return <div key={i}/>;
-              const d = new Date(month.y, month.m, day);
-              const dk = dateKey(d);
-              const workouts = state.workouts[dk] || [];
-              const count = workouts.length;
-              const isToday = sameDay(d, new Date());
-              const isFuture = d > now;
-              const weekday = d.getDay();
-              const isWeekend = weekday === 0 || weekday === 6;
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => { setSelectedDate(d); setView("day"); }}
-                  disabled={isFuture}
-                  style={{
-                    aspectRatio:"1/1",
-                    display:"flex",
-                    flexDirection:"column",
-                    alignItems:"center",
-                    justifyContent:"center",
-                    gap:2,
-                    background: count > 0 ? C.accent : (isToday ? C.accentSoft : "transparent"),
-                    border: `1.5px solid ${isToday ? C.accent : "transparent"}`,
-                    borderRadius:10,
-                    color: count > 0 ? "#fff" : (isFuture ? C.textSoft : (isWeekend ? C.textDim : C.text)),
-                    opacity: isFuture ? 0.4 : 1,
-                    cursor: isFuture ? "default" : "pointer",
-                    transition:"all .15s",
-                    padding:2
-                  }}>
-                  <div style={{fontSize:14, fontWeight: count > 0 || isToday ? 700 : 500, lineHeight:1, fontVariantNumeric:"tabular-nums"}}>
-                    {day}
-                  </div>
-                  {count > 0 && (
-                    <div style={{display:"flex", gap:2}}>
-                      {[...Array(Math.min(count, 3))].map((_, j) => (
-                        <div key={j} style={{width:4, height:4, borderRadius:2, background:"rgba(255,255,255,0.9)"}}/>
-                      ))}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* RESET */}
-      <button
-        onClick={() => { if(confirm("Удалить все данные?")) save({name:null, workouts:{}, moods:{}, weights:{}}); }}
-        style={{display:"block", margin:`${SP.sm}px auto 0`, background:"transparent", color:C.textSoft, padding:"10px 16px", fontSize:12, fontWeight:500}}>
-        Сбросить всё
-      </button>
-      <div style={{height:40}}/>
-    </div>
-  );
-}
-
-// ═══ WEIGHT CHART ═══════════════════════════════════════════════════════════
-function WeightChart({ data, height, minVal, maxVal }) {
-  const validPoints = data.map((d, i) => ({ ...d, idx: i })).filter(d => d.weight !== null);
-  if (validPoints.length < 2) {
-    return (
-      <div style={{height, display:"flex", alignItems:"center", justifyContent:"center", color:C.textDim, fontSize:13}}>
-        Нужно минимум 2 замера для графика
-      </div>
-    );
-  }
-
-  const width = 100; // percent-based
-  const range = maxVal - minVal || 1;
-  const xStep = width / (data.length - 1);
-
-  const getY = (w) => height - ((w - minVal) / range) * (height - 20) - 10;
-  const getX = (i) => i * xStep;
-
-  // Build smooth path
-  let path = "";
-  validPoints.forEach((p, i) => {
-    const x = getX(p.idx);
-    const y = getY(p.weight);
-    if (i === 0) path += `M ${x} ${y}`;
-    else {
-      const prev = validPoints[i - 1];
-      const prevX = getX(prev.idx);
-      const prevY = getY(prev.weight);
-      const cx1 = prevX + (x - prevX) / 2;
-      const cx2 = prevX + (x - prevX) / 2;
-      path += ` C ${cx1} ${prevY}, ${cx2} ${y}, ${x} ${y}`;
-    }
-  });
-
-  // Area path (fill under line)
-  const firstX = getX(validPoints[0].idx);
-  const lastX = getX(validPoints[validPoints.length-1].idx);
-  const areaPath = path + ` L ${lastX} ${height} L ${firstX} ${height} Z`;
-
-  return (
-    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" style={{width:"100%", height, display:"block", overflow:"visible"}}>
-      <defs>
-        <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={C.accent} stopOpacity="0.3"/>
-          <stop offset="100%" stopColor={C.accent} stopOpacity="0"/>
-        </linearGradient>
-      </defs>
-      <path d={areaPath} fill="url(#wg)"/>
-      <path d={path} fill="none" stroke={C.accent} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round"/>
-      {validPoints.map((p, i) => (
-        <circle key={i} cx={getX(p.idx)} cy={getY(p.weight)} r="0.8" fill={C.accent} vectorEffect="non-scaling-stroke"/>
-      ))}
-    </svg>
-  );
-}
-
-// ═══ WORKOUT CARD ═══════════════════════════════════════════════════════════
-function WorkoutCard({ workout, onClick, showDate }) {
-  const cat = CATEGORIES.find(c => c.id === workout.category) || { name: "Фитнес", emoji: "💪" };
-
-  return (
-    <button onClick={onClick} style={{
-      display:"flex",
-      alignItems:"center",
-      gap:SP.md,
-      background:C.card,
-      border:`1px solid ${C.borderSoft}`,
-      borderRadius:14,
-      padding:SP.md,
-      textAlign:"left",
-      width:"100%",
-      transition:"all .15s"
-    }}>
-      <div style={{
-        width:44, height:44,
-        borderRadius:12,
-        background:C.accentSoft,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        flexShrink:0,
-        fontSize:22
-      }}>
-        {cat.emoji}
-      </div>
-      <div style={{flex:1, minWidth:0}}>
-        <div style={{fontSize:15, fontWeight:700, color:C.text, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap"}}>
-          {workout.name || cat.name}
-        </div>
-        <div style={{fontSize:12, color:C.textDim, display:"flex", alignItems:"center", gap:6, flexWrap:"wrap"}}>
-          {showDate && (
-            <>
-              <span>{showDate.getDate()} {MONTHS_SHORT[showDate.getMonth()]}</span>
-              <span>·</span>
-            </>
-          )}
-          {workout.duration && <span>{workout.duration} мин</span>}
-          {workout.duration && workout.time && <span>·</span>}
-          {workout.time && <span>{workout.time}</span>}
-        </div>
-      </div>
-    </button>
-  );
-}
-
-// ═══ WORKOUT FORM ═══════════════════════════════════════════════════════════
-function WorkoutForm({ workout, date, onSave, onCancel, onDelete }) {
-  const [name, setName] = useState(workout.name || "");
-  const [category, setCategory] = useState(workout.category || "fitness");
-  const [duration, setDuration] = useState(workout.duration || "");
-  const [time, setTime] = useState(workout.time || "");
-  const [notes, setNotes] = useState(workout.notes || "");
-
-  const handleSave = () => {
-    const w = { ...workout };
-    if (workout.id) w.id = workout.id;
-    w.name = name.trim() || CATEGORIES.find(c => c.id === category).name;
-    w.category = category;
-    w.duration = duration;
-    w.time = time;
-    w.notes = notes.trim();
-    onSave(w);
-  };
-
-  return (
-    <div style={sc}>
-      <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
-        <button onClick={onCancel} style={S.iconButton}>
-          <Icon name="close" size={18}/>
-        </button>
-        <div style={{textAlign:"center", minWidth:0}}>
-          <div style={S.headLabel}>{workout.id ? "Редактировать" : "Новая тренировка"}</div>
-          <div style={S.headSub}>{date.getDate()} {MONTHS[date.getMonth()].toLowerCase()}</div>
-        </div>
-        <div/>
-      </div>
-
-      <div style={{padding:`${SP.md}px ${SP.lg}px ${SP.xl}px`}}>
-        <div style={{marginBottom:SP.md}}>
-          <label style={S.fieldLabel}>Тип тренировки</label>
-          <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:SP.sm}}>
-            {CATEGORIES.map(c => {
-              const selected = c.id === category;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setCategory(c.id)}
-                  style={{
-                    display:"flex",
-                    flexDirection:"column",
-                    alignItems:"center",
-                    justifyContent:"center",
-                    gap:8,
-                    paddingTop:18, paddingBottom:16,
-                    background: selected ? C.accent : C.card,
-                    border: `1.5px solid ${selected ? C.accent : C.border}`,
-                    borderRadius:14,
-                    color: selected ? "#fff" : C.text,
-                    transition:"all .15s"
-                  }}>
-                  <div style={{fontSize:32, lineHeight:1}}>{c.emoji}</div>
-                  <div style={{fontSize:13, fontWeight:700, lineHeight:1}}>{c.name}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div style={{marginBottom:SP.md}}>
-          <label style={S.fieldLabel}>Название (необязательно)</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder={CATEGORIES.find(c => c.id === category).name}
-            style={S.input}
-          />
-        </div>
-
-        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:SP.sm, marginBottom:SP.md}}>
-          <div>
-            <label style={S.fieldLabel}>Длительность</label>
-            <div style={{position:"relative"}}>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={duration}
-                onChange={e => setDuration(e.target.value)}
-                placeholder="60"
-                style={{...S.input, paddingRight:40}}
-              />
-              <span style={{position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", fontSize:12, color:C.textDim, fontWeight:500, pointerEvents:"none"}}>мин</span>
-            </div>
-          </div>
-          <div>
-            <label style={S.fieldLabel}>Время</label>
-            <input
-              type="time"
-              value={time}
-              onChange={e => setTime(e.target.value)}
-              style={S.input}
-            />
-          </div>
-        </div>
-
-        <div style={{marginBottom:SP.xl}}>
-          <label style={S.fieldLabel}>Заметка</label>
-          <textarea
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            placeholder="Что было, как себя чувствовала..."
-            rows={3}
-            style={{...S.input, minHeight:80, lineHeight:1.5, paddingTop:12}}
-          />
-        </div>
-
-        <button
-          onClick={handleSave}
-          style={{
-            width:"100%",
-            background:C.accent,
-            color:"#fff",
-            padding:"16px",
-            borderRadius:14,
-            fontSize:15,
-            fontWeight:700,
-            letterSpacing:0.3,
-            display:"flex",
-            alignItems:"center",
-            justifyContent:"center",
-            gap:8,
-            marginBottom:SP.sm,
-            boxShadow:`0 4px 14px ${C.accentSoft}`
-          }}>
-          <Icon name="check" size={18} color="#fff" stroke={2.5}/>
-          Сохранить
-        </button>
-
-        {onDelete && (
-          <button
-            onClick={() => { if(confirm("Удалить эту тренировку?")) onDelete(); }}
-            style={{
-              width:"100%",
-              background:"transparent",
-              color:C.textDim,
-              padding:"12px",
-              fontSize:13,
-              fontWeight:500,
-              display:"flex",
-              alignItems:"center",
-              justifyContent:"center",
-              gap:6
-            }}>
-            <Icon name="trash" size={14} color={C.textDim}/>
-            Удалить
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ═══ WEIGHT FORM ═══════════════════════════════════════════════════════════
-function WeightForm({ date, currentValue, onSave, onCancel, onDelete }) {
-  const [value, setValue] = useState(currentValue ? String(currentValue) : "");
-
-  const handleSave = () => {
-    const num = parseFloat(value);
-    if (!isNaN(num) && num > 0) onSave(num);
-  };
-
-  return (
-    <div style={sc}>
-      <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
-        <button onClick={onCancel} style={S.iconButton}>
-          <Icon name="close" size={18}/>
-        </button>
-        <div style={{textAlign:"center", minWidth:0}}>
-          <div style={S.headLabel}>Вес</div>
-          <div style={S.headSub}>{sameDay(date, new Date()) ? "Сегодня" : `${date.getDate()} ${MONTHS[date.getMonth()].toLowerCase()}`}</div>
-        </div>
-        <div/>
-      </div>
-
-      <div style={{padding:`${SP.xxl}px ${SP.lg}px ${SP.xl}px`, display:"flex", flexDirection:"column", alignItems:"center"}}>
-        <div style={{fontSize:48, marginBottom:SP.lg}}>⚖️</div>
-
-        <div style={{...S.card, width:"100%", padding:SP.xl, marginBottom:SP.md}}>
-          <label style={{...S.fieldLabel, textAlign:"center", marginBottom:SP.md}}>Сколько ты весишь?</label>
-          <div style={{display:"flex", alignItems:"baseline", justifyContent:"center", gap:SP.sm}}>
-            <input
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              value={value}
-              onChange={e => setValue(e.target.value)}
-              placeholder="58.5"
-              autoFocus
-              style={{
-                background:"transparent",
-                border:"none",
-                borderBottom:`2px solid ${C.border}`,
-                fontSize:48,
-                fontWeight:800,
-                color:C.text,
-                textAlign:"center",
-                width:180,
-                padding:"6px 0",
-                fontVariantNumeric:"tabular-nums",
-                outline:"none"
-              }}
-            />
-            <span style={{fontSize:18, color:C.textDim, fontWeight:600}}>кг</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleSave}
-          disabled={!value || parseFloat(value) <= 0}
-          style={{
-            width:"100%",
-            background: value && parseFloat(value) > 0 ? C.accent : C.borderSoft,
-            color: value && parseFloat(value) > 0 ? "#fff" : C.textSoft,
-            padding:"16px",
-            borderRadius:14,
-            fontSize:15,
-            fontWeight:700,
-            letterSpacing:0.3,
-            display:"flex",
-            alignItems:"center",
-            justifyContent:"center",
-            gap:8,
-            marginBottom:SP.sm,
-            boxShadow: value && parseFloat(value) > 0 ? `0 4px 14px ${C.accentSoft}` : "none",
-            transition:"all .2s"
-          }}>
-          <Icon name="check" size={18} color={value && parseFloat(value) > 0 ? "#fff" : C.textSoft} stroke={2.5}/>
-          Сохранить
-        </button>
-
-        {onDelete && (
-          <button
-            onClick={() => { if(confirm("Удалить запись?")) onDelete(); }}
-            style={{
-              width:"100%",
-              background:"transparent",
-              color:C.textDim,
-              padding:"12px",
-              fontSize:13,
-              fontWeight:500,
-              display:"flex",
-              alignItems:"center",
-              justifyContent:"center",
-              gap:6
-            }}>
-            <Icon name="trash" size={14} color={C.textDim}/>
-            Удалить
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ═══ MOOD FORM ═══════════════════════════════════════════════════════════
-function MoodForm({ date, currentValue, onSave, onCancel, onDelete }) {
-  const [value, setValue] = useState(currentValue || 3);
-  const label = MOOD_LABELS[value];
-
-  return (
-    <div style={sc}>
-      <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
-        <button onClick={onCancel} style={S.iconButton}>
-          <Icon name="close" size={18}/>
-        </button>
-        <div style={{textAlign:"center", minWidth:0}}>
-          <div style={S.headLabel}>Настроение</div>
-          <div style={S.headSub}>{sameDay(date, new Date()) ? "Сегодня" : `${date.getDate()} ${MONTHS[date.getMonth()].toLowerCase()}`}</div>
-        </div>
-        <div/>
-      </div>
-
-      <div style={{padding:`${SP.xxl}px ${SP.lg}px ${SP.xl}px`, display:"flex", flexDirection:"column", alignItems:"center"}}>
-        {/* Big emoji */}
-        <div style={{fontSize:96, lineHeight:1, marginBottom:SP.md, transition:"transform .2s", animation:"fadeIn .3s"}}>
-          {label.emoji}
-        </div>
-        <div style={{fontSize:24, fontWeight:700, color:C.text, marginBottom:SP.xxl}}>
-          {label.label}
-        </div>
-
-        {/* Slider */}
-        <div style={{...S.card, width:"100%", padding:SP.xl, marginBottom:SP.md}}>
-          <div style={{display:"flex", justifyContent:"space-between", marginBottom:SP.sm, fontSize:22, lineHeight:1}}>
-            {[1,2,3,4,5].map(v => (
-              <button
-                key={v}
-                onClick={() => setValue(v)}
-                style={{
-                  opacity: v === value ? 1 : 0.35,
-                  transform: v === value ? "scale(1.15)" : "scale(1)",
-                  transition:"all .2s",
-                  background:"none",
-                  padding:4
-                }}>
-                {MOOD_LABELS[v].emoji}
-              </button>
-            ))}
-          </div>
-          <input
-            type="range"
-            min="1"
-            max="5"
-            step="1"
-            value={value}
-            onChange={e => setValue(parseInt(e.target.value))}
-            style={{width:"100%", marginTop:SP.sm}}
-          />
-          <div style={{display:"flex", justifyContent:"space-between", marginTop:6, fontSize:10, color:C.textDim, fontWeight:600}}>
-            <span>Грустно</span>
-            <span>Супер</span>
-          </div>
-        </div>
-
-        <button
-          onClick={() => onSave(value)}
-          style={{
-            width:"100%",
-            background:C.accent,
-            color:"#fff",
-            padding:"16px",
-            borderRadius:14,
-            fontSize:15,
-            fontWeight:700,
-            letterSpacing:0.3,
-            display:"flex",
-            alignItems:"center",
-            justifyContent:"center",
-            gap:8,
-            marginBottom:SP.sm,
-            boxShadow:`0 4px 14px ${C.accentSoft}`
-          }}>
-          <Icon name="check" size={18} color="#fff" stroke={2.5}/>
-          Сохранить
-        </button>
-
-        {onDelete && (
-          <button
-            onClick={() => { if(confirm("Удалить запись?")) onDelete(); }}
-            style={{
-              width:"100%",
-              background:"transparent",
-              color:C.textDim,
-              padding:"12px",
-              fontSize:13,
-              fontWeight:500,
-              display:"flex",
-              alignItems:"center",
-              justifyContent:"center",
-              gap:6
-            }}>
-            <Icon name="trash" size={14} color={C.textDim}/>
-            Удалить
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ═══ PAGE HEADER ═══════════════════════════════════════════════════════════
-function PageHeader({ onBack, center }) {
-  return (
-    <div style={{display:"grid", gridTemplateColumns:"36px 1fr 36px", alignItems:"center", padding:`${SP.md}px ${SP.lg}px`, gap:SP.md, background:C.bg, position:"sticky", top:0, zIndex:10}}>
-      <button onClick={onBack} style={S.iconButton}>
-        <Icon name="back" size={18}/>
-      </button>
-      <div style={{textAlign:"center", minWidth:0}}>{center}</div>
-      <div/>
-    </div>
-  );
-}
-
-// ═══ START SCREEN ═══════════════════════════════════════════════════════════
-function StartScreen({ onStart }) {
-  const [name, setName] = useState("");
-
-  return (
-    <div style={{
-      minHeight:"100vh",
-      background:C.bg,
-      display:"flex",
-      flexDirection:"column",
-      alignItems:"center",
-      justifyContent:"center",
-      padding:`${SP.xxxl}px ${SP.xxl}px`,
-      boxSizing:"border-box"
-    }}>
-      <div style={{textAlign:"center", marginBottom:SP.xxxl}}>
-        <div style={{
-          width:80, height:80, margin:"0 auto",
-          borderRadius:24,
-          background:`linear-gradient(135deg, ${C.accent}, ${C.accentDark})`,
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:42,
-          boxShadow:`0 8px 24px ${C.accentSoft}`
-        }}>
-          🌸
-        </div>
-        <h1 style={{fontSize:34, fontWeight:800, letterSpacing:-0.5, margin:`${SP.lg}px 0 ${SP.xs}px`, color:C.text, lineHeight:1.1}}>
-          BLOOM
-        </h1>
-        <p style={{fontSize:14, color:C.textDim, margin:0, fontWeight:500}}>
-          Твой дневник здоровья 💗
-        </p>
-      </div>
-
-      <div style={{
-        width:"100%", maxWidth:320,
-        background:C.card,
-        border:`1px solid ${C.border}`,
-        borderRadius:18,
-        padding:SP.xl
-      }}>
-        <label style={{
-          display:"block",
-          fontSize:11, color:C.textDim, fontWeight:600,
-          textTransform:"uppercase", letterSpacing:1,
-          marginBottom:SP.sm
-        }}>
-          Как тебя зовут?
-        </label>
-        <input
-          type="text"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Имя"
-          style={{
-            width:"100%",
-            background:C.bg,
-            border:`1px solid ${C.border}`,
-            color:C.text,
-            padding:`14px ${SP.md}px`,
-            borderRadius:12,
-            fontSize:15,
-            fontWeight:500,
-            textAlign:"center",
-            marginBottom:SP.md
-          }}
-        />
-        <button
-          onClick={() => { if (name.trim()) onStart(name.trim()); }}
-          disabled={!name.trim()}
-          style={{
-            width:"100%",
-            background: name.trim() ? C.accent : C.borderSoft,
-            color: name.trim() ? "#fff" : C.textSoft,
-            padding:"15px",
-            borderRadius:12,
-            fontSize:15,
-            fontWeight:700,
-            letterSpacing:0.3,
-            display:"flex", alignItems:"center", justifyContent:"center", gap:6,
-            transition:"all .2s",
-            boxShadow: name.trim() ? `0 4px 14px ${C.accentSoft}` : "none"
-          }}>
-          Начать
-          <Icon name="chevronR" size={16} color={name.trim() ? "#fff" : C.textSoft} stroke={2.5}/>
-        </button>
-      </div>
-
-      <div style={{marginTop:SP.xxxl, textAlign:"center", fontSize:12, color:C.textSoft, lineHeight:2}}>
-        <div>Тренировки · Вес · Настроение</div>
-        <div>Прогресс сохраняется на устройстве</div>
-      </div>
-    </div>
-  );
-}
-
-// ═══ STYLES ═══════════════════════════════════════════════════════════
-const sc = {
-  maxWidth:480, margin:"0 auto",
-  background:C.bg, minHeight:"100vh",
-  color:C.text
-};
-
-const S = {
-  iconButton: {
-    width:36, height:36,
-    borderRadius:10,
-    background:C.card,
-    border:`1px solid ${C.border}`,
-    display:"flex", alignItems:"center", justifyContent:"center",
-    color:C.text,
-    flexShrink:0
-  },
-
-  headLabel: {
-    fontSize:10, color:C.textDim,
-    textTransform:"uppercase", letterSpacing:1.5, fontWeight:700
-  },
-
-  headSub: {
-    fontSize:14, color:C.text, marginTop:3, fontWeight:600
-  },
-
-  card: {
-    background:C.card,
-    border:`1px solid ${C.borderSoft}`,
-    borderRadius:18
-  },
-
-  miniCard: {
-    display:"flex",
-    flexDirection:"column",
-    gap:6,
-    background:C.card,
-    border:`1px solid ${C.borderSoft}`,
-    borderRadius:14,
-    padding:SP.md,
-    minHeight:90,
-    justifyContent:"center"
-  },
-
-  quickCard: {
-    background:C.card,
-    border:`1px solid ${C.borderSoft}`,
-    borderRadius:14,
-    padding:SP.md
-  },
-
-  statCard: {
-    background:C.card,
-    border:`1px solid ${C.borderSoft}`,
-    borderRadius:16,
-    padding:SP.md,
-    display:"flex",
-    flexDirection:"column",
-    justifyContent:"space-between",
-    gap:SP.sm,
-    minHeight:110
-  },
-
-  todayCard: {
-    width:"100%",
-    background: `linear-gradient(135deg, ${C.accent}, ${C.accentDark})`,
-    border:"none",
-    borderRadius:20,
-    padding:SP.xl,
-    color:"#fff",
-    boxShadow:`0 6px 20px ${C.accentSoft}`
-  },
-
-  fieldLabel: {
-    display:"block",
-    fontSize:11, color:C.textDim, fontWeight:600,
-    textTransform:"uppercase", letterSpacing:0.8,
-    marginBottom:SP.sm
-  },
-
-  input: {
-    width:"100%",
-    background:C.card,
-    border:`1.5px solid ${C.border}`,
-    color:C.text,
-    padding:`14px ${SP.md}px`,
-    borderRadius:12,
-    fontSize:15,
-    fontWeight:500,
-    outline:"none",
-    transition:"border-color .15s"
-  },
-};
-
-ReactDOM.render(<App/>, document.getElementById("root"));
-</script>
+<script src="data.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

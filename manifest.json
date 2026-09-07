@@ -1,15 +1,16 @@
 {
   "name": "BLOOM",
   "short_name": "BLOOM",
-  "description": "Дневник тренировок",
+  "description": "Лог тренировок: силовая, БЖЖ, бег, мобильность",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#F6EFEE",
-  "theme_color": "#F6EFEE",
+  "background_color": "#0D0F14",
+  "theme_color": "#0D0F14",
   "orientation": "portrait",
   "icons": [
     { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
   ]
 }
