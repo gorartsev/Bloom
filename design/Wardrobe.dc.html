@@ -17,7 +17,9 @@
     .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
     .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
     @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-    .bob { animation: bob 3.6s ease-in-out infinite; }
+    .bob { animation: bob 3.4s ease-in-out infinite; }
+    /* слои персонажа лежат на одной сетке 512x768 и просто кладутся друг на друга */
+    .lay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; }
   </style>
 </helmet>
 
@@ -26,58 +28,50 @@
   <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 0;">
     <div class="dsp" style="font-size: 28px;">Гардероб</div>
     <div style="background: #F4F4F8; border-radius: 999px; padding: 8px 14px;">
-      <span class="lbl" style="color: #6E6A68;">14 из 32</span>
+      <span class="lbl" style="color: #6E6A68;">{{owned}}</span>
     </div>
   </div>
 
-  <!-- примерочная: персонаж и надетое -->
-  <div style="position: relative; height: 228px; margin-top: 10px; display: flex; align-items: center; justify-content: center;">
-    <div style="position: absolute; width: 210px; height: 210px; border-radius: 105px; background: #8EFF8E;"></div>
-    <div class="bob" style="position: relative; width: 116px; height: 178px; border-radius: 16px; border: 2px dashed #3F8F3F; background: rgba(255,255,255,0.55); display: flex; align-items: center; justify-content: center; padding: 10px; text-align: center;">
-      <span class="lbl" style="color: #2C6B2C;">Примерка</span>
+  <!-- примерочная. Фон не мятный: мятное худи и мятные трусы на нём пропадают -->
+  <div style="position: relative; height: 232px; margin-top: 8px; display: flex; align-items: center; justify-content: center;">
+    <div style="position: absolute; width: 212px; height: 212px; border-radius: 106px; background: #E4E2F5;"></div>
+    <div class="bob" style="position: relative; width: 150px; height: 226px;">
+      <sc-for list="{{worn}}" as="w" hint-placeholder-count="2">
+        <img class="lay" src="{{w.src}}">
+      </sc-for>
     </div>
   </div>
 
-  <div style="display: flex; gap: 6px; padding: 8px 20px 0; justify-content: center;">
-    <sc-for list="{{worn}}" as="w" hint-placeholder-count="3">
-      <div class="tap" style="background: #F4F4F8; border-radius: 999px; padding: 14px;">
-        <span class="lbl" style="color: #6E6A68;">{{w.slot}}</span>
-        <span class="dsp" style="font-size: 12px; margin-left: 6px;">{{w.name}}</span>
-      </div>
-    </sc-for>
-  </div>
-
-  <!-- слоты -->
-  <div style="display: flex; gap: 6px; padding: 14px 20px 0;">
-    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
-      <div class="tap" onClick="{{t.pick}}" style="flex-grow: 1; text-align: center; background: {{t.bg}}; color: {{t.fg}}; border-radius: 999px; padding: 16px 0;">
-        <span class="lbl">{{t.name}}</span>
+  <!-- три слота: трусы это тело, образ надевается целиком, причёска сверху -->
+  <div style="display: flex; gap: 6px; padding: 8px 20px 0;">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+      <div class="tap" onClick="{{t.pick}}" style="flex-grow: 1; text-align: center; background: {{t.bg}}; color: {{t.fg}}; border-radius: 999px; padding: 14px 0;">
+        <div class="lbl">{{t.name}}</div>
+        <div style="font-size: 11px; font-weight: 600; margin-top: 2px; opacity: 0.75;">{{t.cur}}</div>
       </div>
     </sc-for>
   </div>
 
   <!-- сетка вещей -->
-  <div style="flex-grow: 1; min-height: 0; padding: 14px 20px 10px; overflow-y: auto;">
+  <div style="flex-grow: 1; min-height: 0; padding: 12px 20px 10px; overflow-y: auto;">
     <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
       <sc-for list="{{items}}" as="it" hint-placeholder-count="9">
-        <div class="tap" onClick="{{it.pick}}" style="background: {{it.bg}}; border-radius: 20px; padding: 10px; min-height: 104px; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid {{it.border}};">
-          <div style="height: 40px; display: flex; align-items: center; justify-content: center;">
-            <div style="width: 34px; height: 34px; border-radius: 10px; background: {{it.swatch}};"></div>
+        <div class="tap" onClick="{{it.pick}}" style="background: {{it.bg}}; border-radius: 20px; padding: 8px; border: 2px solid {{it.border}};">
+          <div style="height: 76px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <img src="{{it.thumb}}" style="height: {{it.thumbH}}; object-fit: contain; opacity: {{it.dim}};">
           </div>
-          <div>
-            <div class="dsp" style="font-size: 12px; line-height: 1.1; color: {{it.fg}};">{{it.name}}</div>
-            <div style="font-size: 10px; font-weight: 600; margin-top: 3px; color: {{it.subFg}}; line-height: 1.25;">{{it.cond}}</div>
-          </div>
+          <div class="dsp" style="font-size: 12px; line-height: 1.1; margin-top: 4px;">{{it.name}}</div>
+          <div style="font-size: 10px; font-weight: 600; margin-top: 3px; color: {{it.subFg}}; line-height: 1.25;">{{it.cond}}</div>
         </div>
       </sc-for>
     </div>
   </div>
 
   <!-- подпись выбранного и действие -->
-  <div style="background: #F4F4F8; border-radius: 26px 26px 0 0; padding: 16px 20px 20px;">
+  <div style="background: #F4F4F8; border-radius: 26px 26px 0 0; padding: 14px 20px 20px; flex-shrink: 0;">
     <div class="dsp" style="font-size: 16px;">{{selName}}</div>
     <div style="font-size: 12px; font-weight: 500; color: #6E6A68; margin-top: 5px; line-height: 1.4;">{{selDesc}}</div>
-    <div class="tap" style="background: {{ctaBg}}; color: {{ctaFg}}; border-radius: 999px; height: 54px; margin-top: 14px; display: flex; align-items: center; justify-content: center;">
+    <div class="tap" style="background: {{ctaBg}}; color: {{ctaFg}}; border-radius: 999px; height: 54px; margin-top: 12px; display: flex; align-items: center; justify-content: center;">
       <span class="dsp" style="font-size: 16px;">{{ctaText}}</span>
     </div>
   </div>
@@ -89,72 +83,92 @@
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { tab: 'top', sel: 'bandtee' };
+    this.state = { tab: 'outfit', body: 'leopard', outfit: 'bandtee', hair: 'curly', sel: 'bandtee' };
   }
 
   renderVals() {
+    // Одежда пришла нарисованной вместе с телом, разделить верх и низ нельзя.
+    // Поэтому слот не «верх/низ», а «образ целиком»; надетый образ скрывает трусы.
     const ALL = {
-      top: [
-        { id: 'naked', name: 'Голый торс', cond: 'Стартовый', swatch: '#F2C89C', locked: false, desc: 'То, с чего все начинают. Ничего постыдного.' },
-        { id: 'bandtee', name: 'Бэнд-ти', cond: 'Открыт', swatch: '#252323', locked: false, desc: 'Оверсайз с черепом. Первая вещь, которую выдают за десять записанных сессий.' },
-        { id: 'hoodie', name: 'Худи', cond: 'Открыт', swatch: '#8EFF8E', locked: false, desc: 'Мятное худи. За четыре недели без пропуска силовой.' },
-        { id: 'tank', name: 'Майка', cond: 'Открыт', swatch: '#FFFFFF', locked: false, desc: 'Белая рубчатая майка. За двадцать записанных подходов с запасом.' },
-        { id: 'rash', name: 'Рашгард', cond: 'Открыт', swatch: '#635BDF', locked: false, desc: 'Фиолетовый рашгард. За пять недель мата подряд.' },
-        { id: 'crew', name: 'Свитшот', cond: '6 из 8 недель', swatch: '#3A4A66', locked: true, desc: 'Восемь недель без пропуска больше одной силовой. Осталось две.' },
-        { id: 'gi', name: 'Ги', cond: 'Синий пояс', swatch: '#F0EDE4', locked: true, desc: 'Открывается вручную, в тот день, когда тебе повяжут синий.' },
-        { id: 'biker', name: 'Косуха', cond: 'Уровень 8', swatch: '#1A1A1F', locked: true, desc: 'Для жизни вне мата. Четыре уровня впереди.' },
-        { id: 'run', name: 'Беговая', cond: '100 км', swatch: '#FFE500', locked: true, desc: 'Сто километров за блок. Сейчас 78.' },
+      pants: [
+        { id: 'leopard', name: 'Леопард',  cond: 'Стартовые', desc: 'Леопард. Мы все здесь начинали.', locked: false },
+        { id: 'black',   name: 'Чёрные',   cond: 'Стартовые', desc: 'База. Ничего лишнего.', locked: false },
+        { id: 'white',   name: 'Белые',    cond: 'Стартовые', desc: 'База. Ничего лишнего.', locked: false },
+        { id: 'stripes', name: 'Полоска',  cond: 'Стартовые', desc: 'База. Ничего лишнего.', locked: false },
+        { id: 'mint',    name: 'Мятные',   cond: 'Стартовые', desc: 'База. Ничего лишнего.', locked: false },
+        { id: 'hearts',  name: 'Сердечки', cond: 'Открыты',   desc: 'Первая неделя без пропуска силовой.', locked: false },
+        { id: 'flames',  name: 'Огонь',    cond: 'Уровень 3', desc: 'Ждут на третьем уровне.', locked: true },
+        { id: 'banana',  name: 'Бананы',   cond: 'Уровень 5', desc: 'Ждут на пятом уровне.', locked: true },
       ],
-      bottom: [
-        { id: 'boxers', name: 'Семейники', cond: 'Стартовые', swatch: '#C97B4A', locked: false, desc: 'Леопард. Мы все здесь начинали.' },
-        { id: 'baggy', name: 'Бэгги', cond: 'Открыты', swatch: '#8FA8CC', locked: false, desc: 'Широкие светлые джинсы.' },
-        { id: 'cargo', name: 'Карго', cond: 'Открыты', swatch: '#4A5240', locked: false, desc: 'Оливковые шорты с карманами.' },
+      outfit: [
+        { id: 'none',    name: 'Без одежды', cond: 'Стартовый', desc: 'Как есть. Ничего постыдного.', locked: false },
+        { id: 'bandtee', name: 'Бэнд-ти',   cond: 'Открыт',     desc: 'Оверсайз с черепом плюс широкие джинсы. За десять записанных сессий.', locked: false },
+        { id: 'hoodie',  name: 'Худи',      cond: 'Открыт',     desc: 'Мятное худи и карго. Четыре недели без пропуска силовой.', locked: false },
+        { id: 'tank',    name: 'Майка',     cond: 'Открыт',     desc: 'Белая майка и шорты. За двадцать подходов, записанных с запасом.', locked: false },
+        { id: 'rash',    name: 'Рашгард',   cond: 'Открыт',     desc: 'Ноу-ги комплект. За пять недель мата подряд.', locked: false },
+        { id: 'crew',    name: 'Свитшот',   cond: '6 из 8 нед', desc: 'CIRCUS STUFF и рваные джинсы. Восемь недель блока целиком, осталось две.', locked: true },
+        { id: 'biker',   name: 'Косуха',    cond: 'Уровень 8',  desc: 'Косуха, белая футболка, чёрные джинсы. Четыре уровня впереди.', locked: true },
       ],
       hair: [
-        { id: 'bald', name: 'Лысый', cond: 'Стартовый', swatch: '#F2C89C', locked: false, desc: 'База. Причёска надевается поверх.' },
-        { id: 'mohawk', name: 'Ирокез', cond: 'Открыт', swatch: '#FF6A3D', locked: false, desc: 'Оранжевый ирокез.' },
-        { id: 'cap', name: 'Кепка', cond: 'Уровень 6', swatch: '#252323', locked: true, desc: 'Снепбек задом наперёд.' },
-      ],
-      pants: [
-        { id: 'leopard', name: 'Леопард', cond: 'Стартовые', swatch: '#C97B4A', locked: false, desc: 'Классика жанра.' },
-        { id: 'hearts', name: 'Сердечки', cond: 'Открыты', swatch: '#FF6B8A', locked: false, desc: 'Выдаются за первую неделю без пропуска.' },
-        { id: 'banana', name: 'Бананы', cond: 'Уровень 5', swatch: '#FFE500', locked: true, desc: 'Ждут на пятом уровне.' },
+        { id: 'bald',      name: 'Лысый',      cond: 'Стартовый', desc: 'База. Причёска надевается поверх.', locked: false },
+        { id: 'buzz',      name: 'Короткие',   cond: 'Стартовые', desc: 'Ёжик. Ничего не мешает на мате.', locked: false },
+        { id: 'curly',     name: 'Кудри',      cond: 'Открыты',   desc: 'Тёмные кудри. За вторую неделю подряд.', locked: false },
+        { id: 'mohawk',    name: 'Ирокез',     cond: 'Открыт',    desc: 'Оранжевый ирокез. Четвёртый уровень.', locked: false },
+        { id: 'blond',     name: 'Блонд',      cond: 'Уровень 6', desc: 'Осветлённый лохматый. Два уровня впереди.', locked: true },
+        { id: 'braids',    name: 'Брейды',     cond: '10 нед мата', desc: 'Косички. Десять недель мата без пропуска.', locked: true },
+        { id: 'long',      name: 'Длинные',    cond: 'Уровень 7', desc: 'Прямые длинные.', locked: true },
+        { id: 'longcurly', name: 'Длин. кудри', cond: 'Уровень 9', desc: 'Длинные кудрявые.', locked: true },
       ],
     };
+    const SLOT_OF = { pants: 'body', outfit: 'outfit', hair: 'hair' };
 
-    const list = ALL[this.state.tab] || ALL.top;
+    const list = ALL[this.state.tab];
     const sel = Object.values(ALL).flat().find((i) => i.id === this.state.sel) || list[0];
+    const unlocked = Object.values(ALL).flat().filter((i) => !i.locked).length;
+    const total = Object.values(ALL).flat().length;
+
+    // видно ровно то, что надето: образ перекрывает трусы, причёска ложится сверху
+    const worn = [];
+    if (this.state.outfit === 'none') worn.push({ src: `l-${this.state.body}.png` });
+    else worn.push({ src: `l-${this.state.outfit}.png` });
+    if (this.state.hair !== 'bald') worn.push({ src: `l-${this.state.hair}.png` });
+
+    const curName = (k) => (ALL[k].find((i) => i.id === this.state[SLOT_OF[k]]) || ALL[k][0]).name;
 
     return {
-      worn: [
-        { slot: 'Верх', name: 'Голый' },
-        { slot: 'Низ', name: 'Семейники' },
-        { slot: 'Башка', name: 'Лысый' },
-      ],
+      owned: `${unlocked} из ${total}`,
+      worn,
       tabs: [
-        { id: 'top', name: 'Верх' },
-        { id: 'bottom', name: 'Низ' },
-        { id: 'hair', name: 'Башка' },
-        { id: 'pants', name: 'Трусы' },
+        { id: 'pants',  name: 'Трусы' },
+        { id: 'outfit', name: 'Образ' },
+        { id: 'hair',   name: 'Причёска' },
       ].map((t) => ({
         name: t.name,
+        cur: curName(t.id),
         bg: this.state.tab === t.id ? '#252323' : '#F4F4F8',
         fg: this.state.tab === t.id ? '#FFFFFF' : '#6E6A68',
         pick: () => this.setState({ tab: t.id }),
       })),
-      items: list.map((i) => ({
-        name: i.name,
-        cond: i.cond,
-        swatch: i.locked ? '#DCDCE4' : i.swatch,
-        bg: i.locked ? '#FAFAFC' : (i.id === this.state.sel ? '#8EFF8E' : '#F4F4F8'),
-        border: i.id === this.state.sel ? '#252323' : 'transparent',
-        fg: i.locked ? '#6E6A68' : '#252323',
-        subFg: i.id === this.state.sel && !i.locked ? '#2C4A2C' : '#6E6A68',
-        pick: () => this.setState({ sel: i.id }),
-      })),
+      items: list.map((i) => {
+        const on = i.id === this.state[SLOT_OF[this.state.tab]];
+        const isHair = this.state.tab === 'hair';
+        return {
+          name: i.name,
+          cond: i.cond,
+          thumb: i.id === 'none' ? `t-${this.state.body}.png` : (isHair ? (i.id === 'bald' ? `t-${this.state.body}.png` : `h-${i.id}.png`) : `t-${i.id}.png`),
+          thumbH: isHair && i.id !== 'bald' ? '58px' : '74px',
+          dim: i.locked ? '0.34' : '1',
+          bg: on ? '#8EFF8E' : (i.locked ? '#FAFAFC' : '#F4F4F8'),
+          border: on ? '#252323' : 'transparent',
+          subFg: on ? '#2C4A2C' : '#6E6A68',
+          pick: () => this.setState(i.locked
+            ? { sel: i.id }
+            : { sel: i.id, [SLOT_OF[this.state.tab]]: i.id }),
+        };
+      }),
       selName: sel.name,
       selDesc: sel.desc,
-      ctaText: sel.locked ? 'Ещё закрыто' : 'Надеть',
+      ctaText: sel.locked ? 'Ещё закрыто' : 'Надето',
       ctaBg: sel.locked ? '#E4E4EE' : '#252323',
       ctaFg: sel.locked ? '#6E6A68' : '#8EFF8E',
     };

@@ -21,6 +21,7 @@
     .bar { animation: grow 800ms cubic-bezier(.2,.8,.2,1) both; }
     @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
     .bob { animation: bob 3.6s ease-in-out infinite; }
+    .lay { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; }
   </style>
 </helmet>
 
@@ -38,10 +39,11 @@
 
   <!-- сцена: мятный круг, персонаж парит -->
   <div style="position: relative; height: 322px; margin-top: 6px; display: flex; align-items: center; justify-content: center;">
-    <div style="position: absolute; width: 292px; height: 292px; border-radius: 146px; background: #8EFF8E;"></div>
-    <div class="bob" style="position: relative; width: 152px; height: 236px; border-radius: 20px; border: 2px dashed #3F8F3F; background: rgba(255,255,255,0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 14px; text-align: center;">
-      <span class="lbl" style="color: #2C6B2C;">Место под арт</span>
-      <span style="font-size: 11px; font-weight: 600; color: #2C6B2C; line-height: 1.35;">Персонаж в трусах, PNG из ChatGPT по PROMPTS.md</span>
+    <div style="position: absolute; width: 292px; height: 292px; border-radius: 146px; background: #E4E2F5;"></div>
+    <div class="bob" style="position: relative; width: 168px; height: 252px;">
+      <sc-for list="{{worn}}" as="w" hint-placeholder-count="2">
+        <img class="lay" src="{{w.src}}">
+      </sc-for>
     </div>
     <div style="position: absolute; right: 22px; bottom: 8px; background: #635BDF; color: #FFFFFF; border-radius: 999px; padding: 9px 15px; transform: rotate(-4deg);">
       <span class="lbl">Белый пояс</span>
@@ -52,7 +54,7 @@
   <div style="padding: 6px 20px 0;">
     <div style="display: flex; gap: 6px;">
       <sc-for list="{{slots}}" as="s" hint-placeholder-count="3">
-        <div class="tap" onClick="{{s.pick}}" style="flex-grow: 1; background: {{s.bg}}; color: {{s.fg}}; border-radius: 18px; padding: 11px 8px; text-align: center;">
+        <div class="tap" onClick="{{s.pick}}" style="flex-grow: 1; background: {{s.bg}}; color: {{s.fg}}; border-radius: 18px; padding: 9px 8px 10px; text-align: center;">
           <div class="lbl" style="color: {{s.subFg}};">{{s.slot}}</div>
           <div class="dsp" style="font-size: 13px; margin-top: 3px;">{{s.name}}</div>
         </div>
@@ -109,25 +111,33 @@
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { top: 0, bottom: 0, hair: 0 };
+    this.state = { pants: 0, outfit: 1, hair: 1 };
   }
 
   renderVals() {
+    // три слота под то, что реально нарисовано: одежда пришла цельными
+    // образами вместе с телом, поэтому верх и низ отдельно не переключить
     const SETS = {
-      top: ['Голый', 'Бэнд-ти', 'Худи', 'Майка'],
-      bottom: ['Семейники', 'Бэгги', 'Карго', 'Шорты'],
-      hair: ['Лысый', 'Ирокез', 'Кудри', 'Кепка'],
+      pants:  [['leopard', 'Леопард'], ['mint', 'Мятные'], ['hearts', 'Сердечки'], ['black', 'Чёрные']],
+      outfit: [['none', 'Без одежды'], ['bandtee', 'Бэнд-ти'], ['hoodie', 'Худи'], ['rash', 'Рашгард']],
+      hair:   [['bald', 'Лысый'], ['curly', 'Кудри'], ['mohawk', 'Ирокез'], ['braids', 'Брейды']],
     };
     const slot = (key, label) => ({
       slot: label,
-      name: SETS[key][this.state[key]],
+      name: SETS[key][this.state[key]][1],
       bg: this.state[key] === 0 ? '#F4F4F8' : '#9F9FED',
       fg: '#252323',
-      subFg: this.state[key] === 0 ? '#6E6A68' : '#3A3670',
+      subFg: this.state[key] === 0 ? '#6E6A68' : '#332F63',
       pick: () => this.setState({ [key]: (this.state[key] + 1) % SETS[key].length }),
     });
+    const pick = (k) => SETS[k][this.state[k]][0];
+    const worn = [];
+    worn.push({ src: pick('outfit') === 'none' ? `l-${pick('pants')}.png` : `l-${pick('outfit')}.png` });
+    if (pick('hair') !== 'bald') worn.push({ src: `l-${pick('hair')}.png` });
+
     return {
-      slots: [slot('top', 'Верх'), slot('bottom', 'Низ'), slot('hair', 'Башка')],
+      worn,
+      slots: [slot('pants', 'Трусы'), slot('outfit', 'Образ'), slot('hair', 'Причёска')],
       attrs: [
         { name: 'Сила', val: 12, pct: '60%', color: '#8EFF8E' },
         { name: 'Выносливость', val: 15, pct: '75%', color: '#635BDF' },
