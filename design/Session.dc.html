@@ -7,97 +7,110 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800;900&family=Archivo:wght@500;600;700&display=swap">
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
-    a { color: #FF4D26; } a:hover { color: #16151A; }
-    .dsp { font-family: Oswald, Haettenschweiler, Impact, sans-serif; font-weight: 700; }
+    a { color: #B6FF3D; } a:hover { color: #FFFFFF; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 900; letter-spacing: -0.03em; }
     .ui  { font-family: Archivo, system-ui, sans-serif; }
-    .lbl { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; }
     .num { font-variant-numeric: tabular-nums; }
-    .step { transition: background-color 140ms ease; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+    .live { animation: pulse 1.8s ease-in-out infinite; }
+    .tap { transition: transform 120ms ease, background-color 120ms ease; }
   </style>
 </helmet>
 
-<div class="ui" style="width: 390px; height: 844px; background: #F5F2EA; color: #16151A; display: flex; flex-direction: column; overflow: hidden;">
+<div class="ui" style="width: 390px; height: 844px; background: #0D0D0D; color: #FFFFFF; display: flex; flex-direction: column; overflow: hidden;">
 
-  <!-- контекст сессии, тихо -->
-  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0;">
-    <div class="lbl" style="color: #8A8579;">Упражнение 2 из 4 · 34 мин</div>
-    <div class="lbl" style="color: #FF4D26;">Готово</div>
-  </div>
-
-  <!-- что делаем прямо сейчас -->
-  <div style="padding: 16px 24px 0;">
-    <div class="dsp" style="font-size: 34px; line-height: 1; letter-spacing: -0.3px;">Жим гантелей</div>
-    <div style="font-size: 14px; color: #8A8579; margin-top: 8px;">Цель 3 × 8 · прошлый раз 22 кг × 8, запас 2</div>
-    <div style="font-size: 14px; margin-top: 12px; line-height: 1.45;">
-      Локти под 45 градусов, не разводить в стороны.
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 0;">
+    <span class="lbl" style="color: #7A7A7A;">2 из 4 · 34 мин</span>
+    <div style="background: #B6FF3D; color: #0D0D0D; padding: 6px 12px;">
+      <span class="lbl">Готово</span>
     </div>
   </div>
 
-  <!-- уже записано: тихая строка, не карточки -->
-  <div style="padding: 20px 24px 0; display: flex; gap: 20px;">
+  <div style="padding: 14px 20px 0;">
+    <div class="dsp" style="font-size: 34px; line-height: 0.95;">ЖИМ<br>ГАНТЕЛЕЙ</div>
+    <div style="font-size: 13px; color: #9A9A9A; margin-top: 10px;">Цель 3 × 8 · прошлый раз 22 × 8, запас 2</div>
+  </div>
+
+  <!-- уже записанное: цветные метки -->
+  <div style="display: flex; gap: 8px; padding: 16px 20px 0;">
     <sc-for list="{{done}}" as="d" hint-placeholder-count="2">
-      <div>
-        <div class="lbl" style="color: #8A8579;">Подход {{d.n}}</div>
-        <div class="num" style="font-size: 18px; font-weight: 600; margin-top: 2px;">{{d.txt}}</div>
+      <div style="background: #2B4CFF; padding: 8px 12px;">
+        <span class="num dsp" style="font-size: 15px;">{{d.txt}}</span>
       </div>
     </sc-for>
+    <div style="border: 2px dashed #3A3A3A; padding: 8px 12px; display: flex; align-items: center;">
+      <span class="lbl" style="color: #5A5A5A;">Подход 3</span>
+    </div>
   </div>
 
-  <!-- доминанта: ввод. Гигантские цифры, всё остальное молчит -->
-  <div style="background: #EDE9DC; margin-top: 20px; padding: 24px 24px 28px;">
-
+  <!-- доминанта: гигантские цифры на цвете -->
+  <div style="background: #FF3D00; margin-top: 18px; padding: 20px;">
     <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div class="step" onClick="{{decW}}" style="width: 68px; height: 68px; background: #16151A; color: #F5F2EA; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-        <div style="width: 22px; height: 3px; background: #F5F2EA;"></div>
+      <div class="tap" onClick="{{decW}}" style="width: 66px; height: 66px; background: #0D0D0D; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <div style="width: 24px; height: 4px; background: #FFFFFF;"></div>
       </div>
       <div style="text-align: center;">
-        <div class="dsp num" style="font-size: 64px; line-height: 0.9;">{{w}}</div>
-        <div class="lbl" style="color: #8A8579; margin-top: 2px;">кг</div>
+        <div class="dsp num live" style="font-size: 62px; line-height: 0.9; color: #FFFFFF;">{{w}}</div>
+        <div class="lbl" style="color: #0D0D0D;">кг</div>
       </div>
-      <div class="step" onClick="{{incW}}" style="width: 68px; height: 68px; background: #16151A; color: #F5F2EA; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;">
-        <div style="width: 22px; height: 3px; background: #F5F2EA;"></div>
-        <div style="width: 3px; height: 22px; background: #F5F2EA; position: absolute;"></div>
+      <div class="tap" onClick="{{incW}}" style="width: 66px; height: 66px; background: #0D0D0D; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;">
+        <div style="width: 24px; height: 4px; background: #FFFFFF;"></div>
+        <div style="width: 4px; height: 24px; background: #FFFFFF; position: absolute;"></div>
       </div>
     </div>
 
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
-      <div class="step" onClick="{{decR}}" style="width: 68px; height: 68px; background: #16151A; color: #F5F2EA; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-        <div style="width: 22px; height: 3px; background: #F5F2EA;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px;">
+      <div class="tap" onClick="{{decR}}" style="width: 66px; height: 66px; background: #0D0D0D; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <div style="width: 24px; height: 4px; background: #FFFFFF;"></div>
       </div>
       <div style="text-align: center;">
-        <div class="dsp num" style="font-size: 64px; line-height: 0.9;">{{r}}</div>
-        <div class="lbl" style="color: #8A8579; margin-top: 2px;">повторов</div>
+        <div class="dsp num" style="font-size: 62px; line-height: 0.9; color: #FFFFFF;">{{r}}</div>
+        <div class="lbl" style="color: #0D0D0D;">повторов</div>
       </div>
-      <div class="step" onClick="{{incR}}" style="width: 68px; height: 68px; background: #16151A; color: #F5F2EA; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;">
-        <div style="width: 22px; height: 3px; background: #F5F2EA;"></div>
-        <div style="width: 3px; height: 22px; background: #F5F2EA; position: absolute;"></div>
-      </div>
-    </div>
-
-    <div style="margin-top: 24px;">
-      <div class="lbl" style="color: #8A8579;">Сколько осталось в запасе</div>
-      <div style="display: flex; gap: 8px; margin-top: 10px;">
-        <sc-for list="{{rirs}}" as="x" hint-placeholder-count="5">
-          <div class="step" onClick="{{x.pick}}" style="flex-grow: 1; height: 52px; background: {{x.bg}}; color: {{x.fg}}; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-            <span class="num" style="font-size: 18px; font-weight: 600;">{{x.v}}</span>
-          </div>
-        </sc-for>
+      <div class="tap" onClick="{{incR}}" style="width: 66px; height: 66px; background: #0D0D0D; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;">
+        <div style="width: 24px; height: 4px; background: #FFFFFF;"></div>
+        <div style="width: 4px; height: 24px; background: #FFFFFF; position: absolute;"></div>
       </div>
     </div>
   </div>
 
-  <!-- одно действие, во всю ширину, ничего рядом -->
-  <div onClick="{{save}}" style="background: #FF4D26; height: 72px; margin-top: auto; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-    <span class="dsp" style="font-size: 20px; letter-spacing: 0.5px;">Записать подход</span>
+  <!-- RIR: цветная шкала, а не серые кнопки -->
+  <div style="padding: 18px 20px 0;">
+    <span class="lbl" style="color: #7A7A7A;">Сколько осталось в запасе</span>
+    <div style="display: flex; gap: 6px; margin-top: 10px;">
+      <sc-for list="{{rirs}}" as="x" hint-placeholder-count="5">
+        <div class="tap" onClick="{{x.pick}}" style="flex-grow: 1; height: 54px; background: {{x.bg}}; color: {{x.fg}}; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <span class="dsp num" style="font-size: 19px;">{{x.v}}</span>
+        </div>
+      </sc-for>
+    </div>
   </div>
 
-  <div style="background: #16151A; color: #F5F2EA; padding: 14px 24px 22px; display: flex; align-items: center; justify-content: space-between;">
-    <span class="lbl" style="opacity: 0.6;">Отдых</span>
-    <span class="dsp num" style="font-size: 20px;">1:30</span>
+  <!-- что дальше: заполняет низ и снимает вопрос «сколько ещё» -->
+  <div style="padding: 20px 20px 0; margin-top: auto;">
+    <span class="lbl" style="color: #7A7A7A;">Дальше</span>
+    <div style="display: flex; flex-direction: column; gap: 1px; margin-top: 10px;">
+      <sc-for list="{{next}}" as="n" hint-placeholder-count="2">
+        <div style="background: #1C1C1C; padding: 12px 14px; display: flex; align-items: baseline; justify-content: space-between;">
+          <span class="dsp" style="font-size: 14px; color: {{n.fg}};">{{n.name}}</span>
+          <span class="num" style="font-size: 13px; font-weight: 600; color: #7A7A7A;">{{n.sets}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div onClick="{{save}}" style="background: #B6FF3D; color: #0D0D0D; height: 76px; margin-top: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+    <span class="dsp" style="font-size: 22px;">ЗАПИСАТЬ</span>
+  </div>
+
+  <div style="background: #2B4CFF; padding: 14px 20px 22px; display: flex; align-items: center; justify-content: space-between;">
+    <span class="lbl">Отдых</span>
+    <span class="dsp num" style="font-size: 22px;">1:30</span>
   </div>
 
 </div>
@@ -112,6 +125,7 @@ class Component extends DCLogic {
 
   renderVals() {
     const bump = (k, d, min) => () => this.setState({ [k]: Math.max(min, this.state[k] + d) });
+    const HUES = ['#FF3D00', '#FF4FA3', '#B6FF3D', '#2B4CFF', '#FFE500'];
     return {
       w: this.state.w,
       r: this.state.r,
@@ -119,14 +133,15 @@ class Component extends DCLogic {
       decW: bump('w', -2, 0),
       incR: bump('r', 1, 1),
       decR: bump('r', -1, 1),
-      done: [
-        { n: 1, txt: '22 × 8' },
-        { n: 2, txt: '22 × 8' },
+      done: [{ txt: '22 × 8' }, { txt: '22 × 8' }],
+      next: [
+        { name: 'ТЯГА ГАНТЕЛИ', sets: '3 × 8 · 24', fg: '#FFFFFF' },
+        { name: 'ИЗОМЕТРИЯ ШЕИ', sets: '2 × 25 сек', fg: '#FFFFFF' },
       ],
       rirs: [0, 1, 2, 3, 4].map((v) => ({
         v: v === 4 ? '4+' : v,
-        bg: v === this.state.rir ? '#16151A' : '#F5F2EA',
-        fg: v === this.state.rir ? '#F5F2EA' : '#16151A',
+        bg: v === this.state.rir ? HUES[v] : '#1C1C1C',
+        fg: v === this.state.rir ? '#0D0D0D' : '#6A6A6A',
         pick: () => this.setState({ rir: v }),
       })),
       save: () => this.setState({ r: this.state.r }),

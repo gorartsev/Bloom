@@ -7,79 +7,78 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800;900&family=Archivo:wght@500;600;700&display=swap">
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
-    a { color: #FF4D26; } a:hover { color: #16151A; }
-    .dsp { font-family: Oswald, Haettenschweiler, Impact, sans-serif; font-weight: 700; }
+    a { color: #FFE500; } a:hover { color: #FFFFFF; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 900; letter-spacing: -0.03em; }
     .ui  { font-family: Archivo, system-ui, sans-serif; }
-    .lbl { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; }
     .num { font-variant-numeric: tabular-nums; }
+    @keyframes grow { from { width: 0; } to { width: var(--w); } }
+    .bar { animation: grow 900ms cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .flo { animation: float 3.4s ease-in-out infinite; }
   </style>
 </helmet>
 
-<div class="ui" style="width: 390px; height: 844px; background: #F5F2EA; color: #16151A; display: flex; flex-direction: column; overflow: hidden;">
+<div class="ui" style="width: 390px; height: 844px; background: #2B4CFF; color: #FFFFFF; display: flex; flex-direction: column; overflow: hidden;">
 
-  <div style="padding: 20px 24px 0; display: flex; align-items: baseline; justify-content: space-between;">
-    <div class="lbl" style="color: #8A8579;">Уровень 4 · блок 1</div>
-    <div class="lbl" style="color: #FF4D26;">Свеж</div>
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 0;">
+    <span class="lbl">Уровень 4 · блок 1</span>
+    <div style="background: #B6FF3D; color: #0D0D0D; padding: 6px 12px;"><span class="lbl">Свеж</span></div>
   </div>
 
-  <div style="padding: 10px 24px 0;">
-    <div class="dsp" style="font-size: 40px; line-height: 0.9;">Гора</div>
-    <div class="lbl" style="color: #8A8579; margin-top: 6px;">Белый пояс · ставишь сам</div>
-  </div>
-
-  <!-- доминанта: персонаж. Всё остальное на экране тише его -->
-  <div style="background: #EDE9DC; margin-top: 16px; height: 340px; display: flex; align-items: center; justify-content: center;">
-    <div style="width: 176px; height: 268px; border: 2px dashed #C4BEAE; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px; text-align: center;">
-      <div class="lbl" style="color: #A39D8D;">Место под арт</div>
-      <div style="font-size: 12px; color: #A39D8D; line-height: 1.4;">Прозрачный PNG, высота 512, генерится в ChatGPT по канону из PROMPTS.md</div>
+  <div style="padding: 10px 20px 0; display: flex; align-items: flex-end; justify-content: space-between;">
+    <div class="dsp" style="font-size: 56px; line-height: 0.86;">ГОРА</div>
+    <div style="background: #FFFFFF; color: #0D0D0D; padding: 5px 10px; transform: rotate(3deg); margin-bottom: 8px;">
+      <span class="lbl">Белый пояс</span>
     </div>
   </div>
 
-  <!-- опыт: линия, а не коробка -->
-  <div style="padding: 20px 24px 0;">
+  <!-- сцена персонажа: жёлтое пятно, персонаж парит -->
+  <div style="margin: 14px 0 0; height: 300px; background: #FFE500; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+    <div class="dsp" style="position: absolute; font-size: 190px; color: #0D0D0D; opacity: 0.08; line-height: 1;">04</div>
+    <div class="flo" style="width: 168px; height: 244px; border: 3px dashed #0D0D0D; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px; text-align: center; color: #0D0D0D; position: relative;">
+      <span class="lbl">Место под арт</span>
+      <span style="font-size: 12px; font-weight: 600; line-height: 1.35;">Прозрачный PNG из ChatGPT по канону из PROMPTS.md</span>
+    </div>
+  </div>
+
+  <!-- опыт: толстая цветная полоса -->
+  <div style="padding: 16px 20px 0;">
     <div style="display: flex; align-items: baseline; justify-content: space-between;">
-      <span class="lbl" style="color: #8A8579;">До пятого уровня</span>
-      <span class="num" style="font-size: 13px; font-weight: 600;">7 420 / 12 000</span>
+      <span class="lbl">До пятого уровня</span>
+      <span class="num dsp" style="font-size: 14px;">7 420 / 12 000</span>
     </div>
-    <div style="height: 4px; background: #E2DED2; margin-top: 10px;">
-      <div style="width: 62%; height: 4px; background: #FF4D26;"></div>
+    <div style="height: 14px; background: #1832B8; margin-top: 8px;">
+      <div class="bar" style="--w: 62%; width: 62%; height: 14px; background: #FFE500;"></div>
     </div>
   </div>
 
-  <!-- атрибуты: строки с барами, ничего не обведено -->
-  <div style="padding: 24px 24px 0;">
-    <div class="lbl" style="color: #8A8579;">Атрибуты</div>
-    <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 14px;">
-      <sc-for list="{{attrs}}" as="a" hint-placeholder-count="5">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <span style="font-size: 14px; font-weight: 500; width: 108px;">{{a.name}}</span>
-          <div style="flex-grow: 1; height: 6px; background: #E2DED2;">
-            <div style="width: {{a.pct}}; height: 6px; background: {{a.color}};"></div>
-          </div>
-          <span class="num" style="font-size: 15px; font-weight: 600; width: 22px; text-align: right;">{{a.val}}</span>
+  <!-- атрибуты: каждый своим цветом -->
+  <div style="padding: 18px 20px 0; display: flex; flex-direction: column; gap: 11px;">
+    <sc-for list="{{attrs}}" as="a" hint-placeholder-count="5">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="lbl" style="width: 96px;">{{a.name}}</span>
+        <div style="flex-grow: 1; height: 10px; background: #1832B8;">
+          <div class="bar" style="--w: {{a.pct}}; width: {{a.pct}}; height: 10px; background: {{a.color}};"></div>
         </div>
-      </sc-for>
-    </div>
-    <div style="font-size: 13px; color: #8A8579; margin-top: 16px; line-height: 1.45;">
-      Подвижность отстаёт от выносливости на девять. Тренер добавит её в дни бега.
-    </div>
+        <span class="dsp num" style="font-size: 16px; width: 24px; text-align: right;">{{a.val}}</span>
+      </div>
+    </sc-for>
   </div>
 
-  <div style="padding: 20px 24px 0;">
-    <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-top: 1px solid #E2DED2;">
-      <span style="font-size: 15px; font-weight: 500;">Гардероб</span>
-      <span style="font-size: 13px; color: #8A8579;">14 вещей</span>
-    </div>
+  <div style="background: #FF4FA3; color: #0D0D0D; margin-top: auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;">
+    <span class="dsp" style="font-size: 17px;">ГАРДЕРОБ</span>
+    <span class="lbl">14 вещей →</span>
   </div>
 
-  <div style="margin-top: auto; border-top: 1px solid #E2DED2; display: flex;">
+  <div style="background: #0D0D0D; display: flex;">
     <sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
-      <div style="flex-grow: 1; text-align: center; padding: 16px 0 22px;">
-        <span class="lbl" style="color: {{n.color}};">{{n.name}}</span>
+      <div style="flex-grow: 1; text-align: center; padding: 15px 0 22px; background: {{n.bg}};">
+        <span class="lbl" style="color: {{n.fg}};">{{n.name}}</span>
       </div>
     </sc-for>
   </div>
@@ -92,17 +91,17 @@ class Component extends DCLogic {
   renderVals() {
     return {
       attrs: [
-        { name: 'Сила', val: 12, pct: '60%', color: '#FF4D26' },
-        { name: 'Выносливость', val: 15, pct: '75%', color: '#2E7D4F' },
-        { name: 'Подвижность', val: 6, pct: '30%', color: '#7B52C4' },
-        { name: 'Стойкость', val: 9, pct: '45%', color: '#2F5FD0' },
-        { name: 'Воля', val: 11, pct: '55%', color: '#C99A2E' },
+        { name: 'Сила', val: 12, pct: '60%', color: '#FF3D00' },
+        { name: 'Вынос', val: 15, pct: '75%', color: '#B6FF3D' },
+        { name: 'Подвиж', val: 6, pct: '30%', color: '#FF4FA3' },
+        { name: 'Стойк', val: 9, pct: '45%', color: '#FFE500' },
+        { name: 'Воля', val: 11, pct: '55%', color: '#FFFFFF' },
       ],
       nav: [
-        { name: 'Сегодня', color: '#8A8579' },
-        { name: 'Герой', color: '#16151A' },
-        { name: 'Прогресс', color: '#8A8579' },
-        { name: 'Профиль', color: '#8A8579' },
+        { name: 'Сегодня', bg: '#0D0D0D', fg: '#7A7A7A' },
+        { name: 'Герой',   bg: '#FFE500', fg: '#0D0D0D' },
+        { name: 'Прогресс',bg: '#0D0D0D', fg: '#7A7A7A' },
+        { name: 'Профиль', bg: '#0D0D0D', fg: '#7A7A7A' },
       ],
     };
   }
