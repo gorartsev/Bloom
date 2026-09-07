@@ -1,0 +1,162 @@
+{
+  "grid": {
+    "w": 512,
+    "h": 768,
+    "headTop": 26,
+    "headW": 202,
+    "figureH": 716
+  },
+  "note": "Все слои на одном холсте 512x768 и уже спозиционированы: рисуются друг поверх друга без вычислений. Порядок: body или outfit, затем hair.",
+  "body": [
+    {
+      "id": "leopard",
+      "name": "Леопард",
+      "unlock": "start",
+      "desc": "Стартовые. Мы все здесь начинали.",
+      "file": "body/leopard.png"
+    },
+    {
+      "id": "black",
+      "name": "Чёрные",
+      "unlock": "start",
+      "desc": "База. Ничего лишнего.",
+      "file": "body/black.png"
+    },
+    {
+      "id": "white",
+      "name": "Белые",
+      "unlock": "start",
+      "desc": "База. Ничего лишнего.",
+      "file": "body/white.png"
+    },
+    {
+      "id": "hearts",
+      "name": "Сердечки",
+      "unlock": "week1",
+      "desc": "Первая неделя без пропуска силовой.",
+      "file": "body/hearts.png"
+    },
+    {
+      "id": "stripes",
+      "name": "Полоска",
+      "unlock": "start",
+      "desc": "База. Ничего лишнего.",
+      "file": "body/stripes.png"
+    },
+    {
+      "id": "flames",
+      "name": "Огонь",
+      "unlock": "lvl3",
+      "desc": "Третий уровень.",
+      "file": "body/flames.png"
+    },
+    {
+      "id": "banana",
+      "name": "Бананы",
+      "unlock": "lvl5",
+      "desc": "Пятый уровень.",
+      "file": "body/banana.png"
+    },
+    {
+      "id": "mint",
+      "name": "Мятные",
+      "unlock": "start",
+      "desc": "База. Ничего лишнего.",
+      "file": "body/mint.png"
+    }
+  ],
+  "outfit": [
+    {
+      "id": "bandtee",
+      "name": "Бэнд-ти",
+      "unlock": "sets10",
+      "desc": "Оверсайз с черепом плюс широкие джинсы. За десять записанных сессий.",
+      "file": "outfit/bandtee.png"
+    },
+    {
+      "id": "hoodie",
+      "name": "Худи",
+      "unlock": "weeks4",
+      "desc": "Мятное худи и карго. Четыре недели без пропуска силовой.",
+      "file": "outfit/hoodie.png"
+    },
+    {
+      "id": "tank",
+      "name": "Майка",
+      "unlock": "rir20",
+      "desc": "Белая майка и шорты. За двадцать подходов, записанных с запасом.",
+      "file": "outfit/tank.png"
+    },
+    {
+      "id": "crew",
+      "name": "Свитшот",
+      "unlock": "weeks8",
+      "desc": "CIRCUS STUFF и рваные джинсы. Восемь недель блока целиком.",
+      "file": "outfit/crew.png"
+    },
+    {
+      "id": "rash",
+      "name": "Рашгард",
+      "unlock": "mat5",
+      "desc": "Ноу-ги комплект. За пять недель мата подряд.",
+      "file": "outfit/rash.png"
+    },
+    {
+      "id": "biker",
+      "name": "Косуха",
+      "unlock": "lvl8",
+      "desc": "Косуха, белая футболка, чёрные джинсы. Восьмой уровень.",
+      "file": "outfit/biker.png"
+    }
+  ],
+  "hair": [
+    {
+      "id": "bald",
+      "name": "Лысый",
+      "unlock": "start",
+      "file": null
+    },
+    {
+      "id": "buzz",
+      "name": "Короткие",
+      "unlock": "start",
+      "file": "hair/buzz.png"
+    },
+    {
+      "id": "curly",
+      "name": "Кудри",
+      "unlock": "week2",
+      "file": "hair/curly.png"
+    },
+    {
+      "id": "mohawk",
+      "name": "Ирокез",
+      "unlock": "lvl4",
+      "file": "hair/mohawk.png"
+    },
+    {
+      "id": "blond",
+      "name": "Блонд",
+      "unlock": "lvl6",
+      "file": "hair/blond.png"
+    },
+    {
+      "id": "braids",
+      "name": "Брейды",
+      "unlock": "mat10",
+      "file": "hair/braids.png"
+    },
+    {
+      "id": "long",
+      "name": "Длинные",
+      "unlock": "lvl7",
+      "file": "hair/long.png"
+    },
+    {
+      "id": "longcurly",
+      "name": "Длин. кудри",
+      "unlock": "lvl9",
+      "file": "hair/longcurly.png"
+    }
+  ]
+}
