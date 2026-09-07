@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #635BDF; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 22px 20px 0;">
+    <div class="dsp" style="font-size: 28px;">Гора</div>
+    <div class="lbl" style="color: #6E6A68; margin-top: 6px;">85 кг · 185 см · блок 1, неделя 3</div>
+  </div>
+
+  <!-- шапка и нижняя панель прибиты, середина едет: контента здесь больше экрана -->
+  <div style="flex-grow: 1; min-height: 0; overflow-y: auto;">
+
+  <!-- связь с тренером: главное на экране -->
+  <div style="background: #635BDF; color: #FFFFFF; border-radius: 26px; margin: 18px 16px 0; padding: 20px;">
+    <div class="lbl" style="color: #FFFFFF;">Тренер</div>
+    <div class="dsp" style="font-size: 20px; line-height: 1.1; margin-top: 6px;">Отдать данные и забрать план</div>
+    <div style="font-size: 12px; font-weight: 500; margin-top: 8px; line-height: 1.45; color: #FFFFFF;">
+      Шесть недель: подходы, RIR, нагрузка, вес, флаги. Вставляешь в чат, получаешь разбор и план.
+    </div>
+    <div class="tap" style="background: #8EFF8E; color: #252323; border-radius: 999px; height: 50px; margin-top: 14px; display: flex; align-items: center; justify-content: center;">
+      <span class="dsp" style="font-size: 16px;">Скопировать данные</span>
+    </div>
+    <div class="tap" style="border: 2px solid rgba(255,255,255,0.4); border-radius: 999px; height: 48px; margin-top: 8px; display: flex; align-items: center; justify-content: center;">
+      <span class="dsp" style="font-size: 15px;">Вставить план</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 16px;">
+      <sc-for list="{{stats}}" as="s" hint-placeholder-count="3">
+        <div>
+          <div class="dsp num" style="font-size: 19px;">{{s.v}}</div>
+          <div class="lbl" style="color: #FFFFFF; margin-top: 2px;">{{s.n}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- флаги от тренера -->
+  <div style="padding: 20px 20px 0;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+      <span class="lbl" style="color: #6E6A68;">Что тренер держит</span>
+      <span class="lbl" style="color: #635BDF;">{{flagCount}}</span>
+    </div>
+    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 1px; border-radius: 20px; overflow: hidden;">
+      <sc-for list="{{flags}}" as="f" hint-placeholder-count="4">
+        <div style="background: #F4F4F8; padding: 12px 16px; display: flex; align-items: center; gap: 10px;">
+          <div style="width: 8px; height: 8px; border-radius: 4px; background: {{f.c}}; flex-shrink: 0;"></div>
+          <span style="font-size: 13px; font-weight: 600; flex-grow: 1;">{{f.name}}</span>
+          <span class="lbl" style="color: #6E6A68; white-space: nowrap; flex-shrink: 0;">{{f.till}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- настройки списком -->
+  <div style="padding: 20px 20px 24px;">
+    <span class="lbl" style="color: #6E6A68;">Настройки</span>
+    <div style="margin-top: 12px; display: flex; flex-direction: column;">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+        <div class="tap" style="padding: 14px 0; border-bottom: 1px solid #EFEFF4; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 14px; font-weight: 600; flex-grow: 1;">{{r.name}}</span>
+          <span style="font-size: 13px; color: #6E6A68;">{{r.val}}</span>
+          <span class="dsp" style="font-size: 14px; color: #6E6A68;">→</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  </div>
+
+  <div style="display: flex; padding: 8px 16px 22px; gap: 6px; flex-shrink: 0; border-top: 1px solid #EFEFF4;">
+    <sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
+      <div class="tap" style="flex-grow: 1; text-align: center; padding: 16px 0; border-radius: 999px; background: {{n.bg}};">
+        <span class="lbl" style="color: {{n.fg}};">{{n.name}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    // счётчик считается от списка, а не вбит руками: иначе разъедется при первой правке
+    const FLAGS = [
+      { name: 'Вертикальная тяга раз в неделю', till: 'до нед. 5', c: '#635BDF' },
+      { name: 'Шея только изометрия', till: '2 месяца', c: '#635BDF' },
+      { name: 'Полотенце и висы не даём', till: 'до нед. 5', c: '#7B77CE' },
+      { name: 'Воскресенье только мат', till: 'всегда', c: '#252323' },
+    ];
+    const plural = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'флаг' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'флага' : 'флагов'));
+
+    return {
+      stats: [
+        { v: '38', n: 'сессий' },
+        { v: '6 нед', n: 'в выгрузке' },
+        { v: '4 дня', n: 'без разбора' },
+      ],
+      flagCount: `${FLAGS.length} ${plural(FLAGS.length)}`,
+      flags: FLAGS,
+      rows: [
+        { name: 'Вес и замеры', val: '84.6 кг' },
+        { name: 'Расписание недели', val: '6 дней' },
+        { name: 'Ограничения и травмы', val: '3 записи' },
+        { name: 'Напоминания', val: 'выключены' },
+        { name: 'Резервная копия', val: 'вчера' },
+      ],
+      nav: [
+        { name: 'Сегодня', bg: '#F4F4F8', fg: '#6E6A68' },
+        { name: 'Герой', bg: '#F4F4F8', fg: '#6E6A68' },
+        { name: 'Прогресс', bg: '#F4F4F8', fg: '#6E6A68' },
+        { name: 'Я', bg: '#8EFF8E', fg: '#252323' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

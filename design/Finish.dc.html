@@ -11,7 +11,7 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
-    a { color: #736CED; } a:hover { color: #252323; }
+    a { color: #635BDF; } a:hover { color: #252323; }
     .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
     .ui  { font-family: Archivo, system-ui, sans-serif; }
     .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
@@ -25,20 +25,20 @@
 <div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
 
   <div style="padding: 22px 20px 0;">
-    <div class="lbl" style="color: #9A9694;">Тренировка закончена</div>
+    <div class="lbl" style="color: #6E6A68;">Тренировка закончена</div>
     <div class="dsp" style="font-size: 32px; line-height: 1; margin-top: 8px;">Как прошло?</div>
   </div>
 
   <!-- сколько длилось: пресеты и подстройка -->
   <div style="padding: 20px 20px 0;">
-    <div class="lbl" style="color: #9A9694;">Сколько шло</div>
+    <div class="lbl" style="color: #6E6A68;">Сколько шло</div>
     <div style="display: flex; align-items: center; gap: 12px; margin-top: 12px;">
       <div class="tap" onClick="{{decD}}" style="width: 54px; height: 54px; border-radius: 27px; background: #F4F4F8; display: flex; align-items: center; justify-content: center;">
         <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
       </div>
       <div style="flex-grow: 1; text-align: center;">
         <span class="dsp num" style="font-size: 46px; line-height: 1;">{{dur}}</span>
-        <span class="lbl" style="color: #9A9694; margin-left: 6px;">мин</span>
+        <span class="lbl" style="color: #6E6A68; margin-left: 6px;">мин</span>
       </div>
       <div class="tap" onClick="{{incD}}" style="width: 54px; height: 54px; border-radius: 27px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative;">
         <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
@@ -50,12 +50,12 @@
   <!-- главное: RPE лесенкой -->
   <div style="padding: 22px 20px 0;">
     <div style="display: flex; align-items: baseline; justify-content: space-between;">
-      <span class="lbl" style="color: #9A9694;">Насколько тяжело</span>
-      <span style="font-size: 13px; font-weight: 700; color: #736CED;">{{rpeWord}}</span>
+      <span class="lbl" style="color: #6E6A68;">Насколько тяжело</span>
+      <span style="font-size: 13px; font-weight: 700; color: #635BDF;">{{rpeWord}}</span>
     </div>
     <div style="display: flex; align-items: flex-end; gap: 3px; margin-top: 12px;">
       <sc-for list="{{scale}}" as="s" hint-placeholder-count="10">
-        <div class="tap" onClick="{{s.pick}}" style="flex-grow: 1; height: {{s.h}}; border-radius: 8px; background: {{s.bg}}; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;">
+        <div class="tap seg" onClick="{{s.pick}}" style="flex-grow: 1; height: {{s.h}}; border-radius: 8px; background: {{s.bg}}; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;">
           <span class="num" style="font-size: 11px; font-weight: 700; color: {{s.fg}};">{{s.v}}</span>
         </div>
       </sc-for>
@@ -81,10 +81,10 @@
 
   <!-- заметка тренеру -->
   <div style="padding: 20px 20px 0;">
-    <div class="lbl" style="color: #9A9694;">Что сказать тренеру</div>
+    <div class="lbl" style="color: #6E6A68;">Что сказать тренеру</div>
     <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px;">
       <sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
-        <div class="tap" onClick="{{c.pick}}" style="background: {{c.bg}}; color: {{c.fg}}; border-radius: 999px; padding: 10px 15px;">
+        <div class="tap" onClick="{{c.pick}}" style="background: {{c.bg}}; color: {{c.fg}}; border-radius: 999px; padding: 14px 15px;">
           <span style="font-size: 13px; font-weight: 600;">{{c.name}}</span>
         </div>
       </sc-for>
@@ -95,7 +95,7 @@
     <span class="dsp" style="font-size: 18px;">Сохранить</span>
   </div>
   <div style="text-align: center; padding: 14px 0 24px;">
-    <span class="lbl" style="color: #B4B0AE;">Не сохранять</span>
+    <span class="lbl" style="color: #6E6A68;">Не сохранять</span>
   </div>
 
 </div>
@@ -128,9 +128,9 @@ class Component extends DCLogic {
       verdict,
       scale: Array.from({ length: 10 }, (_, i) => i + 1).map((v) => ({
         v,
-        h: (26 + v * 4) + 'px',
-        bg: v === this.state.rpe ? '#736CED' : (v < this.state.rpe ? '#D8D6F5' : '#F4F4F8'),
-        fg: v === this.state.rpe ? '#FFFFFF' : '#9A9694',
+        h: Math.round(43 + v * 2.5) + 'px',
+        bg: v === this.state.rpe ? '#635BDF' : (v < this.state.rpe ? '#D8D6F5' : '#F4F4F8'),
+        fg: v === this.state.rpe ? '#FFFFFF' : (v < this.state.rpe ? '#252323' : '#6E6A68'),
         pick: () => this.setState({ rpe: v }),
       })),
       chips: CHIPS.map((name, i) => {
@@ -138,7 +138,7 @@ class Component extends DCLogic {
         return {
           name,
           bg: on ? '#9F9FED' : '#F4F4F8',
-          fg: on ? '#FFFFFF' : '#6E6A68',
+          fg: on ? '#252323' : '#6E6A68',
           pick: () => this.setState({ chips: { ...this.state.chips, [i]: !on } }),
         };
       }),

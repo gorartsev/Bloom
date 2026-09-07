@@ -11,7 +11,7 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
-    a { color: #736CED; } a:hover { color: #252323; }
+    a { color: #635BDF; } a:hover { color: #252323; }
     .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
     .ui  { font-family: Archivo, system-ui, sans-serif; }
     .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
@@ -26,9 +26,9 @@
 
 <div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
 
-  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 0;">
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0;">
     <div>
-      <div class="lbl" style="color: #9A9694;">Вторник · неделя 3</div>
+      <div class="lbl" style="color: #6E6A68;">Вторник · неделя 3</div>
       <div class="dsp" style="font-size: 30px; line-height: 1; margin-top: 6px;">Привет, Гора</div>
     </div>
     <div style="width: 44px; height: 44px; border-radius: 22px; background: #8EFF8E; display: flex; align-items: center; justify-content: center;">
@@ -37,16 +37,16 @@
   </div>
 
   <!-- переключатель, живой -->
-  <div style="display: flex; gap: 6px; padding: 18px 20px 0;">
+  <div style="display: flex; gap: 6px; padding: 12px 20px 0;">
     <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
-      <div class="tap" onClick="{{t.pick}}" style="background: {{t.bg}}; color: {{t.fg}}; border-radius: 999px; padding: 10px 18px;">
+      <div class="tap" onClick="{{t.pick}}" style="background: {{t.bg}}; color: {{t.fg}}; border-radius: 999px; padding: 16px 18px;">
         <span class="lbl">{{t.name}}</span>
       </div>
     </sc-for>
   </div>
 
   <!-- мятный блок плана: главное действие -->
-  <div class="pop" style="background: #8EFF8E; border-radius: 26px; margin: 14px 16px 0; padding: 20px 20px 18px;">
+  <div class="pop" style="background: #8EFF8E; border-radius: 26px; margin: 8px 16px 0; padding: 14px 20px 14px;">
     <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
       <div>
         <div class="lbl" style="color: #2C6B2C;">План на сегодня</div>
@@ -62,60 +62,67 @@
       </svg>
     </div>
 
-    <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 1px; border-radius: 16px; overflow: hidden;">
+    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 1px; border-radius: 16px; overflow: hidden;">
       <sc-for list="{{plan}}" as="p" hint-placeholder-count="4">
-        <div class="tap" onClick="{{p.toggle}}" style="background: {{p.bg}}; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
+        <div class="tap" onClick="{{p.toggle}}" style="background: {{p.bg}}; padding: 14px 14px; display: flex; align-items: center; gap: 10px;">
           <div style="width: 18px; height: 18px; border-radius: 9px; border: 2px solid #252323; background: {{p.dot}}; flex-shrink: 0;"></div>
           <span style="font-size: 14px; font-weight: 600; flex-grow: 1; text-decoration: {{p.line}};">{{p.ex}}</span>
-          <span class="num" style="font-size: 13px; font-weight: 600; color: #4A6B4A;">{{p.sets}}</span>
+          <span class="num" style="font-size: 13px; font-weight: 600; color: #2C4A2C;">{{p.sets}}</span>
         </div>
       </sc-for>
     </div>
 
-    <div class="tap" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 56px; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <div class="tap" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 52px; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 10px;">
       <span class="dsp" style="font-size: 17px;">Поехали</span>
       <span class="dsp" style="font-size: 20px;">→</span>
     </div>
   </div>
 
   <!-- быстрый лог: пилюли -->
-  <div style="padding: 20px 20px 0;">
-    <div class="lbl" style="color: #9A9694;">Записать быстро</div>
-    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
-      <sc-for list="{{quick}}" as="q" hint-placeholder-count="4">
-        <div class="tap" style="background: {{q.bg}}; color: {{q.fg}}; border-radius: 999px; padding: 11px 18px; display: flex; align-items: center; gap: 8px;">
-          <span class="dsp" style="font-size: 14px;">{{q.name}}</span>
-          <span class="lbl" style="opacity: 0.55;">{{q.last}}</span>
+  <div style="padding: 12px 20px 0;">
+    <div class="lbl" style="color: #6E6A68;">Записать быстро</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 12px;">
+      <sc-for list="{{quick}}" as="q" hint-placeholder-count="3">
+        <div class="tap" style="background: {{q.bg}}; color: {{q.fg}}; border-radius: 18px; padding: 11px 6px; text-align: center;">
+          <div class="dsp" style="font-size: 13px;">{{q.name}}</div>
+          <div class="lbl" style="font-size: 9px; letter-spacing: 0.6px; margin-top: 3px; color: {{q.subFg}};">{{q.last}}</div>
         </div>
       </sc-for>
     </div>
   </div>
 
+  <!-- вход в «не тяну»: без него шит из макета некому открыть -->
+  <div class="tap" style="margin: 12px 16px 0; background: #F4F4F8; border-radius: 20px; padding: 14px 18px; display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 14px; font-weight: 600; flex-grow: 1;">Сегодня не тяну</span>
+    <span class="lbl" style="color: #6E6A68;">поменять план</span>
+    <span class="dsp" style="font-size: 14px; color: #6E6A68;">→</span>
+  </div>
+
   <!-- нагрузка: тонко, без графиков -->
-  <div style="margin: auto 16px 0; background: #F4F4F8; border-radius: 24px; padding: 18px 20px;">
+  <div style="margin: auto 16px 0; background: #F4F4F8; border-radius: 24px; padding: 12px 20px;">
     <div style="display: flex; align-items: center; justify-content: space-between;">
       <div>
-        <div class="lbl" style="color: #9A9694;">Нагрузка недели</div>
+        <div class="lbl" style="color: #6E6A68;">Нагрузка недели</div>
         <div class="dsp num" style="font-size: 30px; line-height: 1; margin-top: 4px;">2 149</div>
       </div>
-      <div style="background: #9F9FED; color: #FFFFFF; border-radius: 999px; padding: 8px 14px;">
+      <div style="background: #9F9FED; color: #252323; border-radius: 999px; padding: 8px 14px;">
         <span class="dsp num" style="font-size: 14px;">1.15</span>
       </div>
     </div>
     <div style="height: 8px; background: #E4E4EE; border-radius: 4px; margin-top: 14px; position: relative;">
       <div style="position: absolute; left: 20%; right: 20%; top: 0; bottom: 0; background: #C9C9F0; border-radius: 4px;"></div>
-      <div style="position: absolute; left: 58%; top: -4px; width: 16px; height: 16px; border-radius: 8px; background: #736CED; border: 3px solid #FFFFFF;"></div>
+      <div style="position: absolute; left: 58%; top: -4px; width: 16px; height: 16px; border-radius: 8px; background: #635BDF; border: 3px solid #FFFFFF;"></div>
     </div>
     <div style="display: flex; justify-content: space-between; margin-top: 8px;">
-      <span class="lbl" style="color: #9A9694;">спад</span>
-      <span class="lbl" style="color: #736CED;">коридор</span>
-      <span class="lbl" style="color: #9A9694;">перебор</span>
+      <span class="lbl" style="color: #6E6A68;">спад</span>
+      <span class="lbl" style="color: #635BDF;">коридор</span>
+      <span class="lbl" style="color: #6E6A68;">перебор</span>
     </div>
   </div>
 
-  <div style="display: flex; padding: 14px 16px 22px; gap: 6px;">
+  <div style="display: flex; padding: 10px 16px 16px; gap: 6px;">
     <sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
-      <div class="tap" style="flex-grow: 1; text-align: center; padding: 12px 0; border-radius: 999px; background: {{n.bg}};">
+      <div class="tap" style="flex-grow: 1; text-align: center; padding: 16px 0; border-radius: 999px; background: {{n.bg}};">
         <span class="lbl" style="color: {{n.fg}};">{{n.name}}</span>
       </div>
     </sc-for>
@@ -145,7 +152,7 @@ class Component extends DCLogic {
       ].map((t) => ({
         name: t.name,
         bg: this.state.tab === t.id ? '#252323' : '#F4F4F8',
-        fg: this.state.tab === t.id ? '#FFFFFF' : '#9A9694',
+        fg: this.state.tab === t.id ? '#FFFFFF' : '#6E6A68',
         pick: () => this.setState({ tab: t.id }),
       })),
       plan: items.map((it, i) => {
@@ -159,17 +166,18 @@ class Component extends DCLogic {
           toggle: () => this.setState({ done: { ...this.state.done, [i]: !on } }),
         };
       }),
+      // подпись «когда в последний раз» своим цветом на каждом фоне:
+      // единый серый на фиолете и мяте не добирает контраст
       quick: [
-        { name: 'БЖЖ', bg: '#736CED', fg: '#FFFFFF', last: 'вчера' },
-        { name: 'Бег', bg: '#8EFF8E', fg: '#252323', last: '3 дня' },
-        { name: 'Мобилка', bg: '#9F9FED', fg: '#FFFFFF', last: '5 дней' },
-        { name: 'Вес', bg: '#F4F4F8', fg: '#252323', last: '84.6' },
+        { name: 'БЖЖ', bg: '#635BDF', fg: '#FFFFFF', subFg: '#FFFFFF', last: 'вчера' },
+        { name: 'Бег', bg: '#8EFF8E', fg: '#252323', subFg: '#2C4A2C', last: '3 дня' },
+        { name: 'Мобилка', bg: '#9F9FED', fg: '#252323', subFg: '#332F63', last: '5 дней' },
       ],
       nav: [
         { name: 'Сегодня', bg: '#8EFF8E', fg: '#252323' },
-        { name: 'Герой', bg: '#F4F4F8', fg: '#9A9694' },
-        { name: 'Прогресс', bg: '#F4F4F8', fg: '#9A9694' },
-        { name: 'Я', bg: '#F4F4F8', fg: '#9A9694' },
+        { name: 'Герой', bg: '#F4F4F8', fg: '#6E6A68' },
+        { name: 'Прогресс', bg: '#F4F4F8', fg: '#6E6A68' },
+        { name: 'Я', bg: '#F4F4F8', fg: '#6E6A68' },
       ],
     };
   }

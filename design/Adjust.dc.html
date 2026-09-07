@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #635BDF; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+    @keyframes up { from { transform: translateY(28px); } to { transform: translateY(0); } }
+    .sheet { animation: up 420ms cubic-bezier(.2,.9,.3,1) both; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <!-- затемнённый план под шитом -->
+  <div style="padding: 22px 20px 0; opacity: 0.32;">
+    <div class="lbl" style="color: #6E6A68;">Вторник · неделя 3</div>
+    <div class="dsp" style="font-size: 30px; line-height: 1; margin-top: 6px;">Привет, Гора</div>
+    <div style="background: #8EFF8E; border-radius: 26px; margin-top: 18px; padding: 20px;">
+      <div class="lbl" style="color: #2C6B2C;">План на сегодня</div>
+      <div class="dsp" style="font-size: 24px; line-height: 1.05; margin-top: 6px;">Сила после мата</div>
+      <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 9px;">
+        <sc-for list="{{ghost}}" as="g" hint-placeholder-count="4">
+          <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600;">
+            <span>{{g.ex}}</span><span class="num">{{g.sets}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- шит: план можно оспорить -->
+  <div class="sheet" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 30px 30px 0 0; box-shadow: 0 -8px 40px rgba(37,35,35,0.16); padding: 12px 20px 24px;">
+    <div style="width: 44px; height: 5px; border-radius: 3px; background: #E4E4EE; margin: 0 auto 16px;"></div>
+
+    <div class="dsp" style="font-size: 26px; line-height: 1.02;">Сегодня не тяну</div>
+    <div style="font-size: 13px; color: #6E6A68; margin-top: 8px; line-height: 1.45;">
+      План это предложение, а не приказ. Скажи как есть, и он поменяется. Молча пропустить хуже: тренер не узнает почему.
+    </div>
+
+    <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 8px;">
+      <sc-for list="{{opts}}" as="o" hint-placeholder-count="4">
+        <div class="tap" onClick="{{o.pick}}" style="background: {{o.bg}}; border: 2px solid {{o.border}}; border-radius: 20px; padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+          <div style="width: 20px; height: 20px; border-radius: 10px; border: 2px solid {{o.dotBorder}}; background: {{o.dot}}; flex-shrink: 0;"></div>
+          <div style="flex-grow: 1;">
+            <div class="dsp" style="font-size: 15px; color: {{o.fg}};">{{o.name}}</div>
+            <div style="font-size: 12px; font-weight: 500; color: {{o.subFg}}; margin-top: 3px; line-height: 1.35;">{{o.desc}}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- что станет с планом -->
+    <div style="background: #F4F4F8; border-radius: 20px; padding: 14px 16px; margin-top: 14px;">
+      <div class="lbl" style="color: #6E6A68;">План станет</div>
+      <div style="font-size: 13px; font-weight: 600; margin-top: 6px; line-height: 1.4;">{{result}}</div>
+    </div>
+
+    <div class="tap" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 58px; margin-top: 16px; display: flex; align-items: center; justify-content: center;">
+      <span class="dsp" style="font-size: 17px;">Поменять план</span>
+    </div>
+    <div style="text-align: center; padding-top: 12px;">
+      <span class="lbl" style="color: #6E6A68;">Оставить как есть</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pick: 'light' };
+  }
+
+  renderVals() {
+    const OPTS = [
+      { id: 'light', name: 'Облегчить', desc: 'Веса минус двадцать процентов, запас три вместо двух',
+        result: 'Румынская 52 вместо 65, жим 18 вместо 22, тяга 20 вместо 24. Шея как была. Нагрузка выйдет около 190 вместо 280.' },
+      { id: 'short', name: 'Урезать', desc: 'Два упражнения вместо четырёх, самое важное остаётся',
+        result: 'Остаются румынская тяга и изометрия шеи. Жим и тяга гантели уезжают на четверг. Двадцать минут вместо сорока.' },
+      { id: 'swap', name: 'Заменить упражнение', desc: 'Что-то мешает: болит, занято, нет снаряда',
+        result: 'Скажешь какое, тренер подставит движение того же паттерна с похожей нагрузкой. Прогрессия не собьётся.' },
+      { id: 'skip', name: 'Пропустить сегодня', desc: 'Мат был тяжёлый или просто нет сил',
+        result: 'Силовая переносится на четверг, неделя останется с одной. Стрик не сгорит: он недельный, а не дневной.' },
+    ];
+    const sel = OPTS.find((o) => o.id === this.state.pick) || OPTS[0];
+
+    return {
+      ghost: [
+        { ex: 'Румынская тяга', sets: '3 × 6 · 65' },
+        { ex: 'Жим гантелей', sets: '3 × 8 · 22' },
+        { ex: 'Тяга гантели', sets: '3 × 8 · 24' },
+        { ex: 'Изометрия шеи', sets: '2 × 25 сек' },
+      ],
+      opts: OPTS.map((o) => {
+        const on = o.id === this.state.pick;
+        return {
+          name: o.name,
+          desc: o.desc,
+          bg: on ? '#8EFF8E' : '#FFFFFF',
+          border: on ? '#252323' : '#E4E4EE',
+          dot: on ? '#252323' : 'transparent',
+          dotBorder: on ? '#252323' : '#6E6A68',
+          fg: '#252323',
+          subFg: on ? '#2C6B2C' : '#6E6A68',
+          pick: () => this.setState({ pick: o.id }),
+        };
+      }),
+      result: sel.result,
+    };
+  }
+}
+</script>
+</body>
+</html>

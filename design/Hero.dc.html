@@ -11,7 +11,7 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
-    a { color: #736CED; } a:hover { color: #252323; }
+    a { color: #635BDF; } a:hover { color: #252323; }
     .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
     .ui  { font-family: Archivo, system-ui, sans-serif; }
     .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
@@ -28,7 +28,7 @@
 
   <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 0;">
     <div>
-      <div class="lbl" style="color: #9A9694;">Уровень 4 · блок 1</div>
+      <div class="lbl" style="color: #6E6A68;">Уровень 4 · блок 1</div>
       <div class="dsp" style="font-size: 30px; line-height: 1; margin-top: 6px;">Гора</div>
     </div>
     <div style="background: #8EFF8E; border-radius: 999px; padding: 9px 15px;">
@@ -43,7 +43,7 @@
       <span class="lbl" style="color: #2C6B2C;">Место под арт</span>
       <span style="font-size: 11px; font-weight: 600; color: #2C6B2C; line-height: 1.35;">Персонаж в трусах, PNG из ChatGPT по PROMPTS.md</span>
     </div>
-    <div style="position: absolute; right: 22px; bottom: 8px; background: #736CED; color: #FFFFFF; border-radius: 999px; padding: 9px 15px; transform: rotate(-4deg);">
+    <div style="position: absolute; right: 22px; bottom: 8px; background: #635BDF; color: #FFFFFF; border-radius: 999px; padding: 9px 15px; transform: rotate(-4deg);">
       <span class="lbl">Белый пояс</span>
     </div>
   </div>
@@ -53,7 +53,7 @@
     <div style="display: flex; gap: 6px;">
       <sc-for list="{{slots}}" as="s" hint-placeholder-count="3">
         <div class="tap" onClick="{{s.pick}}" style="flex-grow: 1; background: {{s.bg}}; color: {{s.fg}}; border-radius: 18px; padding: 11px 8px; text-align: center;">
-          <div class="lbl" style="opacity: 0.55;">{{s.slot}}</div>
+          <div class="lbl" style="color: {{s.subFg}};">{{s.slot}}</div>
           <div class="dsp" style="font-size: 13px; margin-top: 3px;">{{s.name}}</div>
         </div>
       </sc-for>
@@ -63,11 +63,11 @@
   <!-- опыт -->
   <div style="padding: 18px 20px 0;">
     <div style="display: flex; align-items: baseline; justify-content: space-between;">
-      <span class="lbl" style="color: #9A9694;">До пятого уровня</span>
+      <span class="lbl" style="color: #6E6A68;">До пятого уровня</span>
       <span class="num dsp" style="font-size: 13px;">7 420 / 12 000</span>
     </div>
     <div style="height: 12px; background: #F4F4F8; border-radius: 6px; margin-top: 8px; overflow: hidden;">
-      <div class="bar" style="--w: 62%; width: 62%; height: 12px; border-radius: 6px; background: #736CED;"></div>
+      <div class="bar" style="--w: 62%; width: 62%; height: 12px; border-radius: 6px; background: #635BDF;"></div>
     </div>
   </div>
 
@@ -87,7 +87,7 @@
   <div class="tap" style="margin: auto 16px 0; background: #F4F4F8; border-radius: 22px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;">
     <div>
       <div class="dsp" style="font-size: 16px;">Гардероб</div>
-      <div class="lbl" style="color: #9A9694; margin-top: 3px;">14 вещей · 3 новых</div>
+      <div class="lbl" style="color: #6E6A68; margin-top: 3px;">14 вещей · 3 новых</div>
     </div>
     <div style="width: 36px; height: 36px; border-radius: 18px; background: #8EFF8E; display: flex; align-items: center; justify-content: center;">
       <span class="dsp" style="font-size: 16px;">→</span>
@@ -96,7 +96,7 @@
 
   <div style="display: flex; padding: 14px 16px 22px; gap: 6px;">
     <sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
-      <div class="tap" style="flex-grow: 1; text-align: center; padding: 12px 0; border-radius: 999px; background: {{n.bg}};">
+      <div class="tap" style="flex-grow: 1; text-align: center; padding: 16px 0; border-radius: 999px; background: {{n.bg}};">
         <span class="lbl" style="color: {{n.fg}};">{{n.name}}</span>
       </div>
     </sc-for>
@@ -122,23 +122,24 @@ class Component extends DCLogic {
       slot: label,
       name: SETS[key][this.state[key]],
       bg: this.state[key] === 0 ? '#F4F4F8' : '#9F9FED',
-      fg: this.state[key] === 0 ? '#252323' : '#FFFFFF',
+      fg: '#252323',
+      subFg: this.state[key] === 0 ? '#6E6A68' : '#3A3670',
       pick: () => this.setState({ [key]: (this.state[key] + 1) % SETS[key].length }),
     });
     return {
       slots: [slot('top', 'Верх'), slot('bottom', 'Низ'), slot('hair', 'Башка')],
       attrs: [
         { name: 'Сила', val: 12, pct: '60%', color: '#8EFF8E' },
-        { name: 'Выносливость', val: 15, pct: '75%', color: '#736CED' },
+        { name: 'Выносливость', val: 15, pct: '75%', color: '#635BDF' },
         { name: 'Подвижность', val: 6, pct: '30%', color: '#9F9FED' },
         { name: 'Стойкость', val: 9, pct: '45%', color: '#252323' },
         { name: 'Воля', val: 11, pct: '55%', color: '#8EFF8E' },
       ],
       nav: [
-        { name: 'Сегодня', bg: '#F4F4F8', fg: '#9A9694' },
+        { name: 'Сегодня', bg: '#F4F4F8', fg: '#6E6A68' },
         { name: 'Герой', bg: '#8EFF8E', fg: '#252323' },
-        { name: 'Прогресс', bg: '#F4F4F8', fg: '#9A9694' },
-        { name: 'Я', bg: '#F4F4F8', fg: '#9A9694' },
+        { name: 'Прогресс', bg: '#F4F4F8', fg: '#6E6A68' },
+        { name: 'Я', bg: '#F4F4F8', fg: '#6E6A68' },
       ],
     };
   }

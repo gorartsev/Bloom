@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #635BDF; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 22px 20px 0;">
+    <div class="dsp" style="font-size: 28px;">История</div>
+    <div style="background: #8EFF8E; border-radius: 999px; padding: 8px 14px;">
+      <span class="lbl">Стрик 3 недели</span>
+    </div>
+  </div>
+
+  <!-- переключатель -->
+  <div style="display: flex; gap: 6px; padding: 16px 20px 0;">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+      <div class="tap" onClick="{{t.pick}}" style="background: {{t.bg}}; color: {{t.fg}}; border-radius: 999px; padding: 16px 18px;">
+        <span class="lbl">{{t.name}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="flex-grow: 1; min-height: 0; overflow-y: auto;">
+
+  <!-- сетка дней: цвет по типу, пусто это пусто -->
+  <div style="padding: 18px 20px 0;">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+      <sc-for list="{{dows}}" as="d" hint-placeholder-count="7">
+        <span class="lbl" style="color: #6E6A68; width: 40px; text-align: center;">{{d.n}}</span>
+      </sc-for>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px;">
+      <sc-for list="{{days}}" as="d" hint-placeholder-count="28">
+        <div class="tap" style="aspect-ratio: 1; border-radius: 12px; background: {{d.bg}}; display: flex; align-items: center; justify-content: center; position: relative;">
+          <span class="num" style="font-size: 11px; font-weight: 700; color: {{d.fg}};">{{d.n}}</span>
+          <div style="position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 4px; background: {{d.dot}};"></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap;">
+      <sc-for list="{{legend}}" as="l" hint-placeholder-count="4">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 10px; height: 10px; border-radius: 3px; background: {{l.c}};"></div>
+          <span class="lbl" style="color: #6E6A68;">{{l.n}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+      <div style="width: 10px; height: 10px; border-radius: 5px; background: #8EFF8E; border: 1px solid #6E6A68;"></div>
+      <span class="lbl" style="color: #6E6A68;">точка · была силовая</span>
+    </div>
+  </div>
+
+  <!-- личники -->
+  <div style="padding: 22px 20px 0;">
+    <span class="lbl" style="color: #6E6A68;">Личные рекорды</span>
+    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 1px; border-radius: 20px; overflow: hidden;">
+      <sc-for list="{{prs}}" as="p" hint-placeholder-count="4">
+        <div class="tap" style="background: #F4F4F8; padding: 13px 16px; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 14px; font-weight: 600; flex-grow: 1;">{{p.name}}</span>
+          <span class="dsp num" style="font-size: 15px;">{{p.val}}</span>
+          <span class="lbl" style="color: {{p.deltaFg}}; width: 44px; text-align: right;">{{p.delta}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- последние сессии -->
+  <div style="padding: 22px 20px 24px;">
+    <span class="lbl" style="color: #6E6A68;">Последние</span>
+    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+      <sc-for list="{{recent}}" as="r" hint-placeholder-count="3">
+        <div class="tap" style="display: flex; align-items: center; gap: 12px; padding: 3px 0;">
+          <div style="width: 38px; height: 38px; border-radius: 12px; background: {{r.c}}; flex-shrink: 0;"></div>
+          <div style="flex-grow: 1;">
+            <div style="font-size: 14px; font-weight: 600;">{{r.name}}</div>
+            <div class="lbl" style="color: #6E6A68; margin-top: 2px;">{{r.sub}}</div>
+          </div>
+          <span class="dsp num" style="font-size: 15px; color: #6E6A68;">{{r.load}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  </div>
+
+  <div style="display: flex; padding: 10px 16px 20px; gap: 6px; flex-shrink: 0; border-top: 1px solid #EFEFF4;">
+    <sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
+      <div class="tap" style="flex-grow: 1; text-align: center; padding: 16px 0; border-radius: 999px; background: {{n.bg}};">
+        <span class="lbl" style="color: {{n.fg}};">{{n.name}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'month' };
+  }
+
+  renderVals() {
+    // настоящая неделя Горы: пн/ср/пт бег, вт/чт/вс мат, сб мобилка.
+    // силовая цепляется к мату во вторник и четверг, поэтому она точкой, а не цветом:
+    // в один день бывает две сессии, а клетка одна.
+    const WEEK = [
+      { c: '#8EFF8E', fg: '#252323', str: false }, // пн бег
+      { c: '#635BDF', fg: '#FFFFFF', str: true },  // вт мат + сила
+      { c: '#8EFF8E', fg: '#252323', str: false }, // ср бег
+      { c: '#635BDF', fg: '#FFFFFF', str: true },  // чт мат + сила
+      { c: '#8EFF8E', fg: '#252323', str: false }, // пт бег
+      { c: '#9F9FED', fg: '#252323', str: false }, // сб мобилка
+      { c: '#635BDF', fg: '#FFFFFF', str: false }, // вс мат
+    ];
+    const SKIPS = [9, 19]; // пропущены бег и мобилка, силовые целы: стрик недельный
+    const days = Array.from({ length: 28 }, (_, i) => {
+      const d = WEEK[i % 7];
+      const skipped = SKIPS.includes(i);
+      return {
+        n: i + 1,
+        bg: skipped ? '#FFE0E4' : d.c,
+        fg: skipped ? '#9E3B54' : d.fg,
+        dot: !skipped && d.str ? '#8EFF8E' : 'transparent',
+      };
+    });
+
+    return {
+      tabs: [
+        { id: 'month', name: 'Месяц' },
+        { id: 'all', name: 'Всё время' },
+      ].map((t) => ({
+        name: t.name,
+        bg: this.state.tab === t.id ? '#252323' : '#F4F4F8',
+        fg: this.state.tab === t.id ? '#FFFFFF' : '#6E6A68',
+        pick: () => this.setState({ tab: t.id }),
+      })),
+      dows: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((n) => ({ n })),
+      days,
+      legend: [
+        { n: 'Мат', c: '#635BDF' },
+        { n: 'Бег', c: '#8EFF8E' },
+        { n: 'Мобилка', c: '#9F9FED' },
+        { n: 'Пропуск', c: '#FFE0E4' },
+      ],
+      prs: [
+        { name: 'Румынская тяга', val: '67.5 кг', delta: '+2.5', deltaFg: '#2E7D4F' },
+        { name: 'Подтягивания', val: '8 повт', delta: '+2', deltaFg: '#2E7D4F' },
+        { name: 'Вис на хват', val: '47 сек', delta: 'месяц', deltaFg: '#6E6A68' },
+        { name: 'Изометрия шеи', val: '30 сек', delta: '+5', deltaFg: '#2E7D4F' },
+      ],
+      recent: [
+        { name: 'Сила после мата', sub: 'вторник · 40 мин · RPE 7', load: 280, c: '#8EFF8E' },
+        { name: 'БЖЖ', sub: 'вторник · 90 мин · RPE 8', load: 720, c: '#635BDF' },
+        { name: 'Бег лёгкий', sub: 'понедельник · 35 мин · 6.4 км', load: 175, c: '#8EFF8E' },
+      ],
+      nav: [
+        { name: 'Сегодня', bg: '#F4F4F8', fg: '#6E6A68' },
+        { name: 'Герой', bg: '#F4F4F8', fg: '#6E6A68' },
+        { name: 'Прогресс', bg: '#8EFF8E', fg: '#252323' },
+        { name: 'Я', bg: '#F4F4F8', fg: '#6E6A68' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

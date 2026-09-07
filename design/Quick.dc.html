@@ -1,0 +1,207 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #635BDF; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 22px 20px 0;">
+    <div class="dsp" style="font-size: 26px;">Записать</div>
+    <span class="lbl" style="color: #6E6A68;">15 секунд</span>
+  </div>
+
+  <!-- тип: три кнопки, крупно -->
+  <div style="display: flex; gap: 7px; padding: 16px 20px 0;">
+    <sc-for list="{{kinds}}" as="k" hint-placeholder-count="3">
+      <div class="tap" onClick="{{k.pick}}" style="flex-grow: 1; background: {{k.bg}}; color: {{k.fg}}; border-radius: 20px; padding: 16px 8px; text-align: center;">
+        <div class="dsp" style="font-size: 15px;">{{k.name}}</div>
+        <div class="lbl" style="opacity: 0.6; margin-top: 4px;">{{k.last}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- длительность: пресеты плюс подстройка -->
+  <div style="padding: 22px 20px 0;">
+    <span class="lbl" style="color: #6E6A68;">Сколько шло</span>
+    <div style="display: flex; align-items: center; gap: 12px; margin-top: 12px;">
+      <div class="tap" onClick="{{decD}}" style="width: 54px; height: 54px; border-radius: 27px; background: #F4F4F8; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
+      </div>
+      <div style="flex-grow: 1; text-align: center;">
+        <span class="dsp num" style="font-size: 50px; line-height: 1;">{{dur}}</span>
+        <span class="lbl" style="color: #6E6A68; margin-left: 6px;">мин</span>
+      </div>
+      <div class="tap" onClick="{{incD}}" style="width: 54px; height: 54px; border-radius: 27px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative;">
+        <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
+        <div style="width: 3px; height: 18px; border-radius: 2px; background: #252323; position: absolute;"></div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 6px; margin-top: 12px;">
+      <sc-for list="{{presets}}" as="p" hint-placeholder-count="4">
+        <div class="tap" onClick="{{p.pick}}" style="flex-grow: 1; text-align: center; background: {{p.bg}}; color: {{p.fg}}; border-radius: 999px; padding: 15px 0;">
+          <span class="num" style="font-size: 13px; font-weight: 700;">{{p.v}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- километры: только для бега -->
+  <sc-if value="{{isRun}}" hint-placeholder-val="{{ true }}">
+    <div style="padding: 20px 20px 0;">
+      <span class="lbl" style="color: #6E6A68;">Дистанция</span>
+      <div style="display: flex; align-items: center; gap: 12px; margin-top: 12px;">
+        <div class="tap" onClick="{{decKm}}" style="width: 54px; height: 54px; border-radius: 27px; background: #F4F4F8; display: flex; align-items: center; justify-content: center;">
+          <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
+        </div>
+        <div style="flex-grow: 1; text-align: center;">
+          <span class="dsp num" style="font-size: 40px; line-height: 1;">{{km}}</span>
+          <span class="lbl" style="color: #6E6A68; margin-left: 6px;">км · {{pace}}</span>
+        </div>
+        <div class="tap" onClick="{{incKm}}" style="width: 54px; height: 54px; border-radius: 27px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative;">
+          <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
+          <div style="width: 3px; height: 18px; border-radius: 2px; background: #252323; position: absolute;"></div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- RPE -->
+  <div style="padding: 22px 20px 0;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+      <span class="lbl" style="color: #6E6A68;">Насколько тяжело</span>
+      <span style="font-size: 13px; font-weight: 700; color: #635BDF;">{{rpeWord}}</span>
+    </div>
+    <div style="display: flex; align-items: flex-end; gap: 3px; margin-top: 12px;">
+      <sc-for list="{{scale}}" as="s" hint-placeholder-count="10">
+        <div class="tap seg" onClick="{{s.pick}}" style="flex-grow: 1; height: {{s.h}}; border-radius: 8px; background: {{s.bg}}; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;">
+          <span class="num" style="font-size: 11px; font-weight: 700; color: {{s.fg}};">{{s.v}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- контекст для тренера: без него мат в выгрузке это просто минуты и RPE -->
+  <div style="padding: 20px 20px 0;">
+    <span class="lbl" style="color: #6E6A68;">Что было</span>
+    <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px;">
+      <sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+        <div class="tap" onClick="{{c.pick}}" style="background: {{c.bg}}; color: {{c.fg}}; border-radius: 999px; padding: 14px 15px;">
+          <span style="font-size: 13px; font-weight: 600;">{{c.name}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- итог -->
+  <div style="background: #F4F4F8; border-radius: 24px; margin: 20px 16px 0; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <div class="lbl" style="color: #6E6A68;">Нагрузка</div>
+      <div class="dsp num" style="font-size: 30px; line-height: 1; margin-top: 4px;">{{load}}</div>
+    </div>
+    <div style="text-align: right;">
+      <div class="lbl" style="color: #6E6A68;">Неделя станет</div>
+      <div class="dsp num" style="font-size: 20px; line-height: 1; margin-top: 4px; color: #635BDF;">{{week}}</div>
+    </div>
+  </div>
+
+  <div class="tap" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 62px; margin: auto 16px 24px; display: flex; align-items: center; justify-content: center;">
+    <span class="dsp" style="font-size: 18px;">Готово</span>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { kind: 'bjj', dur: 90, rpe: 7, km: 6, chips: { 0: true } };
+  }
+
+  renderVals() {
+    const WORDS = ['', 'совсем легко', 'легко', 'комфортно', 'умеренно', 'ощутимо',
+                   'тяжеловато', 'тяжело', 'очень тяжело', 'на пределе', 'всё, максимум'];
+    const KINDS = [
+      { id: 'bjj', name: 'БЖЖ', last: 'вчера', color: '#635BDF' },
+      { id: 'run', name: 'Бег', last: '3 дня', color: '#8EFF8E' },
+      { id: 'mob', name: 'Мобилка', last: '5 дней', color: '#9F9FED' },
+    ];
+    const load = this.state.dur * this.state.rpe;
+    const paceMin = this.state.km ? this.state.dur / this.state.km : 0;
+    const pace = this.state.km
+      ? `${Math.floor(paceMin)}:${String(Math.round((paceMin % 1) * 60)).padStart(2, '0')} на км`
+      : '';
+
+    // чипы свои под каждый тип: тренеру нужен не «90 минут RPE 7»,
+    // а что именно было, иначе разбор строится вслепую
+    const CHIPS = {
+      bjj: ['Спарринги', 'Только техника', 'Шея зажалась', 'Колено', 'Летел как ракета'],
+      run: ['Лёгкий', 'Темповой', 'Интервалы', 'Ноги тяжёлые'],
+      mob: ['Растяжка', 'Суставная', 'Спина', 'После бега'],
+    };
+    const chipList = CHIPS[this.state.kind] || CHIPS.bjj;
+
+    return {
+      isRun: this.state.kind === 'run',
+      chips: chipList.map((name, i) => {
+        const on = !!this.state.chips[i];
+        return {
+          name,
+          bg: on ? '#9F9FED' : '#F4F4F8',
+          fg: on ? '#252323' : '#6E6A68',
+          pick: () => this.setState({ chips: { ...this.state.chips, [i]: !on } }),
+        };
+      }),
+      dur: this.state.dur,
+      km: this.state.km,
+      pace,
+      load,
+      week: 2149 + load,
+      rpeWord: WORDS[this.state.rpe],
+      kinds: KINDS.map((k) => ({
+        name: k.name,
+        last: k.last,
+        bg: this.state.kind === k.id ? k.color : '#F4F4F8',
+        fg: this.state.kind === k.id ? (k.id === 'bjj' ? '#FFFFFF' : '#252323') : '#6E6A68',
+        pick: () => this.setState({ kind: k.id, chips: {}, dur: k.id === 'bjj' ? 90 : k.id === 'run' ? 35 : 12 }),
+      })),
+      presets: [20, 35, 60, 90].map((v) => ({
+        v,
+        bg: this.state.dur === v ? '#252323' : '#F4F4F8',
+        fg: this.state.dur === v ? '#FFFFFF' : '#6E6A68',
+        pick: () => this.setState({ dur: v }),
+      })),
+      incD: () => this.setState({ dur: this.state.dur + 5 }),
+      decD: () => this.setState({ dur: Math.max(5, this.state.dur - 5) }),
+      incKm: () => this.setState({ km: +(this.state.km + 0.5).toFixed(1) }),
+      decKm: () => this.setState({ km: Math.max(0.5, +(this.state.km - 0.5).toFixed(1)) }),
+      scale: Array.from({ length: 10 }, (_, i) => i + 1).map((v) => ({
+        v,
+        h: Math.round(43 + v * 2.5) + 'px',
+        bg: v === this.state.rpe ? '#635BDF' : (v < this.state.rpe ? '#D8D6F5' : '#F4F4F8'),
+        fg: v === this.state.rpe ? '#FFFFFF' : (v < this.state.rpe ? '#252323' : '#6E6A68'),
+        pick: () => this.setState({ rpe: v }),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

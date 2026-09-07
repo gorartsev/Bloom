@@ -11,7 +11,7 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
-    a { color: #736CED; } a:hover { color: #252323; }
+    a { color: #635BDF; } a:hover { color: #252323; }
     .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
     .ui  { font-family: Archivo, system-ui, sans-serif; }
     .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
@@ -26,7 +26,7 @@
   <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 0;">
     <div class="dsp" style="font-size: 28px;">Гардероб</div>
     <div style="background: #F4F4F8; border-radius: 999px; padding: 8px 14px;">
-      <span class="lbl" style="color: #9A9694;">14 из 32</span>
+      <span class="lbl" style="color: #6E6A68;">14 из 32</span>
     </div>
   </div>
 
@@ -38,10 +38,10 @@
     </div>
   </div>
 
-  <div style="display: flex; gap: 6px; padding: 0 20px 0; justify-content: center;">
+  <div style="display: flex; gap: 6px; padding: 8px 20px 0; justify-content: center;">
     <sc-for list="{{worn}}" as="w" hint-placeholder-count="3">
-      <div class="tap" style="background: #F4F4F8; border-radius: 999px; padding: 8px 14px;">
-        <span class="lbl" style="color: #9A9694;">{{w.slot}}</span>
+      <div class="tap" style="background: #F4F4F8; border-radius: 999px; padding: 14px;">
+        <span class="lbl" style="color: #6E6A68;">{{w.slot}}</span>
         <span class="dsp" style="font-size: 12px; margin-left: 6px;">{{w.name}}</span>
       </div>
     </sc-for>
@@ -50,14 +50,14 @@
   <!-- слоты -->
   <div style="display: flex; gap: 6px; padding: 14px 20px 0;">
     <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
-      <div class="tap" onClick="{{t.pick}}" style="flex-grow: 1; text-align: center; background: {{t.bg}}; color: {{t.fg}}; border-radius: 999px; padding: 11px 0;">
+      <div class="tap" onClick="{{t.pick}}" style="flex-grow: 1; text-align: center; background: {{t.bg}}; color: {{t.fg}}; border-radius: 999px; padding: 16px 0;">
         <span class="lbl">{{t.name}}</span>
       </div>
     </sc-for>
   </div>
 
   <!-- сетка вещей -->
-  <div style="flex-grow: 1; padding: 14px 20px 0; overflow: hidden;">
+  <div style="flex-grow: 1; min-height: 0; padding: 14px 20px 10px; overflow-y: auto;">
     <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
       <sc-for list="{{items}}" as="it" hint-placeholder-count="9">
         <div class="tap" onClick="{{it.pick}}" style="background: {{it.bg}}; border-radius: 20px; padding: 10px; min-height: 104px; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid {{it.border}};">
@@ -99,7 +99,7 @@ class Component extends DCLogic {
         { id: 'bandtee', name: 'Бэнд-ти', cond: 'Открыт', swatch: '#252323', locked: false, desc: 'Оверсайз с черепом. Первая вещь, которую выдают за десять записанных сессий.' },
         { id: 'hoodie', name: 'Худи', cond: 'Открыт', swatch: '#8EFF8E', locked: false, desc: 'Мятное худи. За четыре недели без пропуска силовой.' },
         { id: 'tank', name: 'Майка', cond: 'Открыт', swatch: '#FFFFFF', locked: false, desc: 'Белая рубчатая майка. За двадцать записанных подходов с запасом.' },
-        { id: 'rash', name: 'Рашгард', cond: 'Открыт', swatch: '#736CED', locked: false, desc: 'Фиолетовый рашгард. За пять недель мата подряд.' },
+        { id: 'rash', name: 'Рашгард', cond: 'Открыт', swatch: '#635BDF', locked: false, desc: 'Фиолетовый рашгард. За пять недель мата подряд.' },
         { id: 'crew', name: 'Свитшот', cond: '6 из 8 недель', swatch: '#3A4A66', locked: true, desc: 'Восемь недель без пропуска больше одной силовой. Осталось две.' },
         { id: 'gi', name: 'Ги', cond: 'Синий пояс', swatch: '#F0EDE4', locked: true, desc: 'Открывается вручную, в тот день, когда тебе повяжут синий.' },
         { id: 'biker', name: 'Косуха', cond: 'Уровень 8', swatch: '#1A1A1F', locked: true, desc: 'Для жизни вне мата. Четыре уровня впереди.' },
@@ -139,7 +139,7 @@ class Component extends DCLogic {
       ].map((t) => ({
         name: t.name,
         bg: this.state.tab === t.id ? '#252323' : '#F4F4F8',
-        fg: this.state.tab === t.id ? '#FFFFFF' : '#9A9694',
+        fg: this.state.tab === t.id ? '#FFFFFF' : '#6E6A68',
         pick: () => this.setState({ tab: t.id }),
       })),
       items: list.map((i) => ({
@@ -148,15 +148,15 @@ class Component extends DCLogic {
         swatch: i.locked ? '#DCDCE4' : i.swatch,
         bg: i.locked ? '#FAFAFC' : (i.id === this.state.sel ? '#8EFF8E' : '#F4F4F8'),
         border: i.id === this.state.sel ? '#252323' : 'transparent',
-        fg: i.locked ? '#B4B0AE' : '#252323',
-        subFg: i.locked ? '#B4B0AE' : '#6E6A68',
+        fg: i.locked ? '#6E6A68' : '#252323',
+        subFg: i.id === this.state.sel && !i.locked ? '#2C4A2C' : '#6E6A68',
         pick: () => this.setState({ sel: i.id }),
       })),
       selName: sel.name,
       selDesc: sel.desc,
       ctaText: sel.locked ? 'Ещё закрыто' : 'Надеть',
       ctaBg: sel.locked ? '#E4E4EE' : '#252323',
-      ctaFg: sel.locked ? '#9A9694' : '#8EFF8E',
+      ctaFg: sel.locked ? '#6E6A68' : '#8EFF8E',
     };
   }
 }

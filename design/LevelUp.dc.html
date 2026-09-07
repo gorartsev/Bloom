@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #635BDF; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+    @keyframes burst { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .burst { animation: burst 560ms cubic-bezier(.2,.9,.3,1.2) both; }
+    @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+    .spin { animation: spin 26s linear infinite; }
+    @keyframes slidein { from { transform: translateX(24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .slide { animation: slidein 460ms cubic-bezier(.2,.9,.3,1) both; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
+
+  <!-- взрыв: лучи крутятся, цифра выпрыгивает -->
+  <div class="deco" style="position: relative; height: 396px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #8EFF8E;">
+    <svg class="spin" width="620" height="620" viewBox="0 0 200 200" style="position: absolute; opacity: 0.34;">
+      <sc-for list="{{rays}}" as="r" hint-placeholder-count="12">
+        <path d="{{r.d}}" fill="#FFFFFF"/>
+      </sc-for>
+    </svg>
+    <div class="burst" style="position: relative; text-align: center;">
+      <div class="lbl" style="color: #2C6B2C;">Уровень взят</div>
+      <div class="dsp num" style="font-size: 132px; line-height: 0.86; margin-top: 4px;">5</div>
+      <div style="background: #252323; color: #8EFF8E; border-radius: 999px; padding: 8px 18px; display: inline-block; margin-top: 10px;">
+        <span class="lbl">Четвёртый квест закрыт</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- что выросло -->
+  <div style="padding: 22px 20px 0;">
+    <span class="lbl" style="color: #6E6A68;">Что выросло</span>
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <sc-for list="{{grew}}" as="g" hint-placeholder-count="2">
+        <div class="slide" style="flex-grow: 1; background: #F4F4F8; border-radius: 20px; padding: 14px 16px;">
+          <div class="lbl" style="color: #6E6A68;">{{g.name}}</div>
+          <div class="dsp num" style="font-size: 20px; margin-top: 4px;">{{g.val}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- награда: вещь -->
+  <div class="slide" style="background: #635BDF; color: #FFFFFF; border-radius: 26px; margin: 14px 16px 0; padding: 18px 20px; display: flex; align-items: center; gap: 16px;">
+    <div style="width: 62px; height: 62px; border-radius: 18px; background: #8EFF8E; flex-shrink: 0;"></div>
+    <div style="flex-grow: 1;">
+      <div class="lbl" style="color: rgba(255,255,255,0.7);">Открылась вещь</div>
+      <div class="dsp" style="font-size: 20px; line-height: 1.05; margin-top: 4px;">Мятное худи</div>
+      <div style="font-size: 12px; font-weight: 500; margin-top: 5px; color: #FFFFFF;">Четыре недели без пропуска силовой</div>
+    </div>
+  </div>
+
+  <!-- фокус следующей недели: выбор влияет на план -->
+  <div style="padding: 20px 20px 0; margin-bottom: auto;">
+    <span class="lbl" style="color: #6E6A68;">Фокус следующей недели</span>
+    <div style="display: flex; gap: 6px; margin-top: 12px;">
+      <sc-for list="{{focus}}" as="f" hint-placeholder-count="3">
+        <div class="tap" onClick="{{f.pick}}" style="flex-grow: 1; background: {{f.bg}}; color: {{f.fg}}; border-radius: 18px; padding: 14px 6px; text-align: center;">
+          <span class="dsp" style="font-size: 13px;">{{f.name}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size: 12px; font-weight: 500; color: #6E6A68; margin-top: 10px; line-height: 1.45;">{{note}}</div>
+  </div>
+
+  <div class="tap" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 62px; margin: 16px 16px 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <span class="dsp" style="font-size: 18px;">Примерить</span>
+    <span class="dsp" style="font-size: 20px;">→</span>
+  </div>
+  <div style="text-align: center; padding: 14px 0 24px;">
+    <span class="lbl" style="color: #6E6A68;">Потом</span>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { focus: 'mob' };
+  }
+
+  renderVals() {
+    const rays = Array.from({ length: 12 }, (_, i) => {
+      const a = (i * 30) * Math.PI / 180;
+      const b = a + 0.18;
+      const R = 140;
+      return {
+        d: `M100 100 L${(100 + R * Math.cos(a)).toFixed(1)} ${(100 + R * Math.sin(a)).toFixed(1)} L${(100 + R * Math.cos(b)).toFixed(1)} ${(100 + R * Math.sin(b)).toFixed(1)} Z`,
+      };
+    });
+
+    const DEFS = [
+      { id: 'str', name: 'Сила', note: 'Тренер добавит подход на базовых и срежет вспомогательные. Мат на неделю просядет, это плата.' },
+      { id: 'mob', name: 'Подвижность', note: 'Твоё слабое место: разрыв в девять пунктов. Мобильность встанет в каждый день бега плюс блок после мата.' },
+      { id: 'rec', name: 'Разгрузка', note: 'Объём минус сорок процентов. Берётся, когда усталость лезет выше 1.3 или мат стал тяжелее обычного.' },
+    ];
+    const sel = DEFS.find((d) => d.id === this.state.focus) || DEFS[1];
+
+    return {
+      rays,
+      grew: [
+        { name: 'Выносливость', val: '15 → 16' },
+        { name: 'Стойкость', val: '9 → 11' },
+      ],
+      focus: DEFS.map((d) => ({
+        name: d.name,
+        bg: this.state.focus === d.id ? '#8EFF8E' : '#F4F4F8',
+        fg: this.state.focus === d.id ? '#252323' : '#6E6A68',
+        pick: () => this.setState({ focus: d.id }),
+      })),
+      note: sel.note,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #635BDF; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+    .bob { animation: bob 3.4s ease-in-out infinite; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
+
+  <!-- шаги -->
+  <div style="display: flex; gap: 5px; padding: 22px 20px 0;">
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+      <div style="flex-grow: 1; height: 5px; border-radius: 3px; background: {{s.bg}};"></div>
+    </sc-for>
+  </div>
+
+  <div style="padding: 16px 20px 0;">
+    <span class="lbl" style="color: #6E6A68;">Шаг 1 из 4</span>
+    <div class="dsp" style="font-size: 32px; line-height: 1.02; margin-top: 10px;">Выбери,<br>с кого начнём</div>
+    <div style="font-size: 14px; color: #6E6A68; margin-top: 10px; line-height: 1.45;">
+      Одежду заработаешь. Сейчас важнее трусы: в них ты проведёшь первые пару недель.
+    </div>
+  </div>
+
+  <!-- сцена выбранного -->
+  <div style="position: relative; height: 196px; margin-top: 8px; display: flex; align-items: center; justify-content: center;">
+    <div style="position: absolute; width: 176px; height: 176px; border-radius: 88px; background: {{stage}};"></div>
+    <div class="bob" style="position: relative; width: 100px; height: 146px; border-radius: 16px; border: 2px dashed rgba(37,35,35,0.35); background: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px;">
+      <span class="lbl" style="color: #252323;">{{pickedName}}</span>
+    </div>
+  </div>
+
+  <!-- выбор трусов -->
+  <div style="padding: 12px 20px 0;">
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+      <sc-for list="{{pants}}" as="p" hint-placeholder-count="8">
+        <div class="tap" onClick="{{p.pick}}" style="background: {{p.bg}}; border: 2px solid {{p.border}}; border-radius: 18px; padding: 10px 6px; text-align: center;">
+          <!-- обводка обязательна: белый образец на светлой карточке и мятный на мятной иначе пропадают -->
+          <div style="width: 28px; height: 28px; border-radius: 8px; background: {{p.swatch}}; border: 2px solid #252323; margin: 0 auto;"></div>
+          <div class="lbl" style="font-size: 9px; letter-spacing: 0.6px; margin-top: 6px; color: {{p.fg}};">{{p.name}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- дальше по шагам, коротко -->
+  <div style="padding: 14px 20px 0; margin-bottom: auto;">
+    <span class="lbl" style="color: #6E6A68;">Дальше спрошу</span>
+    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 1px; border-radius: 18px; overflow: hidden;">
+      <sc-for list="{{next}}" as="n" hint-placeholder-count="3">
+        <div style="background: #F4F4F8; padding: 13px 16px; display: flex; align-items: center; gap: 10px;">
+          <span class="dsp" style="font-size: 13px; color: #6E6A68; width: 16px;">{{n.n}}</span>
+          <span style="font-size: 14px; font-weight: 600; flex-grow: 1;">{{n.name}}</span>
+          <span class="lbl" style="color: #6E6A68; white-space: nowrap; flex-shrink: 0;">{{n.why}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div class="tap" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 62px; flex-shrink: 0; margin: 14px 16px 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <span class="dsp" style="font-size: 18px;">Это я</span>
+    <span class="dsp" style="font-size: 20px;">→</span>
+  </div>
+  <div style="text-align: center; padding: 12px 0 20px;">
+    <span class="lbl" style="color: #6E6A68;">Настроить потом</span>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pants: 'leopard' };
+  }
+
+  renderVals() {
+    const PANTS = [
+      { id: 'leopard', name: 'Леопард', swatch: '#C97B4A', stage: '#FFD9A8' },
+      { id: 'black', name: 'Чёрные', swatch: '#252323', stage: '#DCDCE4' },
+      { id: 'white', name: 'Белые', swatch: '#FFFFFF', stage: '#EFEFF4' },
+      { id: 'hearts', name: 'Сердечки', swatch: '#FF6B8A', stage: '#FFD6DE' },
+      { id: 'stripes', name: 'Полоска', swatch: '#5B8FD6', stage: '#CFE0F5' },
+      { id: 'flames', name: 'Огонь', swatch: '#FF6A3D', stage: '#FFD2C2' },
+      { id: 'banana', name: 'Бананы', swatch: '#FFE500', stage: '#FFF6B8' },
+      { id: 'mint', name: 'Мятные', swatch: '#8EFF8E', stage: '#D6FFD6' },
+    ];
+    const picked = PANTS.find((p) => p.id === this.state.pants) || PANTS[0];
+
+    return {
+      stage: picked.stage,
+      pickedName: picked.name,
+      steps: [0, 1, 2, 3].map((i) => ({ bg: i === 0 ? '#252323' : '#E4E4EE' })),
+      pants: PANTS.map((p) => ({
+        name: p.name,
+        swatch: p.swatch,
+        bg: this.state.pants === p.id ? '#8EFF8E' : '#F4F4F8',
+        border: this.state.pants === p.id ? '#252323' : 'transparent',
+        fg: this.state.pants === p.id ? '#252323' : '#6E6A68',
+        pick: () => this.setState({ pants: p.id }),
+      })),
+      next: [
+        { n: '2', name: 'Как тебя звать и сколько весишь', why: '20 сек' },
+        { n: '3', name: 'Что за спорт и какое расписание', why: '30 сек' },
+        { n: '4', name: 'Что помнишь по весам', why: 'можно позже' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

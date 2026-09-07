@@ -11,7 +11,7 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
-    a { color: #736CED; } a:hover { color: #252323; }
+    a { color: #635BDF; } a:hover { color: #252323; }
     .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
     .ui  { font-family: Archivo, system-ui, sans-serif; }
     .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
@@ -25,21 +25,23 @@
 <div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
 
   <!-- прогресс сессии полосками: интерактивный шаг -->
-  <div style="padding: 20px 20px 0;">
+  <div style="padding: 2px 20px 0;">
     <div style="display: flex; gap: 5px;">
       <sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
-        <div class="tap" onClick="{{s.go}}" style="flex-grow: 1; height: 6px; border-radius: 3px; background: {{s.bg}};"></div>
+        <div class="tap" onClick="{{s.go}}" style="flex-grow: 1; padding: 19px 0; display: flex; align-items: center;">
+          <div style="width: 100%; height: 6px; border-radius: 3px; background: {{s.bg}};"></div>
+        </div>
       </sc-for>
     </div>
-    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 14px;">
-      <span class="lbl" style="color: #9A9694;">Упражнение 2 из 4 · 34 мин</span>
-      <span class="lbl" style="color: #736CED;">Завершить</span>
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 0;">
+      <span class="lbl" style="color: #6E6A68;">Упражнение 2 из 4 · 34 мин</span>
+      <span class="lbl" style="color: #635BDF;">Завершить</span>
     </div>
   </div>
 
   <div style="padding: 12px 20px 0;">
     <div class="dsp" style="font-size: 32px; line-height: 1;">Жим гантелей</div>
-    <div style="font-size: 13px; color: #9A9694; margin-top: 8px;">Цель 3 × 8 · прошлый раз 22 × 8, запас 2</div>
+    <div style="font-size: 13px; color: #6E6A68; margin-top: 8px;">Цель 3 × 8 · прошлый раз 22 × 8, запас 2</div>
   </div>
 
   <!-- записанные подходы: мятные пилюли, растут слева направо -->
@@ -59,7 +61,7 @@
       </div>
       <div style="text-align: center;">
         <div class="dsp num" style="font-size: 58px; line-height: 0.9;">{{w}}</div>
-        <div class="lbl" style="color: #9A9694;">кг</div>
+        <div class="lbl" style="color: #6E6A68;">кг</div>
       </div>
       <div class="tap" onClick="{{incW}}" style="width: 62px; height: 62px; border-radius: 31px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative;">
         <div style="width: 20px; height: 3px; border-radius: 2px; background: #252323;"></div>
@@ -75,7 +77,7 @@
       </div>
       <div style="text-align: center;">
         <div class="dsp num" style="font-size: 58px; line-height: 0.9;">{{r}}</div>
-        <div class="lbl" style="color: #9A9694;">повторов</div>
+        <div class="lbl" style="color: #6E6A68;">повторов</div>
       </div>
       <div class="tap" onClick="{{incR}}" style="width: 62px; height: 62px; border-radius: 31px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative;">
         <div style="width: 20px; height: 3px; border-radius: 2px; background: #252323;"></div>
@@ -87,8 +89,8 @@
   <!-- RIR: шкала-ползунок, а не пять кнопок -->
   <div style="padding: 20px 20px 0;">
     <div style="display: flex; align-items: baseline; justify-content: space-between;">
-      <span class="lbl" style="color: #9A9694;">Запас</span>
-      <span style="font-size: 13px; font-weight: 600; color: #736CED;">{{rirWord}}</span>
+      <span class="lbl" style="color: #6E6A68;">Запас</span>
+      <span style="font-size: 13px; font-weight: 600; color: #635BDF;">{{rirWord}}</span>
     </div>
     <div style="display: flex; gap: 4px; margin-top: 12px;">
       <sc-for list="{{rirs}}" as="x" hint-placeholder-count="5">
@@ -99,11 +101,23 @@
     </div>
   </div>
 
+  <!-- подсказка по технике: cue из каталога, ровно та, что лежит в data.js -->
+  <div style="margin: 20px 16px 0; background: #F4F4F8; border-radius: 20px; padding: 14px 18px;">
+    <div class="lbl" style="color: #6E6A68;">Подсказка</div>
+    <div style="font-size: 13px; font-weight: 500; margin-top: 5px; line-height: 1.4;">{{cue}}</div>
+  </div>
+
+  <div class="tap" style="margin: 8px 16px 0; padding: 14px 18px; display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 14px; font-weight: 600; flex-grow: 1;">Заменить упражнение</span>
+    <span class="lbl" style="color: #6E6A68;">болит или занято</span>
+    <span class="dsp" style="font-size: 14px; color: #6E6A68;">→</span>
+  </div>
+
   <div class="tap" onClick="{{save}}" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 66px; margin: auto 16px 0; display: flex; align-items: center; justify-content: center;">
     <span class="dsp" style="font-size: 19px;">Записать подход</span>
   </div>
 
-  <div style="display: flex; align-items: center; justify-content: space-between; margin: 12px 16px 22px; background: #9F9FED; color: #FFFFFF; border-radius: 20px; padding: 14px 20px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin: 12px 16px 22px; background: #9F9FED; color: #252323; border-radius: 20px; padding: 14px 20px;">
     <span class="lbl">Отдых</span>
     <span class="dsp num" style="font-size: 19px;">1:30</span>
   </div>
@@ -129,6 +143,7 @@ class Component extends DCLogic {
       incR: bump('r', 1, 1),
       decR: bump('r', -1, 1),
       rirWord: WORDS[this.state.rir],
+      cue: 'Локти под 45 градусов, не разводить в стороны',
       steps: [0, 1, 2, 3].map((i) => ({
         bg: i < this.state.step ? '#8EFF8E' : (i === this.state.step ? '#252323' : '#E4E4EE'),
         go: () => this.setState({ step: i }),
@@ -136,13 +151,13 @@ class Component extends DCLogic {
       sets: [
         { txt: '22 × 8', bg: '#8EFF8E', fg: '#252323', border: 'transparent' },
         { txt: '22 × 8', bg: '#8EFF8E', fg: '#252323', border: 'transparent' },
-        { txt: 'подход 3', bg: '#FFFFFF', fg: '#9A9694', border: '#D6D6E0' },
+        { txt: 'подход 3', bg: '#FFFFFF', fg: '#6E6A68', border: '#D6D6E0' },
       ],
       rirs: [0, 1, 2, 3, 4].map((v) => ({
         v: v === 4 ? '4+' : v,
-        h: [40, 48, 56, 64, 72][v] + 'px',
-        bg: v === this.state.rir ? '#736CED' : '#F4F4F8',
-        fg: v === this.state.rir ? '#FFFFFF' : '#9A9694',
+        h: [44, 51, 58, 65, 72][v] + 'px',
+        bg: v === this.state.rir ? '#635BDF' : '#F4F4F8',
+        fg: v === this.state.rir ? '#FFFFFF' : '#6E6A68',
         pick: () => this.setState({ rir: v }),
       })),
       save: () => this.setState({ r: this.state.r }),
