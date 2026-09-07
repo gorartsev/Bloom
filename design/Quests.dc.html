@@ -30,7 +30,7 @@
   <!-- переключатель -->
   <div style="display: flex; gap: 6px; padding: 0 16px 12px;">
     <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
-      <div onClick="{{t.pick}}" style="border: 3px solid #111111; background: {{t.bg}}; color: {{t.fg}}; cursor: pointer; padding: 8px 14px;">
+      <div onClick="{{t.pick}}" style="border: 3px solid #111111; background: {{t.bg}}; color: {{t.fg}}; cursor: pointer; padding: 13px 16px;">
         <span class="dsp" style="font-size: 12px; letter-spacing: 1.2px;">{{t.label}}</span>
       </div>
     </sc-for>
@@ -66,7 +66,7 @@
           <div style="font-size: 11px; font-weight: 500; margin-top: 3px; color: #C9C3B6;">Через 5 недель. Открывается, когда закрыты три квеста из четырёх.</div>
         </div>
         <div style="border: 3px solid #FF5A3C; padding: 8px 10px; text-align: center;">
-          <div class="dsp" style="font-size: 22px; line-height: 1; color: #FF5A3C;">2</div>
+          <div class="dsp" style="font-size: 22px; line-height: 1; color: #FF5A3C;">1</div>
           <div class="dsp" style="font-size: 9px; letter-spacing: 0.8px; color: #FF5A3C;">из 4</div>
         </div>
       </div>
@@ -105,7 +105,7 @@ class Component extends DCLogic {
   renderVals() {
     const SETS = {
       block: [
-        { name: 'Подтягивания 3×8', hint: 'С запасом RIR 2, без боли в локтях', count: '6/8', pct: '75%', xp: '+800', color: '#FFC700' },
+        { name: 'Подтягивания 3×8', hint: 'Закрыт: три подхода с запасом, локти чистые', count: '8/8', pct: '100%', xp: '+800', color: '#FFC700' },
         { name: 'Румынская 80 кг', hint: 'Три подхода по шесть', count: '65/80', pct: '81%', xp: '+800', color: '#FF5A3C' },
         { name: 'Шея два месяца', hint: 'Изометрия без пропусков, потом откроется мост', count: '3/8 нед', pct: '38%', xp: '+600', color: '#2F6BFF' },
         { name: 'Восемь недель ровно', hint: 'Без пропуска больше одной силовой подряд', count: '3/8 нед', pct: '38%', xp: '+1000', color: '#3FBF5F' },

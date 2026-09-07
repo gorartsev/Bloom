@@ -14,137 +14,159 @@
     a { color: #FF5A3C; } a:hover { color: #111111; }
     .dsp { font-family: Oswald, Haettenschweiler, Impact, sans-serif; text-transform: uppercase; font-weight: 700; }
     .ui  { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
-    .chip { border: 3px solid #111111; cursor: pointer; }
   </style>
 </helmet>
 
 <div class="ui" style="width: 390px; height: 844px; background: #F7F4EC; color: #111111; display: flex; flex-direction: column; overflow: hidden;">
 
-  <!-- шапка -->
-  <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 10px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 6px;">
     <div style="display: flex; align-items: center; gap: 8px;">
-      <div style="width: 26px; height: 26px; border-radius: 50%; background: #111111; display: flex; align-items: center; justify-content: center;">
-        <div style="width: 9px; height: 9px; background: #FFC700;"></div>
+      <div style="width: 24px; height: 24px; border-radius: 50%; background: #111111; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 8px; height: 8px; background: #FFC700;"></div>
       </div>
-      <span class="dsp" style="font-size: 18px; letter-spacing: 0.5px;">Bloom</span>
+      <span class="dsp" style="font-size: 17px; letter-spacing: 0.5px;">Bloom</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
-      <div style="background: #111111; color: #F7F4EC; padding: 5px 9px;">
-        <span class="dsp" style="font-size: 12px; letter-spacing: 1px;">Свеж</span>
+      <div style="background: #111111; color: #F7F4EC; padding: 4px 8px;">
+        <span class="dsp" style="font-size: 11px; letter-spacing: 1px;">Свеж</span>
       </div>
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </div>
     </div>
   </div>
 
-  <!-- имя и уровень -->
-  <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px 10px;">
-    <div class="dsp" style="font-size: 62px; line-height: 0.82; letter-spacing: -1px;">Гора</div>
-    <div style="background: #FF5A3C; border: 3px solid #111111; padding: 4px 10px 6px; text-align: center;">
-      <div class="dsp" style="font-size: 10px; letter-spacing: 1.4px; line-height: 1;">Лвл</div>
-      <div class="dsp" style="font-size: 30px; line-height: 0.9;">4</div>
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px 8px;">
+    <div class="dsp" style="font-size: 54px; line-height: 0.82; letter-spacing: -1px;">Гора</div>
+    <div style="background: #FF5A3C; border: 3px solid #111111; padding: 3px 9px 5px; text-align: center;">
+      <div class="dsp" style="font-size: 9px; letter-spacing: 1.4px; line-height: 1;">Лвл</div>
+      <div class="dsp" style="font-size: 26px; line-height: 0.9;">4</div>
     </div>
   </div>
 
-  <!-- персонаж -->
-  <div style="position: relative; margin: 0 16px; border: 3px solid #111111; background: {{stageColor}}; height: 292px; display: flex; align-items: flex-end; justify-content: center; overflow: hidden;">
+  <!-- персонаж: формы одежды рисуются кодом, поэтому комбинируются свободно -->
+  <div style="position: relative; margin: 0 16px; border: 3px solid #111111; background: {{stageColor}}; height: 262px; display: flex; align-items: flex-end; justify-content: center; overflow: hidden;">
     <div style="position: absolute; left: 0; top: 0; background: #111111; color: #F7F4EC; padding: 4px 9px;">
       <span class="dsp" style="font-size: 11px; letter-spacing: 1.4px;">{{beltName}} пояс</span>
     </div>
-    <svg width="216" height="248" viewBox="0 0 200 230" style="display: block;">
-      <g stroke-linecap="round" stroke-linejoin="round">
-        <path d="M80 166 L75 206 M120 166 L125 206" stroke="#111111" stroke-width="28" fill="none"/>
-        <path d="M80 166 L75 206 M120 166 L125 206" stroke="#F3EEE0" stroke-width="22" fill="none"/>
-        <rect x="52" y="198" width="42" height="20" rx="6" fill="#111111" stroke="#111111" stroke-width="5"/>
-        <rect x="106" y="198" width="42" height="20" rx="6" fill="#111111" stroke="#111111" stroke-width="5"/>
-        <path d="M68 104 L46 150 M132 104 L154 150" stroke="#111111" stroke-width="28" fill="none"/>
-        <path d="M68 104 L46 150 M132 104 L154 150" stroke="#F3EEE0" stroke-width="20" fill="none"/>
-        <circle cx="44" cy="155" r="12" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
-        <circle cx="156" cy="155" r="12" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
-        <path d="M100 84 L66 96 L62 172 H138 L134 96 Z" fill="#F3EEE0" stroke="#111111" stroke-width="5"/>
-        <path d="M100 84 L84 132 M100 84 L116 132" stroke="#111111" stroke-width="5" fill="none"/>
-        <rect x="60" y="136" width="80" height="18" fill="{{beltColor}}" stroke="#111111" stroke-width="5"/>
-        <path d="M94 154 v20 M108 154 v15" stroke="#111111" stroke-width="6" fill="none"/>
-        <rect x="88" y="72" width="24" height="18" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
-        <rect x="64" y="14" width="72" height="70" rx="22" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
-        <rect x="78" y="44" width="16" height="13" rx="3" fill="#FFFFFF" stroke="#111111" stroke-width="4"/>
-        <rect x="106" y="44" width="16" height="13" rx="3" fill="#FFFFFF" stroke="#111111" stroke-width="4"/>
-        <path d="M79 36 h15 M106 36 h15" stroke="#111111" stroke-width="5" fill="none"/>
-        <path d="M100 59 v6 h4" stroke="#111111" stroke-width="4" fill="none"/>
-        <path d="M91 71 h18" stroke="#111111" stroke-width="4" fill="none"/>
-        <path d="M64 38 C64 15 82 7 100 7 C118 7 136 15 136 38 C128 26 116 22 100 22 C84 22 72 26 64 38 Z" fill="#2A211C" stroke="#111111" stroke-width="5"/>
-      </g>
-      <g stroke="#111111" stroke-width="5" stroke-linejoin="round">
-        <sc-if value="{{isBeanie}}" hint-placeholder-val="{{ true }}">
-          <path d="M62 34 C62 10 80 2 100 2 C120 2 138 10 138 34 Z" fill="#FF5A3C"/>
-          <rect x="58" y="31" width="84" height="15" rx="5" fill="#FF5A3C"/>
-        </sc-if>
-        <sc-if value="{{isBand}}" hint-placeholder-val="{{ true }}">
-          <rect x="60" y="28" width="80" height="14" rx="3" fill="#FFC700"/>
-          <path d="M140 34 L164 26 M140 39 L164 47" fill="none" stroke-linecap="round"/>
-        </sc-if>
+
+    <svg width="206" height="246" viewBox="0 0 200 240" style="display: block;">
+      <g stroke-linecap="round" stroke-linejoin="round" stroke="#111111">
+        <path d="M{{legX1}} 168 v{{legLen}} M{{legX2}} 168 v{{legLen}}" stroke-width="26" fill="none"/>
+        <path d="M{{legX1}} 168 v{{legLen}} M{{legX2}} 168 v{{legLen}}" stroke="#F2C89C" stroke-width="18" fill="none"/>
+        <path d="{{legTattoo}}" stroke-width="3" fill="none"/>
+
+        <rect x="{{sockX1}}" y="192" width="22" height="17" fill="#FFFFFF" stroke-width="4"/>
+        <rect x="{{sockX2}}" y="192" width="22" height="17" fill="#FFFFFF" stroke-width="4"/>
+
+        <path d="M38 204 h54 v12 h-60 a7 7 0 0 1 6 -12 z" fill="{{shoeColor}}" stroke-width="5"/>
+        <path d="M162 204 h-54 v12 h60 a7 7 0 0 0 -6 -12 z" fill="{{shoeColor}}" stroke-width="5"/>
+        <path d="M32 216 h60 M108 216 h60" stroke="#FFFFFF" stroke-width="8" fill="none"/>
+        <path d="M32 216 h60 M108 216 h60" stroke-width="3" fill="none"/>
+        <path d="{{shoeDetail}}" stroke-width="3" fill="none"/>
+
+        <path d="{{bottomPath}}" fill="{{bottomColor}}" stroke-width="5"/>
+        <path d="{{bottomFold}}" stroke-width="4" fill="none"/>
+
+        <path d="{{sleeveL}}" fill="{{sleeveFill}}" stroke-width="5"/>
+        <path d="{{sleeveR}}" fill="{{sleeveFill}}" stroke-width="5"/>
+        <path d="{{armTattoo}}" stroke-width="3" fill="none"/>
+        <circle cx="{{handLx}}" cy="{{handY}}" r="11" fill="#F2C89C" stroke-width="5"/>
+        <circle cx="{{handRx}}" cy="{{handY}}" r="11" fill="#F2C89C" stroke-width="5"/>
+
+        <path d="M100 90 L68 98 L56 114 L60 166 H140 L144 114 L132 98 Z" fill="{{topColor}}" stroke-width="5"/>
+        <rect x="82" y="112" width="36" height="30" rx="2" fill="{{printBg}}" stroke-width="4"/>
+        <path d="{{printMark}}" stroke="{{printInk}}" stroke-width="4" fill="none"/>
+
+        <rect x="60" y="152" width="80" height="13" fill="{{beltColor}}" stroke-width="5"/>
+
+        <rect x="88" y="76" width="24" height="18" fill="#F2C89C" stroke-width="5"/>
+        <path d="M84 92 q16 13 32 0" stroke="#FFC700" stroke-width="5" fill="none"/>
+        <rect x="64" y="18" width="72" height="70" rx="22" fill="#F2C89C" stroke-width="5"/>
+        <rect x="78" y="48" width="16" height="13" rx="3" fill="#FFFFFF" stroke-width="4"/>
+        <rect x="106" y="48" width="16" height="13" rx="3" fill="#FFFFFF" stroke-width="4"/>
+        <path d="M79 40 h15 M106 40 h15" stroke-width="5" fill="none"/>
+        <path d="M100 63 v6 h4" stroke-width="4" fill="none"/>
+        <path d="M91 75 h18" stroke-width="4" fill="none"/>
+        <circle cx="66" cy="66" r="5" fill="none" stroke-width="4"/>
+
+        <path d="{{headPath}}" fill="{{headColor}}" stroke-width="5"/>
+        <path d="{{capBrim}}" fill="{{headColor}}" stroke-width="5"/>
       </g>
     </svg>
   </div>
 
-  <!-- слоты экипировки -->
-  <div style="display: flex; gap: 6px; padding: 10px 16px 0;">
-    <sc-for list="{{slots}}" as="s" hint-placeholder-count="4">
-      <div class="chip" onClick="{{s.pick}}" style="flex-grow: 1; background: {{s.bg}}; padding: 8px 4px; text-align: center;">
-        <div class="dsp" style="font-size: 11px; letter-spacing: 0.8px; color: {{s.fg}};">{{s.label}}</div>
-      </div>
-    </sc-for>
+  <!-- гардероб: тап листает слот -->
+  <div style="padding: 8px 16px 0;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px;">
+      <span class="dsp" style="font-size: 11px; letter-spacing: 1.4px;">Шмот</span>
+      <span style="font-size: 10px; font-weight: 500; color: #6B6459;">меняешь когда хочешь</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px;">
+      <sc-for list="{{wardrobe}}" as="w" hint-placeholder-count="4">
+        <div onClick="{{w.pick}}" style="border: 3px solid #111111; background: #FFFFFF; cursor: pointer; padding: 6px 3px; text-align: center; height: 48px; display: flex; flex-direction: column; justify-content: center;">
+          <div class="dsp" style="font-size: 9px; letter-spacing: 0.6px; color: #6B6459;">{{w.slot}}</div>
+          <div class="dsp" style="font-size: 12px; line-height: 1.05; margin-top: 2px;">{{w.name}}</div>
+        </div>
+      </sc-for>
+    </div>
   </div>
 
-  <!-- опыт -->
-  <div style="padding: 12px 16px 0;">
+  <!-- пояс: только вручную -->
+  <div style="padding: 8px 16px 0;">
     <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px;">
+      <span class="dsp" style="font-size: 11px; letter-spacing: 1.4px;">Пояс · ставишь сам</span>
+      <span style="font-size: 10px; font-weight: 500; color: #6B6459;">опытом не выбивается</span>
+    </div>
+    <div style="display: flex; gap: 5px;">
+      <sc-for list="{{belts}}" as="b" hint-placeholder-count="5">
+        <div onClick="{{b.pick}}" style="flex-grow: 1; border: {{b.border}}; background: {{b.swatch}}; cursor: pointer; height: 44px;"></div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="padding: 10px 16px 0;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px;">
       <span class="dsp" style="font-size: 11px; letter-spacing: 1.4px;">Опыт</span>
       <span class="dsp" style="font-size: 13px;">7 420 / 12 000</span>
     </div>
-    <div style="height: 18px; border: 3px solid #111111; background: #FFFFFF; display: flex;">
+    <div style="height: 16px; border: 3px solid #111111; background: #FFFFFF; display: flex;">
       <div style="width: 62%; background: #FFC700;"></div>
     </div>
   </div>
 
-  <!-- атрибуты -->
-  <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 12px 16px 0;">
+  <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 10px 16px 0;">
     <sc-for list="{{attrs}}" as="a" hint-placeholder-count="5">
-      <div style="border: 3px solid #111111; background: {{a.bg}}; padding: 7px 2px 6px; text-align: center;">
-        <div class="dsp" style="font-size: 24px; line-height: 1; color: {{a.fg}};">{{a.val}}</div>
-        <div class="dsp" style="font-size: 9px; letter-spacing: 0.6px; margin-top: 2px; color: {{a.fg}};">{{a.name}}</div>
+      <div style="border: 3px solid #111111; background: {{a.bg}}; padding: 6px 2px 5px; text-align: center;">
+        <div class="dsp" style="font-size: 22px; line-height: 1;">{{a.val}}</div>
+        <div class="dsp" style="font-size: 9px; letter-spacing: 0.4px; margin-top: 1px;">{{a.name}}</div>
       </div>
     </sc-for>
   </div>
 
-  <div style="font-size: 12px; padding: 9px 16px 0; line-height: 1.35; font-weight: 500;">
-    Подвижность отстаёт на 6. Персонаж деревенеет.
-  </div>
-
-  <!-- действие -->
   <div style="padding: 10px 16px 0;">
-    <div style="height: 54px; background: #111111; color: #F7F4EC; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 9px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F7F4EC" stroke-width="3" stroke-linecap="round"><path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/></svg>
-      <span class="dsp" style="font-size: 16px; letter-spacing: 1.4px;">Начать тренировку</span>
+    <div style="height: 52px; background: #111111; color: #F7F4EC; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 9px;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F7F4EC" stroke-width="3" stroke-linecap="round"><path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/></svg>
+      <span class="dsp" style="font-size: 15px; letter-spacing: 1.4px;">Начать тренировку</span>
     </div>
   </div>
 
-  <!-- навигация -->
   <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 3px solid #111111; margin-top: auto;">
-    <div style="padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; background: #FFC700;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 3.5-6 7-6s7 2 7 6"/></svg>
+    <div style="padding: 9px 0 13px; display: flex; flex-direction: column; align-items: center; gap: 3px; background: #FFC700;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 3.5-6 7-6s7 2 7 6"/></svg>
       <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Герой</span>
     </div>
-    <div style="padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+    <div style="padding: 9px 0 13px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
       <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Лог</span>
     </div>
-    <div style="padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16l-7-4-7 4z"/></svg>
+    <div style="padding: 9px 0 13px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16l-7-4-7 4z"/></svg>
       <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Квесты</span>
     </div>
-    <div style="padding: 10px 0 14px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7z"/></svg>
-      <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Снаряга</span>
+    <div style="padding: 9px 0 13px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7z"/></svg>
+      <span class="dsp" style="font-size: 10px; letter-spacing: 0.8px;">Шмот</span>
     </div>
   </div>
 
@@ -155,54 +177,125 @@
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { belt: 'white', head: 'none' };
+    this.state = { top: 0, bottom: 0, shoes: 0, head: 0, belt: 0 };
   }
 
   renderVals() {
-    const BELTS = {
-      white:  { color: '#FFFFFF', name: 'Белый' },
-      blue:   { color: '#2F6BFF', name: 'Синий' },
-      purple: { color: '#B569FF', name: 'Пурпур' },
-      black:  { color: '#111111', name: 'Чёрный' },
-    };
-    const belt = BELTS[this.state.belt] || BELTS.white;
-
-    const slotDefs = [
-      { id: 'white',  label: 'Белый',   kind: 'belt' },
-      { id: 'blue',   label: 'Синий',   kind: 'belt' },
-      { id: 'beanie', label: 'Шапка',   kind: 'head' },
-      { id: 'band',   label: 'Хатимаки', kind: 'head' },
+    // Каждая вещь это форма, а не картинка. Поэтому любая комбинация сходится.
+    const TOPS = [
+      { name: 'Бэнд-ти', color: '#1A1A1F', printBg: '#F7F4EC', printInk: '#1A1A1F', sleeve: 'short' },
+      { name: 'Свитшот', color: '#20232B', printBg: '#20232B', printInk: '#FFC700', sleeve: 'long' },
+      { name: 'Безрукав', color: '#2C2C31', printBg: '#F7F4EC', printInk: '#2F6BFF', sleeve: 'none' },
+      { name: 'Худи', color: '#FF5A3C', printBg: '#FF5A3C', printInk: '#111111', sleeve: 'long' },
+    ];
+    const BOTTOMS = [
+      { name: 'Бэгги', color: '#3A4A66', long: true },
+      { name: 'Карго', color: '#4A5240', long: false },
+      { name: 'Чёрные', color: '#1A1A1F', long: false },
+      { name: 'Рваные', color: '#5B6B84', long: true, ripped: true },
+    ];
+    const SHOES = [
+      { name: 'Конверс', color: '#1A1A1F', studs: true },
+      { name: 'Кроссы', color: '#F7F4EC', studs: false },
+      { name: 'Серые', color: '#8D97A8', studs: false },
+      { name: 'Шлёпки', color: '#1A1A1F', studs: false },
+    ];
+    const HEADS = [
+      { name: 'Ирокез', color: '#FF5A3C', cap: false },
+      { name: 'Кепка', color: '#4A5240', cap: true },
+      { name: 'Кудри', color: '#2A211C', cap: false, curly: true },
+      { name: 'Снепбек', color: '#1A1A1F', cap: true },
+    ];
+    const BELTS = [
+      { color: '#FFFFFF', name: 'Белый' },
+      { color: '#2F6BFF', name: 'Синий' },
+      { color: '#B569FF', name: 'Пурпурный' },
+      { color: '#7A4B28', name: 'Коричневый' },
+      { color: '#111111', name: 'Чёрный' },
     ];
 
-    const slots = slotDefs.map((s) => {
-      const on = s.kind === 'belt' ? this.state.belt === s.id : this.state.head === s.id;
-      return {
-        label: s.label,
-        bg: on ? '#111111' : '#FFFFFF',
-        fg: on ? '#F7F4EC' : '#111111',
-        pick: () => {
-          if (s.kind === 'belt') this.setState({ belt: s.id });
-          else this.setState({ head: this.state.head === s.id ? 'none' : s.id });
-        },
-      };
-    });
+    const top = TOPS[this.state.top];
+    const bot = BOTTOMS[this.state.bottom];
+    const shoe = SHOES[this.state.shoes];
+    const head = HEADS[this.state.head];
+    const belt = BELTS[this.state.belt];
 
-    const attrs = [
-      { name: 'Сила',   val: 12, bg: '#FFFFFF', fg: '#111111' },
-      { name: 'Вынос',  val: 15, bg: '#FFFFFF', fg: '#111111' },
-      { name: 'Подвиж', val: 6,  bg: '#FF5A3C', fg: '#111111' },
-      { name: 'Стойк',  val: 9,  bg: '#FFFFFF', fg: '#111111' },
-      { name: 'Воля',   val: 11, bg: '#FFFFFF', fg: '#111111' },
+    const long = top.sleeve === 'long';
+    const none = top.sleeve === 'none';
+    const sleeveL = none ? 'M68 98 L60 118 L76 122 L84 104 Z'
+      : long ? 'M66 100 L38 146 L58 156 L84 112 Z' : 'M66 100 L50 130 L70 138 L84 112 Z';
+    const sleeveR = none ? 'M132 98 L140 118 L124 122 L116 104 Z'
+      : long ? 'M134 100 L162 146 L142 156 L116 112 Z' : 'M134 100 L150 130 L130 138 L116 112 Z';
+    const handY = long ? 162 : (none ? 140 : 144);
+    const handLx = long ? 48 : (none ? 66 : 60);
+    const handRx = long ? 152 : (none ? 134 : 140);
+    const armTattoo = none
+      ? 'M70 124 h10 M72 131 h8 M120 124 h10 M122 131 h8'
+      : (long ? '' : 'M62 140 h9 M64 147 h7 M129 140 h9 M131 147 h7');
+
+    const bottomPath = bot.long
+      ? 'M60 156 L54 200 L94 200 L97 164 L103 164 L106 200 L146 200 L140 156 Z'
+      : 'M60 156 L56 184 L94 184 L97 164 L103 164 L106 184 L144 184 L140 156 Z';
+    const bottomFold = bot.ripped ? 'M68 178 h16 M70 186 h12 M116 178 h16 M118 186 h12'
+      : (bot.long ? 'M70 188 h18 M112 188 h18' : 'M70 174 h18 M112 174 h18');
+
+    const legTop = bot.long ? 196 : 180;
+    const legLen = 210 - legTop;
+    const legTattoo = bot.long ? '' : 'M84 186 h10 M86 193 h8 M106 186 h10 M108 193 h8';
+
+    const headPath = head.cap
+      ? 'M62 30 C62 12 78 6 100 6 C122 6 138 12 138 30 Z'
+      : head.curly
+        ? 'M62 34 C56 18 70 6 84 12 C90 2 110 2 116 12 C130 6 144 18 138 34 C130 22 116 18 100 18 C84 18 70 22 62 34 Z'
+        : 'M64 30 C64 20 70 16 78 18 L86 4 L96 20 L106 2 L114 20 L122 6 L130 22 C136 20 138 26 136 32 C126 24 112 20 100 20 C86 20 74 24 64 30 Z';
+    const capBrim = head.cap ? 'M58 28 h86 v11 h-94 a5 5 0 0 1 8 -11 z' : '';
+
+    const printMark = top.printBg === top.color
+      ? 'M88 120 h24 M88 128 h24 M88 136 h16'
+      : 'M92 118 l8 10 l8 -10 M92 134 h16 M100 118 v20';
+    const shoeDetail = shoe.studs
+      ? 'M48 209 h2 M56 209 h2 M64 209 h2 M72 209 h2 M126 209 h2 M134 209 h2 M142 209 h2 M150 209 h2'
+      : '';
+
+    const slots = [
+      { slot: 'Верх', name: top.name, key: 'top', len: TOPS.length },
+      { slot: 'Низ', name: bot.name, key: 'bottom', len: BOTTOMS.length },
+      { slot: 'Обувь', name: shoe.name, key: 'shoes', len: SHOES.length },
+      { slot: 'Башка', name: head.name, key: 'head', len: HEADS.length },
     ];
 
     return {
       stageColor: this.props.stageColor ?? '#FFC700',
+      sleeveL, sleeveR, handY, handLx, handRx, armTattoo,
+      sleeveFill: none ? '#F2C89C' : top.color,
+      bottomPath, bottomFold, legTattoo, headPath, capBrim, printMark, shoeDetail,
+      legX1: 84, legX2: 116, legLen,
+      sockX1: 73, sockX2: 105,
+      topColor: top.color,
+      printBg: top.printBg,
+      printInk: top.printInk,
+      bottomColor: bot.color,
+      shoeColor: shoe.color,
+      headColor: head.color,
       beltColor: belt.color,
       beltName: belt.name,
-      isBeanie: this.state.head === 'beanie',
-      isBand: this.state.head === 'band',
-      slots,
-      attrs,
+      wardrobe: slots.map((s) => ({
+        slot: s.slot,
+        name: s.name,
+        pick: () => this.setState({ [s.key]: (this.state[s.key] + 1) % s.len }),
+      })),
+      belts: BELTS.map((b, i) => ({
+        swatch: b.color,
+        border: i === this.state.belt ? '5px solid #111111' : '3px solid #111111',
+        pick: () => this.setState({ belt: i }),
+      })),
+      attrs: [
+        { name: 'Сила',   val: 12, bg: '#FFFFFF' },
+        { name: 'Вынос',  val: 15, bg: '#FFFFFF' },
+        { name: 'Подвиж', val: 6,  bg: '#FF5A3C' },
+        { name: 'Стойк',  val: 9,  bg: '#FFFFFF' },
+        { name: 'Воля',   val: 11, bg: '#FFFFFF' },
+      ],
     };
   }
 }

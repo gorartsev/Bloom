@@ -17,56 +17,32 @@
   </style>
 </helmet>
 
-<div class="ui" style="width: 940px; height: 720px; background: #F7F4EC; color: #111111; padding: 24px; display: flex; flex-direction: column; overflow: hidden;">
+<div class="ui" style="width: 940px; height: 720px; background: #F7F4EC; color: #111111; padding: 22px; display: flex; flex-direction: column; overflow: hidden;">
 
-  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 16px;">
-    <div class="dsp" style="font-size: 64px; line-height: 0.82; letter-spacing: -1.5px;">Один силуэт,<br>сорок образов</div>
-    <div style="max-width: 340px; font-size: 13px; font-weight: 500; line-height: 1.45; text-align: right;">
-      Персонаж собирается слоями поверх одного рига: голова, волосы, одежда, пояс, обувь, головной убор.
-      Генерации рисуют только слои в готовых координатах, поэтому ничего не разъезжается между предметами.
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 14px;">
+    <div class="dsp" style="font-size: 60px; line-height: 0.82; letter-spacing: -1.5px;">Гардероб</div>
+    <div style="max-width: 420px; font-size: 12px; font-weight: 500; line-height: 1.45; text-align: right;">
+      Каждая вещь это форма, нарисованная кодом, а не картинка. Поэтому цвет любой, комбинация любая,
+      и ничего не разъезжается. Генерацией делаются только принты на груди: это плоские картинки,
+      и в них генератор как раз хорош.
     </div>
   </div>
 
-  <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; flex-grow: 1;">
-    <sc-for list="{{chars}}" as="c" hint-placeholder-count="10">
-      <div style="border: 3px solid #111111; background: {{c.stage}}; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; position: relative;">
-        <svg viewBox="0 0 200 230" style="display: block; width: 100%; margin-bottom: -4px;">
-      <g stroke-linecap="round" stroke-linejoin="round">
-        <path d="M80 166 L75 206 M120 166 L125 206" stroke="#111111" stroke-width="28" fill="none"/>
-        <path d="M80 166 L75 206 M120 166 L125 206" stroke="{{c.pants}}" stroke-width="22" fill="none"/>
-        <rect x="52" y="198" width="42" height="20" rx="6" fill="{{c.shoes}}" stroke="#111111" stroke-width="5"/>
-        <rect x="106" y="198" width="42" height="20" rx="6" fill="{{c.shoes}}" stroke="#111111" stroke-width="5"/>
-        <path d="M68 104 L46 150 M132 104 L154 150" stroke="#111111" stroke-width="28" fill="none"/>
-        <path d="M68 104 L46 150 M132 104 L154 150" stroke="{{c.top}}" stroke-width="20" fill="none"/>
-        <circle cx="44" cy="155" r="12" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
-        <circle cx="156" cy="155" r="12" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
-        <path d="M100 84 L66 96 L62 172 H138 L134 96 Z" fill="{{c.top}}" stroke="#111111" stroke-width="5"/>
-        <path d="M100 84 L84 132 M100 84 L116 132" stroke="#111111" stroke-width="5" fill="none"/>
-        <rect x="60" y="136" width="80" height="18" fill="{{c.belt}}" stroke="#111111" stroke-width="5"/>
-        <path d="M94 154 v20 M108 154 v15" stroke="#111111" stroke-width="6" fill="none"/>
-        <rect x="88" y="72" width="24" height="18" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
-        <rect x="64" y="14" width="72" height="70" rx="22" fill="#F2C89C" stroke="#111111" stroke-width="5"/>
-        <rect x="78" y="44" width="16" height="13" rx="3" fill="#FFFFFF" stroke="#111111" stroke-width="4"/>
-        <rect x="106" y="44" width="16" height="13" rx="3" fill="#FFFFFF" stroke="#111111" stroke-width="4"/>
-        <path d="M79 36 h15 M106 36 h15" stroke="#111111" stroke-width="5" fill="none"/>
-        <path d="M100 59 v6 h4" stroke="#111111" stroke-width="4" fill="none"/>
-        <path d="M91 71 h18" stroke="#111111" stroke-width="4" fill="none"/>
-        <path d="M64 38 C64 15 82 7 100 7 C118 7 136 15 136 38 C128 26 116 22 100 22 C84 22 72 26 64 38 Z" fill="#2A211C" stroke="#111111" stroke-width="5"/>
-      </g>
-      <g stroke="#111111" stroke-width="5" stroke-linejoin="round">
-        <sc-if value="{{c.hasHat}}" hint-placeholder-val="{{ true }}">
-          <path d="M62 34 C62 10 80 2 100 2 C120 2 138 10 138 34 Z" fill="{{c.hat}}"/>
-          <rect x="58" y="31" width="84" height="15" rx="5" fill="{{c.hat}}"/>
-        </sc-if>
-        <sc-if value="{{c.hasBand}}" hint-placeholder-val="{{ true }}">
-          <rect x="60" y="28" width="80" height="14" rx="3" fill="{{c.band}}"/>
-          <path d="M140 34 L164 26 M140 39 L164 47" fill="none" stroke-linecap="round"/>
-        </sc-if>
-      </g>
-    </svg>
-        <div style="border-top: 3px solid #111111; background: #FFFFFF; padding: 6px 8px 7px;">
-          <div class="dsp" style="font-size: 13px; line-height: 1.05;">{{c.name}}</div>
-          <div style="font-size: 10px; font-weight: 500; color: #6B6459; line-height: 1.25; margin-top: 2px;">{{c.cond}}</div>
+  <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; flex-grow: 1; min-height: 0;">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="18">
+      <div style="border: 3px solid #111111; background: {{it.stage}}; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 6px;">
+          <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+            <g stroke="#111111" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+              <path d="{{it.d}}" fill="{{it.fill}}"/>
+              <path d="{{it.d2}}" fill="{{it.fill2}}"/>
+              <path d="{{it.mark}}" fill="none" stroke="{{it.markInk}}" stroke-width="4"/>
+            </g>
+          </svg>
+        </div>
+        <div style="border-top: 3px solid #111111; background: #FFFFFF; padding: 5px 7px 6px;">
+          <div class="dsp" style="font-size: 12px; line-height: 1.05;">{{it.name}}</div>
+          <div style="font-size: 9px; font-weight: 500; color: #6B6459; line-height: 1.2; margin-top: 1px;">{{it.slot}}</div>
         </div>
       </div>
     </sc-for>
@@ -78,21 +54,43 @@
 <script data-dc-script>
 class Component extends DCLogic {
   renderVals() {
-    const GI = '#F3EEE0';
-    const base = { top: GI, pants: GI, shoes: '#111111', belt: '#FFFFFF', hasHat: false, hasBand: false, hat: '#FF5A3C', band: '#FFC700' };
+    const TEE   = 'M30 26 L44 20 L56 20 L70 26 L78 38 L70 44 L64 36 L64 78 L36 78 L36 36 L30 44 L22 38 Z';
+    const LONG  = 'M30 26 L44 20 L56 20 L70 26 L82 56 L72 62 L64 40 L64 78 L36 78 L36 40 L28 62 L18 56 Z';
+    const TANK  = 'M38 24 L46 20 L54 20 L62 24 L64 34 L64 78 L36 78 L36 34 Z';
+    const HOOD  = 'M30 28 L42 22 Q50 34 58 22 L70 28 L78 40 L70 46 L64 38 L64 78 L36 78 L36 38 L30 46 L22 40 Z';
+    const SHORT = 'M32 26 L68 26 L70 58 L54 58 L52 40 L48 40 L46 58 L30 58 Z';
+    const PANTS = 'M32 24 L68 24 L72 80 L54 80 L51 44 L49 44 L46 80 L28 80 Z';
+    const SHOE  = 'M20 56 L44 56 L52 64 L78 64 Q84 64 84 70 L84 76 L20 76 Z';
+    const CAP   = 'M26 50 Q26 26 50 26 Q74 26 74 50 Z';
+    const HAIR  = 'M28 54 C28 42 34 38 42 40 L50 22 L58 40 L66 26 L72 44 C78 42 80 50 78 56 C66 44 40 44 28 54 Z';
+
     const defs = [
-      { name: 'Старт',        cond: 'Первый вход',            stage: '#F7F4EC' },
-      { name: 'Белый пояс',   cond: '10 сессий на мате',      stage: '#FFC700' },
-      { name: 'Хатимаки',     cond: '30 сессий шеи',          stage: '#FF5A3C', hasBand: true },
-      { name: 'Рашгард',      cond: '5 недель без пропуска',  stage: '#2F6BFF', top: '#2F6BFF', pants: '#111111' },
-      { name: 'Беговые',      cond: '100 км за блок',         stage: '#3FBF5F', top: '#FFC700', pants: '#111111', shoes: '#3FBF5F' },
-      { name: 'Синий пояс',   cond: 'Отмечается вручную',     stage: '#F7F4EC', belt: '#2F6BFF' },
-      { name: 'Шапка',        cond: 'Зимний блок закрыт',     stage: '#B569FF', hasHat: true },
-      { name: 'Пурпур',       cond: 'Отмечается вручную',     stage: '#FFC700', belt: '#B569FF', top: '#F7F4EC' },
-      { name: 'Чёрный пояс',  cond: 'Далеко',                 stage: '#111111', belt: '#111111' },
-      { name: 'Венок',        cond: 'Все квесты блока',       stage: '#FF5A3C', belt: '#FFC700', hasBand: true, band: '#3FBF5F', top: '#FFFFFF' },
+      { name: 'Бэнд-ти',  slot: 'Верх',  d: TEE,   fill: '#1A1A1F', stage: '#FFC700', mark: 'M42 46 h16 M42 54 h16 M42 62 h10', markInk: '#F7F4EC' },
+      { name: 'Свитшот',  slot: 'Верх',  d: LONG,  fill: '#20232B', stage: '#F7F4EC', mark: 'M42 50 h16 M42 58 h16', markInk: '#FFC700' },
+      { name: 'Безрукав', slot: 'Верх',  d: TANK,  fill: '#2C2C31', stage: '#2F6BFF', mark: 'M44 46 l6 8 l6 -8 M44 62 h12', markInk: '#F7F4EC' },
+      { name: 'Худи',     slot: 'Верх',  d: HOOD,  fill: '#FF5A3C', stage: '#111111', mark: 'M44 52 h12 M50 46 v14', markInk: '#111111' },
+      { name: 'Белая',    slot: 'Верх',  d: TEE,   fill: '#F7F4EC', stage: '#3FBF5F', mark: 'M42 46 h16 M42 56 h16', markInk: '#111111' },
+      { name: 'Лонг',     slot: 'Верх',  d: LONG,  fill: '#3A4A66', stage: '#FFC700', mark: 'M44 50 h12', markInk: '#F7F4EC' },
+
+      { name: 'Бэгги',    slot: 'Низ',   d: PANTS, fill: '#3A4A66', stage: '#F7F4EC', mark: 'M38 60 h8 M56 60 h8', markInk: '#111111' },
+      { name: 'Карго',    slot: 'Низ',   d: SHORT, fill: '#4A5240', stage: '#FF5A3C', mark: 'M36 40 h8 v10 h-8 z M58 40 h8 v10 h-8 z', markInk: '#111111' },
+      { name: 'Чёрные',   slot: 'Низ',   d: SHORT, fill: '#1A1A1F', stage: '#FFC700', mark: 'M38 46 h8 M56 46 h8', markInk: '#F7F4EC' },
+      { name: 'Рваные',   slot: 'Низ',   d: PANTS, fill: '#5B6B84', stage: '#111111', mark: 'M38 54 h10 M40 62 h6 M56 54 h10 M58 62 h6', markInk: '#111111' },
+      { name: 'Спортивки',slot: 'Низ',   d: PANTS, fill: '#20232B', stage: '#3FBF5F', mark: 'M40 40 v36 M60 40 v36', markInk: '#F7F4EC' },
+      { name: 'Джинса',   slot: 'Низ',   d: SHORT, fill: '#6B84A8', stage: '#F7F4EC', mark: 'M36 34 h28', markInk: '#111111' },
+
+      { name: 'Конверс',  slot: 'Обувь', d: SHOE,  fill: '#1A1A1F', stage: '#FFC700', mark: 'M28 70 h48 M40 62 h2 M48 62 h2 M56 62 h2', markInk: '#F7F4EC' },
+      { name: 'Кроссы',   slot: 'Обувь', d: SHOE,  fill: '#F7F4EC', stage: '#2F6BFF', mark: 'M28 70 h48 M46 60 l10 4', markInk: '#111111' },
+      { name: 'Серые',    slot: 'Обувь', d: SHOE,  fill: '#8D97A8', stage: '#111111', mark: 'M28 70 h48', markInk: '#111111' },
+      { name: 'Шлёпки',   slot: 'Обувь', d: 'M22 62 L78 62 Q84 62 84 68 L84 74 L22 74 Q16 74 16 68 Z', fill: '#1A1A1F', stage: '#FF5A3C', mark: 'M40 66 l10 -8 l10 8', markInk: '#F7F4EC' },
+
+      { name: 'Кепка',    slot: 'Башка', d: CAP,   fill: '#4A5240', stage: '#F7F4EC', d2: 'M22 48 h60 v10 h-66 a6 6 0 0 1 6 -10 z', fill2: '#4A5240', mark: 'M44 38 h12', markInk: '#F7F4EC' },
+      { name: 'Ирокез',   slot: 'Башка', d: HAIR,  fill: '#FF5A3C', stage: '#111111', mark: '', markInk: '#111111' },
     ];
-    return { chars: defs.map((d) => ({ ...base, ...d })) };
+
+    return {
+      items: defs.map((d) => ({ d2: '', fill2: 'none', mark: '', markInk: '#111111', ...d })),
+    };
   }
 }
 </script>

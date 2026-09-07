@@ -1,12 +1,74 @@
 {
   "artboards": [
-    { "file": "Main.dc.html",         "x": 0,    "y": 0,   "w": 390, "h": 844, "title": "Герой",     "is_interactive": true },
-    { "file": "Log.dc.html",          "x": 470,  "y": 0,   "w": 390, "h": 844, "title": "Лог" },
-    { "file": "Attributes.dc.html",   "x": 940,  "y": 0,   "w": 390, "h": 844, "title": "Атрибуты",  "is_interactive": true },
-    { "file": "Quests.dc.html",       "x": 1410, "y": 0,   "w": 390, "h": 844, "title": "Квесты",    "is_interactive": true },
-    { "file": "Gear.dc.html",         "x": 1880, "y": 0,   "w": 390, "h": 844, "title": "Снаряга",   "is_interactive": true },
-    { "file": "LevelUp.dc.html",      "x": 2350, "y": 0,   "w": 390, "h": 844, "title": "Уровень",   "is_interactive": true },
-    { "file": "CharacterKit.dc.html", "x": 0,    "y": 964, "w": 940, "h": 720, "title": "Гардероб" }
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Герой",
+      "is_interactive": true
+    },
+    {
+      "file": "Log.dc.html",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Лог"
+    },
+    {
+      "file": "Attributes.dc.html",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Атрибуты",
+      "is_interactive": true
+    },
+    {
+      "file": "Quests.dc.html",
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Квесты",
+      "is_interactive": true
+    },
+    {
+      "file": "Gear.dc.html",
+      "x": 1880,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Снаряга",
+      "is_interactive": true
+    },
+    {
+      "file": "LevelUp.dc.html",
+      "x": 2350,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Уровень",
+      "is_interactive": true
+    },
+    {
+      "file": "CharacterKit.dc.html",
+      "x": 0,
+      "y": 964,
+      "w": 940,
+      "h": 720,
+      "title": "Гардероб"
+    },
+    {
+      "file": "Prompts.dc.html",
+      "x": 1060,
+      "y": 964,
+      "w": 940,
+      "h": 720,
+      "title": "Промпты"
+    }
   ],
   "annotations": [
     {
@@ -21,7 +83,7 @@
       "x": 1880,
       "y": -190,
       "w": 400,
-      "text": "Экипировка не выбивается гриндом.\nКаждый предмет привязан к реальной вехе, а пояса вообще\nотмечаются вручную в день, когда их повязали в зале.\nОт этого у шмотки появляется цена."
+      "text": "Пояс не выбивается опытом вообще.\nТы ставишь его сам в тот день, когда его повязали в зале,\nи он накладывается поверх арта отдельным слоем.\nОстальная снаряга открывается за реальные вехи."
     },
     {
       "id": "note-attrs",
@@ -31,5 +93,7 @@
       "text": "Атрибуты считаются из лога, руками ничего не распределяется.\nПерсонаж работает как дашборд: перекос видно телом, а не графиком."
     }
   ],
-  "launch": { "view": "canvas" }
+  "launch": {
+    "view": "canvas"
+  }
 }

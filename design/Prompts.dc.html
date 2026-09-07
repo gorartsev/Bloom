@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #FF5A3C; } a:hover { color: #111111; }
+    .dsp { font-family: Oswald, Haettenschweiler, Impact, sans-serif; text-transform: uppercase; font-weight: 700; }
+    .ui  { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 940px; height: 720px; background: #F7F4EC; color: #111111; padding: 24px; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 14px;">
+    <div class="dsp" style="font-size: 60px; line-height: 0.82; letter-spacing: -1.5px;">Промпты</div>
+    <div style="max-width: 420px; font-size: 12px; font-weight: 500; line-height: 1.45; text-align: right;">
+      Канон фиксируется целиком и не меняется между персонажами. Меняются только три строки:
+      ирокез, одежда, обувь. Пояс не рисуется никогда, он живёт отдельным слоем поверх.
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 300px 1fr; gap: 12px; flex-grow: 1; min-height: 0;">
+
+    <!-- канон -->
+    <div style="border: 3px solid #111111; background: #111111; color: #F7F4EC; padding: 14px; overflow: hidden;">
+      <div class="dsp" style="font-size: 12px; letter-spacing: 1.6px; color: #FFC700; margin-bottom: 10px;">Канон · не меняется</div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <sc-for list="{{rules}}" as="r" hint-placeholder-count="8">
+          <div style="display: flex; gap: 8px; font-size: 11.5px; line-height: 1.35; font-weight: 500;">
+            <span class="dsp" style="color: #FF5A3C; flex-shrink: 0;">{{r.n}}</span>
+            <span>{{r.t}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="border-top: 3px solid #3A342C; margin-top: 12px; padding-top: 10px;">
+        <div class="dsp" style="font-size: 11px; letter-spacing: 1.4px; color: #FFC700; margin-bottom: 6px;">Палитра</div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px;">
+          <sc-for list="{{palette}}" as="p" hint-placeholder-count="8">
+            <div>
+              <div style="height: 22px; background: {{p.hex}}; border: 2px solid #F7F4EC;"></div>
+              <div class="mono" style="font-size: 8px; margin-top: 2px; color: #C9C3B6;">{{p.hex}}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- шаблон и примеры -->
+    <div style="display: flex; flex-direction: column; gap: 10px; min-height: 0;">
+
+      <div style="border: 3px solid #111111; background: #FFC700; padding: 12px;">
+        <div class="dsp" style="font-size: 12px; letter-spacing: 1.6px; margin-bottom: 8px;">Шаблон · подставляешь три слота</div>
+        <div class="mono" style="font-size: 11px; line-height: 1.55; background: #F7F4EC; border: 3px solid #111111; padding: 10px;">
+          Full-body chibi punk, front view, standing, arms slightly away from body.
+          <span style="background: #FF5A3C; padding: 0 3px;">[HAIR]</span> mohawk.
+          Wearing <span style="background: #FF5A3C; padding: 0 3px;">[OUTFIT]</span>.
+          <span style="background: #FF5A3C; padding: 0 3px;">[FEET]</span>.
+          Thick uniform black outline, flat colors, no shading, no gradients, no background.
+          Head is one third of total height. Simple face: white rectangular eyes, thick straight
+          black brows, tiny nose, single line mouth, one earring. No belt.
+        </div>
+      </div>
+
+      <div style="border: 3px solid #111111; background: #FF5A3C; padding: 9px 12px;">
+        <div class="dsp" style="font-size: 11px; letter-spacing: 1.4px;">Убрать из выдачи</div>
+        <div class="mono" style="font-size: 10.5px; margin-top: 3px; line-height: 1.4;">no shading, no gradient, no outline variation, no background, no text, no belt, not 3d, not realistic</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; flex-grow: 1; min-height: 0;">
+        <sc-for list="{{examples}}" as="e" hint-placeholder-count="4">
+          <div style="border: 3px solid #111111; background: #FFFFFF; padding: 10px; display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 6px;">
+              <div style="width: 16px; height: 16px; background: {{e.dot}}; border: 3px solid #111111; flex-shrink: 0;"></div>
+              <div class="dsp" style="font-size: 14px; line-height: 1;">{{e.name}}</div>
+            </div>
+            <div class="mono" style="font-size: 10px; line-height: 1.45;">{{e.slots}}</div>
+            <div style="font-size: 10px; font-weight: 500; color: #6B6459; margin-top: auto; padding-top: 6px; line-height: 1.3;">{{e.when}}</div>
+          </div>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      rules: [
+        { n: '01', t: 'Фронтальный вид, стоя, руки слегка в стороны. Никаких ракурсов и поз.' },
+        { n: '02', t: 'Чиби: голова примерно треть роста, тело короткое и плотное.' },
+        { n: '03', t: 'Обводка чёрная, одинаковой толщины по всей фигуре.' },
+        { n: '04', t: 'Только плоские заливки. Ни теней, ни градиентов, ни текстур.' },
+        { n: '05', t: 'Фон прозрачный, персонаж по центру, поля одинаковые.' },
+        { n: '06', t: 'Лицо простое: белые прямоугольные глаза, прямые брови, точка носа, линия рта.' },
+        { n: '07', t: 'Серьга в левом ухе есть всегда, это опознавательный знак ростера.' },
+        { n: '08', t: 'Пояс не рисуется. Он накладывается кодом, потому что ставится вручную.' },
+      ],
+      palette: [
+        { hex: '#111111' }, { hex: '#F7F4EC' }, { hex: '#F2C89C' }, { hex: '#F3EEE0' },
+        { hex: '#FF5A3C' }, { hex: '#FFC700' }, { hex: '#2F6BFF' }, { hex: '#3FBF5F' },
+      ],
+      examples: [
+        { name: 'Гора', dot: '#FF5A3C',
+          slots: 'HAIR: bright orange · OUTFIT: white BJJ gi, open collar · FEET: barefoot',
+          when: 'Базовый. Стартовый образ ростера.' },
+        { name: 'Косуха', dot: '#FFC700',
+          slots: 'HAIR: yellow · OUTFIT: black leather jacket with shoulder studs, dark ripped jeans · FEET: black boots',
+          when: 'Вне мата. Открывается на пятом уровне.' },
+        { name: 'Беговой', dot: '#3FBF5F',
+          slots: 'HAIR: black · OUTFIT: yellow tank top, black shorts · FEET: green running shoes',
+          when: 'Сто километров бега за блок.' },
+        { name: 'Рашгард', dot: '#2F6BFF',
+          slots: 'HAIR: orange · OUTFIT: blue long-sleeve rashguard, black grappling shorts · FEET: barefoot',
+          when: 'Пять недель без пропуска.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

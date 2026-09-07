@@ -21,7 +21,7 @@
 
   <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 8px;">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    <span class="dsp" style="font-size: 13px; letter-spacing: 1.6px;">14 из 32 открыто</span>
+    <span class="dsp" style="font-size: 13px; letter-spacing: 1.6px;">6 из 9 открыто</span>
   </div>
 
   <div class="dsp" style="font-size: 58px; line-height: 0.84; letter-spacing: -1px; padding: 0 16px 12px;">Снаряга</div>
@@ -47,7 +47,7 @@
         <div onClick="{{it.pick}}" style="border: 3px solid #111111; background: {{it.bg}}; cursor: pointer; padding: 9px 6px 8px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div style="width: 30px; height: 30px; border: 3px solid #111111; background: {{it.iconBg}}; display: flex; align-items: center; justify-content: center;">
-              <div class="dsp" style="font-size: 14px; color: {{it.fg}};">{{it.mark}}</div>
+              <div class="dsp" style="font-size: 14px; color: #111111;">{{it.mark}}</div>
             </div>
             <sc-if value="{{it.locked}}" hint-placeholder-val="{{ true }}">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
@@ -84,7 +84,7 @@ class Component extends DCLogic {
       { id: 'gi', name: 'Ги', mark: 'II', cond: 'Получен', color: '#FFFFFF', locked: false,
         desc: 'Открылось на десятой тренировке на мате.' },
       { id: 'rash', name: 'Рашгард', mark: 'III', cond: 'Получен', color: '#2F6BFF', locked: false,
-        desc: 'Ноги-грапплинг без ги. Открылся за 5 сессий подряд без пропуска.' },
+        desc: 'Ноу-ги, борьба без кимоно. Открылся за 5 сессий подряд без пропуска.' },
       { id: 'knee', name: 'Наколенники', mark: 'IV', cond: '6 из 8 недель', color: '#FFC700', locked: false,
         desc: 'Восемь недель без пропуска силовой. Осталось две.' },
       { id: 'shoes', name: 'Кроссы', mark: 'V', cond: '80 из 100 км', color: '#3FBF5F', locked: false,
@@ -106,7 +106,7 @@ class Component extends DCLogic {
       locked: d.locked,
       bg: d.locked ? '#E4E0D5' : (d.id === this.state.sel ? '#111111' : '#FFFFFF'),
       fg: (!d.locked && d.id === this.state.sel) ? '#F7F4EC' : '#111111',
-      subFg: (!d.locked && d.id === this.state.sel) ? '#C9C3B6' : '#6B6459',
+      subFg: (!d.locked && d.id === this.state.sel) ? '#C9C3B6' : '#4A463E',
       iconBg: d.locked ? '#E4E0D5' : (d.color || '#FFFFFF'),
       pick: () => this.setState({ sel: d.id }),
     }));
