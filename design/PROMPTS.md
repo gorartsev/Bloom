@@ -1,96 +1,175 @@
-# Промпты для персонажей
+# Промпты для персонажей и шмота
 
-Ростер панков для RPG-слоя. Каждый персонаж рисуется **целиком, одним промптом**, а не слоями.
-Слоями собирать дороже: каждая вещь должна лечь в те же координаты, и одна кривая генерация ломает весь конструктор.
-
-Пояс в арте **не рисуется никогда**. Он накладывается кодом поверх, потому что ставится вручную в день, когда его повязали, и меняется независимо от образа.
+Три слоя, в таком порядке: **база** (персонаж в трусах), **причёска**, **одежда**.
+База генерится один раз на персонажа. Всё остальное надевается поверх.
 
 ---
 
-## Канон
+## Сначала честно про метод
 
-Не меняется между персонажами. Меняются только три слота: `[HAIR]`, `[OUTFIT]`, `[FEET]`.
+Идеально собрать персонажа из независимо сгенерированных PNG-слоёв не выйдет: генератор каждый раз чуть двигает пропорции, и рукав не сядет на плечо. Есть два рабочих пути.
 
-1. Фронтальный вид, стоя, руки слегка в стороны. Никаких ракурсов, поз и динамики.
-2. Чиби-пропорции: голова примерно треть общего роста.
-3. Чёрная обводка одинаковой толщины по всей фигуре.
-4. Только плоские заливки. Ни теней, ни градиентов, ни текстур, ни полутонов.
-5. Прозрачный фон, персонаж по центру, поля одинаковые со всех сторон.
-6. Лицо простое: белые прямоугольные глаза, прямые толстые брови, точка носа, линия рта.
-7. Серьга в левом ухе всегда. Это опознавательный знак ростера.
-8. Пояс не рисуется.
+**Путь A, надёжный (рекомендую начать с него).** Генеришь базу. Дальше каждый образ делаешь **image-to-image**: кидаешь картинку базы в чат и пишешь «этот же персонаж, та же поза, то же лицо, надень на него X». Получаешь готовый образ целиком. Слоёв нет, зато ничего не разъезжается. Минус: каждая комбинация это отдельная картинка.
 
-### Палитра
+**Путь B, гибкий.** Одежда генерится как **плоский предмет на прозрачном фоне**, без тела, и накладывается кодом в фиксированные координаты. Работает для шапок, очков, футболок анфас. Плохо работает для всего, что должно облегать. Минус: подгонять придётся руками.
 
-```
-ink      #111111    обводка, ботинки
-paper    #F7F4EC    фон интерфейса
-skin     #F2C89C    кожа (варианты: #C98A5E, #8D5524, #E8B98A)
-gi       #F3EEE0    кимоно
-orange   #FF5A3C    акцент
-yellow   #FFC700    акцент
-blue     #2F6BFF    акцент
-green    #3FBF5F    акцент
-purple   #B569FF    акцент
-```
+Практично: базы и причёски по пути B, одежду по пути A. Гардероб тогда собирается из готовых образов, а мелочёвка накладывается сверху.
 
 ---
 
-## Шаблон
+## Общий канон
+
+Он одинаковый для базы, причёсок и шмота. Не меняй ни слова между генерациями, иначе стиль поедет.
 
 ```
-Full-body chibi punk character, front view, standing straight, arms slightly away from body.
-[HAIR] mohawk. Wearing [OUTFIT]. [FEET].
-Thick uniform black outline, flat colors only, no shading, no gradients, no background.
-Head is one third of total height. Simple face: white rectangular eyes, thick straight black
-brows, tiny nose, single line mouth, one earring in left ear. No belt.
-Sticker-style vector illustration, centered, even margins.
+Flat vector cartoon, thick uniform black outline, no shading, no gradients, no texture.
+Front view, symmetrical, standing straight, arms relaxed slightly away from the body.
+Chibi proportions: head is one third of total height, short sturdy body.
+Simple face: white rectangular eyes with black outline, thick straight eyebrows,
+tiny nose, single line mouth, one small hoop earring in the left ear.
+Transparent background, character centered, even margins, full body visible including feet.
+Sticker style, clean edges, high contrast.
 ```
 
-### Убрать из выдачи
+**Убрать из выдачи:**
+```
+no shading, no gradient, no glow, no background, no shadow under feet, no text,
+no perspective, not 3d, not realistic, no extra characters, no props in hands
+```
+
+**Палитра**
 
 ```
-no shading, no gradient, no outline thickness variation, no background, no text,
-no belt, not 3d, not realistic, no perspective, no drop shadow
+чернила    #252323    обводка, тёмные вещи
+белый      #FFFFFF    фон интерфейса, белые вещи
+мята       #8EFF8E    главный акцент
+барвинок   #9F9FED    вторичный
+слейт      #736CED    вторичный тёмный
+кожа       #F2C89C / #C98A5E / #8D5524
 ```
 
 ---
 
-## Ростер
+## Слой 1 · База: персонаж в трусах
 
-| Персонаж | HAIR | OUTFIT | FEET | Когда открывается |
-|---|---|---|---|---|
-| **Гора** | bright orange | white BJJ gi, open collar | barefoot | Базовый, стартовый образ |
-| **Косуха** | yellow | black leather jacket with shoulder studs, dark ripped jeans | black boots | Пятый уровень, образ вне мата |
-| **Беговой** | black | yellow tank top, black shorts | green running shoes | Сто километров бега за блок |
-| **Рашгард** | orange | blue long-sleeve rashguard, black grappling shorts | barefoot | Пять недель без пропуска |
-| **Домашний** | green | orange hoodie, grey sweatpants | white socks | Двадцать домашних сессий |
-| **Разгрузка** | purple | oversized white tee, loose linen pants | purple slides | Неделя разгрузки в блоке |
-| **Седой** | grey | worn white gi, sleeves rolled | barefoot | Коричневый пояс |
-| **Ночной** | white | black gi | barefoot | Чёрный пояс |
+Это стартовый вид. Персонаж стоит в одних трусах, немного нелепо, и это нормально: смешной старт делает первую одежду наградой.
 
-Кожу и цвет ирокеза можно варьировать между персонажами, всё остальное держится каноном.
+**Шаблон:**
+
+```
+[КАНОН]
+The character wears only [ТРУСЫ] boxer briefs and nothing else. Bare chest, bare feet.
+[ТЕЛО] build. [КОЖА] skin. Bald head, no hair (hair is added separately).
+Slightly awkward confident pose, faintly amused expression.
+```
+
+**Варианты трусов:**
+
+| Ключ | Подстановка |
+|---|---|
+| `leopard` | `leopard print` |
+| `black` | `plain black` |
+| `white` | `plain white with a thin waistband` |
+| `hearts` | `white with small red hearts` |
+| `stripes` | `blue and white horizontal stripes` |
+| `mint` | `mint green #8EFF8E` |
+| `flames` | `black with orange flame print` |
+| `banana` | `yellow with banana print` |
+
+**Варианты тела:** `slim` · `average` · `stocky` · `athletic`
+**Варианты кожи:** `light` · `tan` · `brown` · `dark`
+
+Голова генерится **лысой**. Причёска отдельным слоем, иначе не переоденешь.
 
 ---
 
-## Как проверять выдачу
+## Слой 2 · Причёски
 
-Генерация годится, только если проходит все четыре:
+Генерятся отдельно, по пути B, как накладка.
 
-1. **Силуэт.** Персонаж узнаётся чёрным силуэтом без цвета. Если нет, форма слишком дробная.
-2. **Толщина линии.** Одна на всей фигуре. Если обводка тоньше на мелких деталях, это уже другой стиль, и рядом с остальным ростером будет видно.
-3. **Размер в 64 px.** Уменьши до иконки. Лицо должно читаться. Если нет, деталей слишком много.
-4. **Поля.** Персонаж по центру, снизу пол не нарисован, тени под ногами нет.
+```
+[КАНОН, но только про стиль линии и заливки]
+A single hairstyle asset only: [ПРИЧЁСКА], flat vector, thick black outline, flat fill,
+no head, no face, no body, transparent background, front view, centered.
+The hairstyle is drawn as if worn on a head 260 pixels wide, sitting on top of the skull line.
+```
 
-Не проходит хотя бы один пункт, перегенерируй с тем же промптом, а не правь руками. Ручные правки в одном персонаже и есть то, из-за чего ростер потом разъезжается.
+| Ключ | Подстановка |
+|---|---|
+| `mohawk` | `bright orange mohawk` |
+| `curly` | `short dark curly hair` |
+| `buzz` | `black buzz cut` |
+| `long` | `shoulder length straight black hair` |
+| `bleached` | `bleached blond short hair with dark roots` |
+| `braids` | `cornrow braids` |
+| `bun` | `top knot bun` |
+| `cap` | `black snapback cap worn backwards` |
+| `bandana` | `mint green bandana tied at the back` |
 
 ---
 
-## Куда это идёт в приложении
+## Слой 3 · Одежда
 
-- Экран героя показывает текущий образ и накладывает пояс поверх.
-- Гардероб показывает весь ростер, закрытые образы затемнены с условием открытия.
-- Взятие уровня показывает новый образ рядом со старым.
+Путь A, на базовом персонаже. В чат кидаешь PNG базы и пишешь:
 
-Файлы кладутся в `assets/roster/<id>.png`, прозрачный PNG, высота 512.
-Идентификаторы совпадают с ключами в коде: `gora`, `kosuha`, `begovoy`, `rashguard`, `domashniy`, `razgruzka`, `sedoy`, `nochnoy`.
+```
+Same character, same pose, same face, same proportions, same style.
+Now dressed in: [ВЕРХ], [НИЗ], [ОБУВЬ].
+Keep the thick black outline, flat colors, no shading, transparent background.
+Do not change the head, the face or the body proportions.
+```
+
+**Верх:**
+
+| Ключ | Подстановка |
+|---|---|
+| `bandtee` | `oversized black band t-shirt with a white skull print` |
+| `crewneck` | `oversized navy crewneck sweatshirt` |
+| `tank` | `white ribbed tank top` |
+| `hoodie` | `mint green #8EFF8E oversized hoodie` |
+| `longsleeve` | `washed black long sleeve tee` |
+| `rashguard` | `purple #736CED long sleeve rashguard` |
+
+**Низ:**
+
+| Ключ | Подстановка |
+|---|---|
+| `baggy` | `wide baggy light blue jeans` |
+| `cargo` | `olive cargo shorts` |
+| `black_shorts` | `plain black shorts above the knee` |
+| `ripped` | `ripped wide grey jeans` |
+| `sweats` | `dark grey sweatpants` |
+
+**Обувь:**
+
+| Ключ | Подстановка |
+|---|---|
+| `converse` | `black low top canvas sneakers with white soles and white crew socks` |
+| `chunky` | `chunky white sneakers with white crew socks` |
+| `slides` | `black slides` |
+| `barefoot` | `barefoot` |
+
+---
+
+## Что делать с выдачей
+
+Годится, только если проходит все четыре:
+
+1. **Силуэт.** Залей персонажа сплошным чёрным. Узнаётся? Если нет, форма дробная.
+2. **Толщина линии.** Одна на всей фигуре. Тоньше на мелочах значит другой стиль, и рядом с остальными будет видно.
+3. **64 пикселя.** Уменьши до иконки. Лицо читается? Если нет, деталей много.
+4. **Поля.** По центру, без тени под ногами, фон реально прозрачный.
+
+Не прошло хоть одно, перегенерируй тем же промптом. Руками не правь: ручная правка одного персонажа и есть то, из-за чего потом разъезжается весь набор.
+
+---
+
+## Файлы
+
+```
+assets/base/<трусы>_<тело>_<кожа>.png     512 высотой, прозрачный
+assets/hair/<ключ>.png                     накладка, прозрачный
+assets/outfit/<верх>_<низ>_<обувь>.png     готовый образ целиком
+```
+
+Начни с малого: две базы, три причёски, три образа. Проверь, что они смотрятся как один набор, и только потом разгоняй.

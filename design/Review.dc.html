@@ -7,12 +7,12 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800;900&family=Archivo:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@500;600;700&display=swap">
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
-    a { color: #FFE500; } a:hover { color: #0D0D0D; }
-    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 900; letter-spacing: -0.03em; }
+    a { color: #736CED; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
     .ui  { font-family: Archivo, system-ui, sans-serif; }
     .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; }
     .num { font-variant-numeric: tabular-nums; }
@@ -21,19 +21,19 @@
   </style>
 </helmet>
 
-<div class="ui" style="width: 390px; height: 844px; background: #FF3D00; color: #FFFFFF; display: flex; flex-direction: column; overflow: hidden;">
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
 
   <div style="padding: 20px 20px 0;">
-    <span class="lbl" style="color: #FFE500;">Разбор · вторник</span>
-    <div class="dsp" style="font-size: 44px; line-height: 0.88; margin-top: 12px;">ПЛОХАЯ<br>НОВОСТЬ<br>ПЕРВОЙ</div>
+    <span class="lbl" style="color: #9A9694;">Разбор · вторник</span>
+    <div class="dsp" style="font-size: 40px; line-height: 0.95; margin-top: 12px;">Плохая<br>новость<br>первой</div>
   </div>
 
   <!-- главный вывод на чёрном -->
-  <div style="background: #0D0D0D; margin: 18px 12px 0; padding: 18px; transform: rotate(-1.2deg);">
+  <div style="background: #736CED; color: #FFFFFF; border-radius: 26px; margin: 18px 16px 0; padding: 20px;">
     <div style="font-size: 17px; font-weight: 700; line-height: 1.35;">
       Ты ушёл в отказ дважды на приседе. Вес держим, пока не вернётся запас.
     </div>
-    <div style="font-size: 13px; font-weight: 500; margin-top: 10px; line-height: 1.45; color: #B0B0B0;">
+    <div style="font-size: 13px; font-weight: 500; margin-top: 10px; line-height: 1.45; color: rgba(255,255,255,0.72);">
       Отказ съедает восстановление, которое послезавтра нужно на мате. Это не про слабость, это про очередь.
     </div>
   </div>
@@ -43,7 +43,7 @@
     <span class="lbl">Что выросло</span>
     <div style="display: flex; gap: 8px; margin-top: 12px;">
       <sc-for list="{{grew}}" as="g" hint-placeholder-count="2">
-        <div style="flex-grow: 1; background: #B6FF3D; color: #0D0D0D; padding: 12px 14px;">
+        <div style="flex-grow: 1; background: #8EFF8E; color: #252323; border-radius: 20px; padding: 14px 16px;">
           <div class="lbl" style="opacity: 0.7;">{{g.name}}</div>
           <div class="dsp num" style="font-size: 18px; margin-top: 4px;">{{g.val}}</div>
         </div>
@@ -58,7 +58,7 @@
       <sc-for list="{{weeks}}" as="w" hint-placeholder-count="4">
         <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end; height: 100%;">
           <span class="num dsp" style="font-size: 12px;">{{w.load}}</span>
-          <div class="col" style="width: 100%; height: {{w.h}}; background: {{w.color}};"></div>
+          <div class="col" style="width: 100%; height: {{w.h}}; background: {{w.color}}; border-radius: 8px;"></div>
           <span class="lbl" style="opacity: 0.7;">{{w.name}}</span>
         </div>
       </sc-for>
@@ -66,11 +66,11 @@
   </div>
 
   <!-- следующий шаг: жёлтый блок -->
-  <div style="background: #FFE500; color: #0D0D0D; margin-top: auto; padding: 18px 20px 20px;">
+  <div style="background: #8EFF8E; color: #252323; border-radius: 28px 28px 0 0; margin-top: auto; padding: 20px;">
     <span class="lbl">Следующая сессия · четверг</span>
-    <div class="dsp" style="font-size: 20px; line-height: 1.1; margin-top: 8px;">B · ПРИСЕД ДЕРЖИМ, ШЕЯ РАСТЁТ</div>
-    <div style="background: #0D0D0D; color: #FFE500; height: 60px; margin-top: 16px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
-      <span class="dsp" style="font-size: 18px;">ЗАБРАТЬ ПЛАН</span>
+    <div class="dsp" style="font-size: 20px; line-height: 1.1; margin-top: 8px;">B · присед держим, шея растёт</div>
+    <div style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 58px; margin-top: 16px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
+      <span class="dsp" style="font-size: 18px;">Забрать план</span>
       <span class="dsp" style="font-size: 24px;">→</span>
     </div>
   </div>
@@ -87,10 +87,10 @@ class Component extends DCLogic {
         { name: 'Шея', val: '25 → 30 сек' },
       ],
       weeks: [
-        { name: '−3', load: 1840, h: '52px', color: '#C13100' },
-        { name: '−2', load: 2540, h: '72px', color: '#C13100' },
-        { name: '−1', load: 2815, h: '80px', color: '#C13100' },
-        { name: 'эта', load: 2149, h: '61px', color: '#FFE500' },
+        { name: '−3', load: 1840, h: '52px', color: '#E4E4EE' },
+        { name: '−2', load: 2540, h: '72px', color: '#E4E4EE' },
+        { name: '−1', load: 2815, h: '80px', color: '#E4E4EE' },
+        { name: 'эта', load: 2149, h: '61px', color: '#736CED' },
       ],
     };
   }
