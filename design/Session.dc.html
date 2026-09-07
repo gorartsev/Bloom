@@ -17,6 +17,8 @@
     .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
     .num { font-variant-numeric: tabular-nums; }
     .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+    @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(2deg); } }
+    .bob { animation: bob 3s ease-in-out infinite; }
     @keyframes drop { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .drop { animation: drop 300ms cubic-bezier(.2,.9,.3,1) both; }
   </style>
@@ -39,13 +41,17 @@
     </div>
   </div>
 
-  <div style="padding: 12px 20px 0;">
-    <div class="dsp" style="font-size: 32px; line-height: 1;">Жим гантелей</div>
+  <!-- тап по названию открывает меню упражнения: заменить, посмотреть технику, историю -->
+  <div class="tap" style="padding: 8px 20px 0;">
+    <div style="display: flex; align-items: baseline; gap: 8px;">
+      <div class="dsp" style="font-size: 30px; line-height: 1;">Жим гантелей</div>
+      <span class="dsp" style="font-size: 20px; color: #6E6A68;">›</span>
+    </div>
     <div style="font-size: 13px; color: #6E6A68; margin-top: 8px;">Цель 3 × 8 · прошлый раз 22 × 8, запас 2</div>
   </div>
 
   <!-- записанные подходы: мятные пилюли, растут слева направо -->
-  <div style="display: flex; gap: 7px; padding: 16px 20px 0; flex-wrap: wrap;">
+  <div style="display: flex; gap: 7px; padding: 12px 20px 0; flex-wrap: wrap;">
     <sc-for list="{{sets}}" as="s" hint-placeholder-count="3">
       <div class="drop" style="background: {{s.bg}}; color: {{s.fg}}; border-radius: 999px; padding: 9px 15px; border: 2px dashed {{s.border}};">
         <span class="num dsp" style="font-size: 14px;">{{s.txt}}</span>
@@ -54,40 +60,41 @@
   </div>
 
   <!-- ввод: белый, крупные круглые кнопки -->
-  <div style="background: #F4F4F8; border-radius: 28px; margin: 18px 16px 0; padding: 22px 20px;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div class="tap" onClick="{{decW}}" style="width: 62px; height: 62px; border-radius: 31px; background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
-        <div style="width: 20px; height: 3px; border-radius: 2px; background: #252323;"></div>
+  <div style="background: #F4F4F8; border-radius: 28px; margin: 12px 16px 0; padding: 16px 20px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div class="tap" onClick="{{decW}}" style="width: 54px; height: 54px; border-radius: 27px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
       </div>
-      <div style="text-align: center;">
-        <div class="dsp num" style="font-size: 58px; line-height: 0.9;">{{w}}</div>
-        <div class="lbl" style="color: #6E6A68;">кг</div>
+      <!-- само число это поле: тап открывает нампад, крутить плюсиками до 67.5 долго -->
+      <div class="tap" style="flex-grow: 1; background: #FFFFFF; border: 2px solid #E4E4EE; border-radius: 20px; padding: 6px 0 8px; text-align: center;">
+        <div class="dsp num" style="font-size: 44px; line-height: 1;">{{w}}</div>
+        <div class="lbl" style="color: #6E6A68;">кг · вписать</div>
       </div>
-      <div class="tap" onClick="{{incW}}" style="width: 62px; height: 62px; border-radius: 31px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative;">
-        <div style="width: 20px; height: 3px; border-radius: 2px; background: #252323;"></div>
-        <div style="width: 3px; height: 20px; border-radius: 2px; background: #252323; position: absolute;"></div>
+      <div class="tap" onClick="{{incW}}" style="width: 54px; height: 54px; border-radius: 27px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0;">
+        <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
+        <div style="width: 3px; height: 18px; border-radius: 2px; background: #252323; position: absolute;"></div>
       </div>
     </div>
 
-    <div style="height: 1px; background: #E4E4EE; margin: 18px 0;"></div>
+    <div style="height: 1px; background: #E4E4EE; margin: 14px 0;"></div>
 
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div class="tap" onClick="{{decR}}" style="width: 62px; height: 62px; border-radius: 31px; background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
-        <div style="width: 20px; height: 3px; border-radius: 2px; background: #252323;"></div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div class="tap" onClick="{{decR}}" style="width: 54px; height: 54px; border-radius: 27px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
       </div>
-      <div style="text-align: center;">
-        <div class="dsp num" style="font-size: 58px; line-height: 0.9;">{{r}}</div>
-        <div class="lbl" style="color: #6E6A68;">повторов</div>
+      <div class="tap" style="flex-grow: 1; background: #FFFFFF; border: 2px solid #E4E4EE; border-radius: 20px; padding: 6px 0 8px; text-align: center;">
+        <div class="dsp num" style="font-size: 44px; line-height: 1;">{{r}}</div>
+        <div class="lbl" style="color: #6E6A68;">повторов · вписать</div>
       </div>
-      <div class="tap" onClick="{{incR}}" style="width: 62px; height: 62px; border-radius: 31px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative;">
-        <div style="width: 20px; height: 3px; border-radius: 2px; background: #252323;"></div>
-        <div style="width: 3px; height: 20px; border-radius: 2px; background: #252323; position: absolute;"></div>
+      <div class="tap" onClick="{{incR}}" style="width: 54px; height: 54px; border-radius: 27px; background: #8EFF8E; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0;">
+        <div style="width: 18px; height: 3px; border-radius: 2px; background: #252323;"></div>
+        <div style="width: 3px; height: 18px; border-radius: 2px; background: #252323; position: absolute;"></div>
       </div>
     </div>
   </div>
 
   <!-- RIR: шкала-ползунок, а не пять кнопок -->
-  <div style="padding: 20px 20px 0;">
+  <div style="padding: 14px 20px 0;">
     <div style="display: flex; align-items: baseline; justify-content: space-between;">
       <span class="lbl" style="color: #6E6A68;">Запас</span>
       <span style="font-size: 13px; font-weight: 600; color: #635BDF;">{{rirWord}}</span>
@@ -101,23 +108,29 @@
     </div>
   </div>
 
-  <!-- подсказка по технике: cue из каталога, ровно та, что лежит в data.js -->
-  <div style="margin: 20px 16px 0; background: #F4F4F8; border-radius: 20px; padding: 14px 18px;">
-    <div class="lbl" style="color: #6E6A68;">Подсказка</div>
-    <div style="font-size: 13px; font-weight: 500; margin-top: 5px; line-height: 1.4;">{{cue}}</div>
+  <!-- тренер: говорит только числом, которого нет у тебя. Иначе молчит -->
+  <div style="margin: 12px 16px 0; background: #8EFF8E; border-radius: 22px 22px 22px 8px; padding: 12px 14px; display: flex; gap: 12px;">
+    <div class="bob" style="width: 44px; height: 54px; border-radius: 12px; border: 2px dashed #3F8F3F; background: rgba(255,255,255,0.55); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+      <span class="lbl" style="font-size: 8px; letter-spacing: 0.4px; color: #2C4A2C;">перс</span>
+    </div>
+    <div style="flex-grow: 1;">
+      <div class="lbl" style="color: #2C4A2C;">Тренер</div>
+      <div style="font-size: 14px; font-weight: 600; margin-top: 4px; line-height: 1.35;">{{coachLine}}</div>
+      <div style="display: flex; gap: 6px; margin-top: 10px;">
+        <sc-for list="{{coachActs}}" as="a" hint-placeholder-count="2">
+          <div class="tap" style="background: {{a.bg}}; color: {{a.fg}}; border-radius: 999px; padding: 13px 14px;">
+            <span style="font-size: 13px; font-weight: 700;">{{a.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
   </div>
 
-  <div class="tap" style="margin: 8px 16px 0; padding: 14px 18px; display: flex; align-items: center; gap: 10px;">
-    <span style="font-size: 14px; font-weight: 600; flex-grow: 1;">Заменить упражнение</span>
-    <span class="lbl" style="color: #6E6A68;">болит или занято</span>
-    <span class="dsp" style="font-size: 14px; color: #6E6A68;">→</span>
-  </div>
-
-  <div class="tap" onClick="{{save}}" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 66px; margin: auto 16px 0; display: flex; align-items: center; justify-content: center;">
+  <div class="tap" onClick="{{save}}" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 66px; flex-shrink: 0; margin: auto 16px 0; display: flex; align-items: center; justify-content: center;">
     <span class="dsp" style="font-size: 19px;">Записать подход</span>
   </div>
 
-  <div style="display: flex; align-items: center; justify-content: space-between; margin: 12px 16px 22px; background: #9F9FED; color: #252323; border-radius: 20px; padding: 14px 20px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; margin: 10px 16px 18px; background: #9F9FED; color: #252323; border-radius: 20px; padding: 14px 20px;">
     <span class="lbl">Отдых</span>
     <span class="dsp num" style="font-size: 19px;">1:30</span>
   </div>
@@ -143,7 +156,12 @@ class Component extends DCLogic {
       incR: bump('r', 1, 1),
       decR: bump('r', -1, 1),
       rirWord: WORDS[this.state.rir],
-      cue: 'Локти под 45 градусов, не разводить в стороны',
+      // реплика собрана из истории подходов, а не из общих слов
+      coachLine: 'Прошлый раз 22 × 8 с запасом 2. Верх диапазона взят дважды. Ставь 24.',
+      coachActs: [
+        { name: 'Поставить 24', bg: '#252323', fg: '#8EFF8E' },
+        { name: 'Оставить 22', bg: '#FFFFFF', fg: '#252323' },
+      ],
       steps: [0, 1, 2, 3].map((i) => ({
         bg: i < this.state.step ? '#8EFF8E' : (i === this.state.step ? '#252323' : '#E4E4EE'),
         go: () => this.setState({ step: i }),
@@ -155,7 +173,7 @@ class Component extends DCLogic {
       ],
       rirs: [0, 1, 2, 3, 4].map((v) => ({
         v: v === 4 ? '4+' : v,
-        h: [44, 51, 58, 65, 72][v] + 'px',
+        h: [44, 48, 52, 57, 62][v] + 'px',
         bg: v === this.state.rir ? '#635BDF' : '#F4F4F8',
         fg: v === this.state.rir ? '#FFFFFF' : '#6E6A68',
         pick: () => this.setState({ rir: v }),

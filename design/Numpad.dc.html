@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #635BDF; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .tap { transition: transform 110ms cubic-bezier(.2,.8,.2,1), background-color 110ms ease; cursor: pointer; }
+    .tap:active { transform: scale(0.96); }
+    @keyframes up { from { transform: translateY(34px); } to { transform: translateY(0); } }
+    .sheet { animation: up 380ms cubic-bezier(.2,.9,.3,1) both; }
+    @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    .caret { animation: blink 1.05s steps(1) infinite; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <!-- сессия под шитом, под вуалью: шит модальный, это должно быть видно -->
+  <div style="padding: 20px 20px 0;">
+    <div class="lbl" style="color: #6E6A68;">Упражнение 2 из 4 · 34 мин</div>
+    <div class="dsp" style="font-size: 32px; line-height: 1; margin-top: 10px;">Жим гантелей</div>
+    <div style="font-size: 13px; color: #6E6A68; margin-top: 8px;">Цель 3 × 8 · прошлый раз 22 × 8, запас 2</div>
+    <div style="display: flex; gap: 7px; margin-top: 16px;">
+      <sc-for list="{{ghost}}" as="g" hint-placeholder-count="2">
+        <div style="background: #8EFF8E; border-radius: 999px; padding: 9px 15px;">
+          <span class="num dsp" style="font-size: 14px;">{{g.txt}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: absolute; inset: 0; background: rgba(37,35,35,0.42);"></div>
+
+  <!-- шит ввода -->
+  <div class="sheet" style="position: absolute; left: 0; right: 0; bottom: 0; background: #FFFFFF; border-radius: 30px 30px 0 0; box-shadow: 0 -8px 40px rgba(37,35,35,0.16); padding: 12px 20px 22px;">
+    <div style="width: 44px; height: 5px; border-radius: 3px; background: #E4E4EE; margin: 0 auto 14px;"></div>
+
+    <!-- два поля в одном шите: вбил вес, переключился, вбил повторы, записал -->
+    <div style="display: flex; gap: 6px;">
+      <sc-for list="{{fields}}" as="f" hint-placeholder-count="2">
+        <div class="tap" onClick="{{f.pick}}" style="flex-grow: 1; background: {{f.bg}}; border-radius: 18px; padding: 11px 14px;">
+          <div class="lbl" style="color: {{f.labelFg}};">{{f.name}}</div>
+          <div style="display: flex; align-items: baseline; gap: 5px; margin-top: 2px;">
+            <span class="dsp num" style="font-size: 26px; line-height: 1; color: {{f.fg}};">{{f.val}}</span>
+            <span class="caret" style="width: 3px; height: 22px; border-radius: 2px; background: {{f.caret}}; align-self: center;"></span>
+            <span class="lbl" style="color: {{f.labelFg}}; margin-left: 4px;">{{f.unit}}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- быстрые значения: чаще всего нужен именно прошлый подход -->
+    <div style="display: flex; gap: 6px; margin-top: 10px;">
+      <sc-for list="{{quick}}" as="q" hint-placeholder-count="3">
+        <div class="tap" onClick="{{q.pick}}" style="flex-grow: 1; text-align: center; background: {{q.bg}}; color: {{q.fg}}; border-radius: 999px; padding: 14px 6px;">
+          <span style="font-size: 13px; font-weight: 700;">{{q.name}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- клавиатура -->
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px;">
+      <sc-for list="{{keys}}" as="k" hint-placeholder-count="12">
+        <div class="tap" onClick="{{k.press}}" style="height: 60px; border-radius: 18px; background: {{k.bg}}; display: flex; align-items: center; justify-content: center;">
+          <span class="dsp num" style="font-size: {{k.size}}; color: {{k.fg}};">{{k.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="tap" onClick="{{save}}" style="background: #252323; color: #8EFF8E; border-radius: 999px; height: 60px; margin-top: 12px; display: flex; align-items: center; justify-content: center;">
+      <span class="dsp" style="font-size: 18px;">{{cta}}</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    // значения держим строками: набор цифр это набор цифр, а не арифметика
+    this.state = { field: 'w', w: '22', r: '8', fresh: true, saved: 2 };
+  }
+
+  renderVals() {
+    const LAST = { w: '22', r: '8' };
+    const STEP = { w: 2.5, r: 1 };
+    const cur = this.state[this.state.field];
+
+    // первая цифра затирает старое значение целиком: в зале правят вес,
+    // а не дописывают к нему цифру. Дальше уже дописываем.
+    const digit = (d) => () => {
+      const now = this.state.fresh ? '' : this.state[this.state.field];
+      if (d === '.' && now.includes('.')) return;
+      if (now.replace('.', '').length >= 5) return;
+      const next = (now === '0' && d !== '.') ? d : now + d;
+      this.setState({ [this.state.field]: next, fresh: false });
+    };
+    const wipe = () => {
+      const now = this.state.fresh ? '' : this.state[this.state.field];
+      this.setState({ [this.state.field]: now.slice(0, -1) || '0', fresh: false });
+    };
+    const bump = (d) => () => {
+      const v = Math.max(0, (parseFloat(this.state[this.state.field]) || 0) + d);
+      this.setState({ [this.state.field]: String(Math.round(v * 10) / 10), fresh: false });
+    };
+
+    const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'];
+
+    return {
+      ghost: [{ txt: '22 × 8' }, { txt: '22 × 8' }],
+
+      fields: [
+        { id: 'w', name: 'Вес', unit: 'кг', val: this.state.w },
+        { id: 'r', name: 'Повторы', unit: 'повт', val: this.state.r },
+      ].map((f) => {
+        const on = this.state.field === f.id;
+        return {
+          name: f.name,
+          unit: f.unit,
+          val: f.val,
+          bg: on ? '#8EFF8E' : '#F4F4F8',
+          fg: '#252323',
+          labelFg: on ? '#2C4A2C' : '#6E6A68',
+          caret: on ? '#252323' : 'transparent',
+          pick: () => this.setState({ field: f.id, fresh: true }),
+        };
+      }),
+
+      quick: [
+        { name: `${LAST[this.state.field]} как в прошлый`, act: () => this.setState({ [this.state.field]: LAST[this.state.field], fresh: false }), on: cur === LAST[this.state.field] },
+        { name: `−${STEP[this.state.field]}`, act: bump(-STEP[this.state.field]), on: false },
+        { name: `+${STEP[this.state.field]}`, act: bump(STEP[this.state.field]), on: false },
+      ].map((q) => ({
+        name: q.name,
+        bg: q.on ? '#E0DEFA' : '#F4F4F8',
+        fg: q.on ? '#332F63' : '#252323',
+        pick: q.act,
+      })),
+
+      keys: KEYS.map((k) => ({
+        label: k,
+        size: k === '⌫' ? '20px' : '24px',
+        bg: k === '⌫' ? '#E4E4EE' : '#F4F4F8',
+        fg: '#252323',
+        press: k === '⌫' ? wipe : digit(k),
+      })),
+
+      cta: `Записать подход ${this.state.saved + 1}`,
+      save: () => this.setState({ saved: this.state.saved, fresh: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

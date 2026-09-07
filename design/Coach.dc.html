@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: #635BDF; } a:hover { color: #252323; }
+    .dsp { font-family: Unbounded, Impact, sans-serif; font-weight: 800; letter-spacing: -0.035em; }
+    .ui  { font-family: Archivo, system-ui, sans-serif; }
+    .lbl { font-family: Archivo, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .tap { transition: transform 130ms cubic-bezier(.2,.8,.2,1), background-color 130ms ease; cursor: pointer; }
+    @keyframes pop { from { transform: translateY(16px) scale(.94); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+    .pop { animation: pop 340ms cubic-bezier(.2,.9,.3,1.1) both; }
+    @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
+    .bob { animation: bob 3s ease-in-out infinite; }
+  </style>
+</helmet>
+
+<div class="ui" style="width: 390px; height: 844px; background: #FFFFFF; color: #252323; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 14px 20px 0;">
+    <div class="dsp" style="font-size: 26px; line-height: 1.05;">Тренер в углу</div>
+    <div style="font-size: 13px; color: #6E6A68; margin-top: 8px; line-height: 1.45;">
+      Молчит по умолчанию. Открывает рот, только когда у него есть число, которого нет у тебя.
+    </div>
+  </div>
+
+  <!-- когда именно вылезает: выбор меняет реплику ниже -->
+  <div style="padding: 14px 20px 0;">
+    <span class="lbl" style="color: #6E6A68;">Повод</span>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
+      <sc-for list="{{triggers}}" as="t" hint-placeholder-count="5">
+        <div class="tap" onClick="{{t.pick}}" style="background: {{t.bg}}; color: {{t.fg}}; border-radius: 999px; padding: 13px 15px;">
+          <span style="font-size: 13px; font-weight: 700;">{{t.name}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- сама реплика -->
+  <div style="margin: 14px 16px 0;">
+    <div class="pop" style="background: {{bubbleBg}}; color: {{bubbleFg}}; border-radius: 26px 26px 26px 8px; padding: 14px 18px;">
+      <div class="lbl" style="color: {{bubbleLbl}};">{{kind}}</div>
+      <div style="font-size: 15px; font-weight: 600; margin-top: 7px; line-height: 1.4;">{{line}}</div>
+      <div style="display: flex; gap: 7px; margin-top: 10px;">
+        <sc-for list="{{actions}}" as="a" hint-placeholder-count="2">
+          <div class="tap" style="background: {{a.bg}}; color: {{a.fg}}; border: 2px solid {{a.border}}; border-radius: 999px; padding: 11px 15px;">
+            <span style="font-size: 13px; font-weight: 700;">{{a.name}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- персонаж под пузырём, слева, маленький -->
+    <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px; padding-left: 4px;">
+      <div class="bob" style="width: 52px; height: 60px; border-radius: 14px; border: 2px dashed #A8A4C8; background: #F4F4F8; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <span class="lbl" style="font-size: 8px; letter-spacing: 0.4px; color: #6E6A68;">перс</span>
+      </div>
+      <div style="font-size: 12px; font-weight: 500; color: #6E6A68; line-height: 1.4;">
+        Тот же перс, что в гардеробе: в чём ходит, в том и подсказывает. Тап по нему в шапке зовёт его сам.
+      </div>
+    </div>
+  </div>
+
+  <!-- откуда взял -->
+  <div style="padding: 12px 20px 0;">
+    <span class="lbl" style="color: #6E6A68;">Откуда число</span>
+    <div style="margin-top: 10px; background: #F4F4F8; border-radius: 20px; padding: 14px 16px;">
+      <div style="font-size: 13px; font-weight: 500; line-height: 1.45;">{{source}}</div>
+    </div>
+  </div>
+
+  <!-- правила молчания: главное в этой штуке -->
+  <div style="padding: 12px 20px 14px; margin-bottom: auto;">
+    <span class="lbl" style="color: #6E6A68;">Когда молчит</span>
+    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 1px; border-radius: 20px; overflow: hidden;">
+      <sc-for list="{{silence}}" as="s" hint-placeholder-count="4">
+        <div style="background: #F4F4F8; padding: 11px 16px; display: flex; align-items: center; gap: 10px;">
+          <div style="width: 7px; height: 7px; border-radius: 4px; background: #B04A63; flex-shrink: 0;"></div>
+          <span style="font-size: 13px; font-weight: 600;">{{s.n}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { t: 'load' };
+  }
+
+  renderVals() {
+    // Каждая реплика опирается на конкретное число из данных приложения.
+    // Нет числа — нет реплики: это и есть разница между тренером и скрепкой.
+    const T = [
+      {
+        id: 'load', name: 'Перебор', kind: 'Нагрузка',
+        line: 'Неделя уже 1.38 при коридоре до 1.3. Завтрашнюю силовую режу до трёх упражнений.',
+        source: 'ACWR: острая нагрузка за 7 дней делённая на среднюю за 28. Считается на твоих сессиях, порог 1.3 из спортивной медицины.',
+        tone: 'warn',
+        acts: [{ n: 'Показать план' }, { n: 'Понял' }],
+      },
+      {
+        id: 'prog', name: 'Прогрессия', kind: 'Следующий вес',
+        line: 'Прошлый раз 22 × 8 с запасом 2. Верх диапазона взят дважды. Ставь 24.',
+        source: 'Двойная прогрессия: сначала добиваешь повторы до верха диапазона, потом растёт вес. Запас 2 и выше значит вес можно двигать.',
+        tone: 'good',
+        acts: [{ n: 'Поставить 24' }, { n: 'Оставить 22' }],
+      },
+      {
+        id: 'flag', name: 'Флаг', kind: 'Ограничение держится',
+        line: 'Шея: только изометрия. Мост не раньше ноября. Ты сейчас открыл упражнение из запрета.',
+        source: 'coach/FLAGS.md, флаг живой три недели. Просроченные я снимаю сам или переспрашиваю.',
+        tone: 'warn',
+        acts: [{ n: 'Дать замену' }, { n: 'Всё равно делаю' }],
+      },
+      {
+        id: 'streak', name: 'Стрик', kind: 'Четвёртая неделя',
+        line: 'Четыре недели без пропуска силовой. Мятное худи открыто, лежит в гардеробе.',
+        source: 'Стрик недельный, а не дневной: пропуск бега его не жжёт, пропуск силовой жжёт.',
+        tone: 'good',
+        acts: [{ n: 'Примерить' }, { n: 'Потом' }],
+      },
+      {
+        id: 'idle', name: 'Завис', kind: 'Стоишь минуту',
+        line: 'Не знаешь, что ставить? Жми «как в прошлый» и не думай. Разберёмся в разборе.',
+        source: 'Единственная реплика без числа. Появляется один раз за сессию и только если экран ввода открыт больше минуты без нажатий.',
+        tone: 'calm',
+        acts: [{ n: 'Ага' }],
+      },
+    ];
+    const sel = T.find((x) => x.id === this.state.t) || T[0];
+
+    const TONE = {
+      warn: { bg: '#635BDF', fg: '#FFFFFF', lbl: '#FFFFFF', a1: '#8EFF8E', a1f: '#252323', a2: 'transparent', a2f: '#FFFFFF', a2b: 'rgba(255,255,255,0.55)' },
+      good: { bg: '#8EFF8E', fg: '#252323', lbl: '#2C4A2C', a1: '#252323', a1f: '#8EFF8E', a2: '#FFFFFF', a2f: '#252323', a2b: 'transparent' },
+      calm: { bg: '#F4F4F8', fg: '#252323', lbl: '#6E6A68', a1: '#252323', a1f: '#8EFF8E', a2: '#FFFFFF', a2f: '#252323', a2b: '#E4E4EE' },
+    };
+    const tone = TONE[sel.tone];
+
+    return {
+      triggers: T.map((x) => ({
+        name: x.name,
+        bg: this.state.t === x.id ? '#252323' : '#F4F4F8',
+        fg: this.state.t === x.id ? '#FFFFFF' : '#6E6A68',
+        pick: () => this.setState({ t: x.id }),
+      })),
+      kind: sel.kind,
+      line: sel.line,
+      source: sel.source,
+      bubbleBg: tone.bg,
+      bubbleFg: tone.fg,
+      bubbleLbl: tone.lbl,
+      actions: sel.acts.map((a, i) => ({
+        name: a.n,
+        bg: i === 0 ? tone.a1 : tone.a2,
+        fg: i === 0 ? tone.a1f : tone.a2f,
+        border: i === 0 ? 'transparent' : tone.a2b,
+      })),
+      silence: [
+        { n: 'Пока идёт подход и пока отдых меньше двадцати секунд' },
+        { n: 'Если ту же мысль уже сказал на этой неделе' },
+        { n: 'Если ты закрыл его: до следующего нового повода' },
+        { n: 'Больше двух реплик за сессию не даёт' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
