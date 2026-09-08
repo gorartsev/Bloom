@@ -148,12 +148,12 @@ const EXERCISES = [
 
 /* Типы сессий. mode: strength — полный лог подходов; quick — длительность плюс RPE */
 const SESSION_TYPES = {
-  strength:     { n:"Силовая",     ic:"🏋️", mode:"strength", c:"#FF5A3C" },
-  calisthenics: { n:"Калистеника", ic:"🤸", mode:"strength", c:"#F59E0B" },
-  bjj:          { n:"БЖЖ",         ic:"🥋", mode:"quick",    c:"#3B82F6" },
-  run:          { n:"Бег",         ic:"🏃", mode:"run",      c:"#22C55E" },
-  mobility:     { n:"Мобильность", ic:"🧘", mode:"quick",    c:"#A855F7" },
-  other:        { n:"Другое",      ic:"⚡", mode:"quick",    c:"#64748B" },
+  strength:     { n:"Силовая",     ic:"🏋️", mode:"strength", c:"#252323", dark:true },
+  calisthenics: { n:"Дома",        ic:"🤸", mode:"strength", c:"#4A4746", dark:true },
+  bjj:          { n:"БЖЖ",         ic:"🥋", mode:"quick",    c:"#635BDF", dark:true },
+  run:          { n:"Бег",         ic:"🏃", mode:"run",      c:"#8EFF8E" },
+  mobility:     { n:"Мобилка",     ic:"🧘", mode:"quick",    c:"#9F9FED" },
+  other:        { n:"Другое",      ic:"⚡", mode:"quick",    c:"#6E6A68", dark:true },
 };
 
 /* Шкала RPE для оценки всей сессии (метод Фостера).
@@ -200,3 +200,68 @@ const SEC_EX = new Set([
 EXERCISES.forEach(e => { if (SEC_EX.has(e.id)) e.u = "s"; });
 
 const EX_BY_ID = Object.fromEntries(EXERCISES.map(e => [e.id, e]));
+
+/* ═══ ПЕРСОНАЖ ═══════════════════════════════════════════════════════
+   Слои лежат на одной сетке 512x768 и уже спозиционированы: рисуются
+   друг поверх друга без вычислений. Порядок: тело или образ, сверху причёска.
+   Одежда пришла нарисованной вместе с телом, поэтому слот не «верх и низ»,
+   а образ целиком: надетый образ скрывает трусы.
+   Условие открытия (need) считает checkUnlocks в app.js. */
+
+const CHAR_GRID = { w:512, h:768 };
+
+const BODIES = [
+  { id:"leopard", n:"Леопард",  need:null,           d:"Леопард. Мы все здесь начинали." },
+  { id:"black",   n:"Чёрные",   need:null,           d:"База. Ничего лишнего." },
+  { id:"white",   n:"Белые",    need:null,           d:"База. Ничего лишнего." },
+  { id:"stripes", n:"Полоска",  need:null,           d:"База. Ничего лишнего." },
+  { id:"mint",    n:"Мятные",   need:null,           d:"База. Ничего лишнего." },
+  { id:"hearts",  n:"Сердечки", need:{t:"streak",v:1},  d:"Неделя без пропуска силовой." },
+  { id:"flames",  n:"Огонь",    need:{t:"level",v:3},   d:"Третий уровень." },
+  { id:"banana",  n:"Бананы",   need:{t:"level",v:5},   d:"Пятый уровень." },
+];
+
+const OUTFITS = [
+  { id:"none",    n:"Без одежды", need:null,             d:"Как есть. Ничего постыдного." },
+  { id:"bandtee", n:"Бэнд-ти",   need:{t:"sessions",v:10}, d:"Оверсайз с черепом и широкие джинсы. За десять записанных сессий." },
+  { id:"tank",    n:"Майка",     need:{t:"rirSets",v:20},  d:"Белая майка и шорты. За двадцать подходов, записанных с запасом." },
+  { id:"rash",    n:"Рашгард",   need:{t:"matWeeks",v:5},  d:"Ноу-ги комплект. За пять недель мата подряд." },
+  { id:"hoodie",  n:"Худи",      need:{t:"streak",v:4},    d:"Мятное худи и карго. Четыре недели без пропуска силовой." },
+  { id:"crew",    n:"Свитшот",   need:{t:"streak",v:8},    d:"CIRCUS STUFF и рваные джинсы. Восемь недель блока целиком." },
+  { id:"biker",   n:"Косуха",    need:{t:"level",v:8},     d:"Косуха, белая футболка, чёрные джинсы. Восьмой уровень." },
+];
+
+const HAIRS = [
+  { id:"bald",      n:"Лысый",       need:null,             d:"База. Причёска надевается поверх." },
+  { id:"buzz",      n:"Короткие",    need:null,             d:"Ёжик. Ничего не мешает на мате." },
+  { id:"curly",     n:"Кудри",       need:{t:"streak",v:2},    d:"Тёмные кудри. За вторую неделю подряд." },
+  { id:"blond",     n:"Блонд",       need:{t:"level",v:6},     d:"Осветлённый лохматый." },
+  { id:"braids",    n:"Брейды",      need:{t:"matWeeks",v:10}, d:"Косички. Десять недель мата без пропуска." },
+  { id:"long",      n:"Длинные",     need:{t:"level",v:7},     d:"Прямые длинные." },
+  { id:"longcurly", n:"Длин. кудри", need:{t:"level",v:9},     d:"Длинные кудрявые." },
+];
+
+const CHAR_BY_ID = Object.fromEntries(
+  [...BODIES.map(x=>[x,"body"]), ...OUTFITS.map(x=>[x,"outfit"]), ...HAIRS.map(x=>[x,"hair"])]
+    .map(([x,slot]) => [x.id, { ...x, slot }])
+);
+
+/* Файл слоя. Лысый и «без одежды» файла не имеют: это отсутствие слоя. */
+const charSrc = (slot, id) =>
+  (!id || id === "bald" || id === "none") ? null : `assets/char/${slot}/${id}.png`;
+
+/* Опыт: сессия даёт нагрузку делить на три. Порог уровня растёт линейно,
+   чтобы первые уровни брались за пару недель, а не за месяц. */
+const xpForLevel = lvl => 600 + (lvl - 1) * 900;
+const levelFromXp = xp => { let l = 1, need = xpForLevel(1);
+  while (xp >= need) { xp -= need; l++; need = xpForLevel(l); } return { level:l, into:xp, need }; };
+
+/* Атрибуты героя. Каждый растёт от своего среза истории, а не от общего опыта:
+   иначе полоски двигаются вместе и ничего не говорят. */
+const ATTRS = [
+  { id:"str",  n:"Сила",         c:"#8EFF8E" },
+  { id:"end",  n:"Выносливость", c:"#635BDF" },
+  { id:"mob",  n:"Подвижность",  c:"#9F9FED" },
+  { id:"grit", n:"Стойкость",    c:"#252323" },
+  { id:"will", n:"Воля",         c:"#8EFF8E" },
+];

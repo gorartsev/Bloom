@@ -129,12 +129,6 @@
       "file": "hair/curly.png"
     },
     {
-      "id": "mohawk",
-      "name": "Ирокез",
-      "unlock": "lvl4",
-      "file": "hair/mohawk.png"
-    },
-    {
       "id": "blond",
       "name": "Блонд",
       "unlock": "lvl6",

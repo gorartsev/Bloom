@@ -4,24 +4,35 @@
 const KEY = "bloom";
 
 const BLANK = {
-  v: 2,
+  v: 3,
   profile: { name:null, height:185, startWeight:null, birth:2003 },
-  settings: { theme:"dark" },
+  settings: {},
   sessions: [],      // завершённые
   active: null,      // текущая, живёт между запусками
   weights: {},       // 'YYYY-MM-DD' -> кг
   plans: {},         // 'YYYY-MM-DD' -> план от тренера
   flags: [],         // carry-forward от тренера
   customEx: [],      // упражнения, добавленные руками
+  char: { body:"leopard", outfit:"none", hair:"bald" },
+  xp: 0,
+  unlocked: ["leopard","black","white","stripes","mint","none","bald","buzz"],
+  coachSeen: {},     // id реплики -> дата последнего показа
+  seenLevel: 1,      // до какого уровня экран «уровень взят» уже показывали
 };
 
 function load() {
   let raw = null;
   try { raw = JSON.parse(localStorage.getItem(KEY)); } catch { raw = null; }
   if (!raw) return structuredClone(BLANK);
-  if (raw.v === 2) return { ...structuredClone(BLANK), ...raw,
-    profile:{...BLANK.profile, ...(raw.profile||{})},
-    settings:{...BLANK.settings, ...(raw.settings||{})} };
+  if (raw.v >= 2) {
+    const s = { ...structuredClone(BLANK), ...raw,
+      profile:{...BLANK.profile, ...(raw.profile||{})},
+      settings:{...BLANK.settings, ...(raw.settings||{})},
+      char:{...BLANK.char, ...(raw.char||{})} };
+    if (!Array.isArray(s.unlocked) || !s.unlocked.length) s.unlocked = [...BLANK.unlocked];
+    s.v = 3;
+    return s;
+  }
   /* Старую схему сохраняем нетронутой рядом: миграция не должна уметь съесть данные. */
   try { localStorage.setItem(KEY + "_v1_backup", JSON.stringify(raw)); } catch {}
   const migrated = migrateV1(raw);
@@ -65,23 +76,34 @@ const today = () => dk(new Date());
 const parseDk = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y,m-1,d); };
 const daysAgo = n => { const d = new Date(); d.setDate(d.getDate()-n); return dk(d); };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 
 const MON = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
-const DAYS = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+const DOWS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+const DAY_FULL = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
 const fmtDate = k => { const d = parseDk(k); return `${d.getDate()} ${MON[d.getMonth()]}`; };
 const fmtDay  = k => k === today() ? "сегодня" : k === daysAgo(1) ? "вчера" : fmtDate(k);
+/* Русская форма числительного: «1 флаг», «2 флага», «5 флагов». */
+const plural = (n, one, few, many) => {
+  const a = Math.abs(n) % 100, b = a % 10;
+  return n + " " + (a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many);
+};
 
 const allEx = () => [...EXERCISES, ...ST.customEx];
-const exById = id => EX_BY_ID[id] || ST.customEx.find(e => e.id === id) || { id, n:id, p:"other", eq:"none", step:2.5, reps:[8,12], tags:[] };
+const exById = id => EX_BY_ID[id] || ST.customEx.find(e => e.id === id) ||
+  { id, n:id, p:"other", eq:"none", step:2.5, reps:[8,12], tags:[] };
 const unit = ex => ex.u === "s" ? "сек" : "повт";
 
-/* Нагрузка сессии по Фостеру: минуты × RPE */
+/* ═══ МЕТРИКИ ════════════════════════════════════════════════════════ */
+/* Нагрузка по Фостеру: минуты умножить на RPE. Одно число на любую сессию,
+   поэтому мат, бег и штанга складываются в одну неделю. */
 const sessionLoad = s => (s.duration || 0) * (s.rpe || 0);
 const loadBetween = (from, to) => ST.sessions
   .filter(s => s.date >= from && s.date <= to)
   .reduce((a,s) => a + sessionLoad(s), 0);
 
-/* Отношение острой нагрузки к хронической. Грубый светофор, не закон. */
+/* ACWR: острая неделя делить на среднюю за четыре. Ниже 0.8 спад,
+   выше 1.3 риск. При коротком стаже не считаем: знаменатель врёт. */
 function acwr() {
   const acute = loadBetween(daysAgo(6), today());
   const chronic = loadBetween(daysAgo(27), today()) / 4;
@@ -89,707 +111,881 @@ function acwr() {
   return acute / chronic;
 }
 
-/* Оценка разового максимума, формула Эпли */
 const e1rm = (w, r) => (!w || !r) ? 0 : Math.round(w * (1 + r/30));
 
-/* Вся история подходов по упражнению, свежие первыми */
 function exHistory(exId) {
   const out = [];
-  [...ST.sessions].reverse().forEach(s => {
-    (s.entries || []).forEach(e => {
-      if (e.exId === exId && e.sets.length) out.push({ date:s.date, sets:e.sets });
-    });
+  ST.sessions.forEach(s => (s.entries||[]).forEach(e => {
+    if (e.ex === exId && e.sets?.length) out.push({ date:s.date, sets:e.sets });
+  }));
+  const a = ST.active;
+  if (a) (a.entries||[]).forEach(e => {
+    if (e.ex === exId && e.sets?.length) out.push({ date:a.date, sets:e.sets, live:true });
   });
   return out;
 }
 
-function lastSet(exId) {
-  const h = exHistory(exId);
+function lastSet(exId, live = true) {
+  const h = exHistory(exId).filter(x => live || !x.live);
   if (!h.length) return null;
-  const sets = h[0].sets;
-  return { ...sets[sets.length-1], date:h[0].date };
+  const last = h[h.length-1];
+  const best = last.sets.reduce((a,b) => (b.w||0) >= (a.w||0) ? b : a, last.sets[0]);
+  return { ...best, date:last.date, count:last.sets.length };
 }
 
 function bestSet(exId) {
   let best = null;
-  exHistory(exId).forEach(h => h.sets.forEach(s => {
-    const score = s.w ? e1rm(s.w, s.r) : s.r;
-    if (!best || score > best.score) best = { ...s, score, date:h.date };
+  exHistory(exId).forEach(x => x.sets.forEach(st => {
+    const v = st.w ? e1rm(st.w, st.r) : (st.r || 0);
+    if (!best || v > best.v) best = { v, w:st.w, r:st.r, date:x.date };
   }));
   return best;
 }
 
-/* Двойная прогрессия: добираем повторы внутри диапазона, потом добавляем вес.
-   Гейт: последний подход прошлого раза с запасом (RIR >= 1) и на верхе диапазона. */
+/* Двойная прогрессия: сначала добираем повторы до верха диапазона,
+   и только когда верх взят с запасом, растёт вес. Запас (RIR) это гейт:
+   без него прогрессия превращается в «каждый раз до отказа». */
 function suggest(exId) {
   const ex = exById(exId);
-  const h = exHistory(exId);
-  if (!h.length) return { w:0, r:ex.reps[0], rir:2, why:"первый раз, начни осторожно" };
-  const sets = h[0].sets;
-  const top = sets[sets.length-1];
-  const hitTop = sets.every(s => s.r >= ex.reps[1]);
-  const hasRoom = (top.rir ?? 0) >= 1;
-  if (hitTop && hasRoom && ex.step > 0)
-    return { w:+(top.w + ex.step).toFixed(1), r:ex.reps[0], rir:2, why:`+${ex.step} кг: диапазон закрыт с запасом` };
-  if (hitTop && hasRoom && ex.step === 0)
-    return { w:0, r:top.r + (ex.u === "s" ? 5 : 1), rir:2, why:"добавь повтор, прошлый раз был с запасом" };
-  if ((top.rir ?? 2) === 0)
-    return { w:top.w, r:top.r, rir:1, why:"прошлый раз ушёл в отказ, вес держим" };
-  return { w:top.w, r:Math.min(top.r + 1, ex.reps[1]), rir:2, why:"добираем повторы до верха диапазона" };
+  const last = lastSet(exId);
+  const [lo, hi] = ex.reps || [8,12];
+  if (!last) return { w:0, r:lo, why:"Первый раз. Возьми вес, с которым уверенно сделаешь " + lo + "." };
+  const rir = last.rir ?? 2;
+  if ((last.r || 0) >= hi && rir >= 2 && ex.step > 0)
+    return { w:(last.w||0) + ex.step, r:lo,
+      why:`Прошлый раз ${last.w||0} × ${last.r}, запас ${rir}. Верх диапазона взят, вес растёт.` };
+  if (rir <= 0)
+    return { w:last.w||0, r:Math.max(lo, (last.r||lo) - 1),
+      why:`Прошлый раз шёл до отказа. Тот же вес, на повтор меньше.` };
+  return { w:last.w||0, r:Math.min(hi, (last.r||lo) + 1),
+    why:`Прошлый раз ${last.w||0} × ${last.r}, запас ${rir}. Тот же вес, добираем повтор.` };
 }
 
-/* ═══ ТЕМЫ ═══════════════════════════════════════════════════════════ */
-const THEMES = {
-  dark: {
-    bg:"#0D0F14", card:"#161A22", cardDim:"#1E2430", text:"#EDF0F5",
-    dim:"#8D97A8", soft:"#5A6373", line:"#252B37",
-    accent:"#FF5A3C", accentSoft:"#FF5A3C22", ok:"#4ADE80", warn:"#FBBF24", bad:"#F43F5E",
-  },
-  bloom: {
-    bg:"#F6EFEE", card:"#FFFFFF", cardDim:"#FBF4F3", text:"#2B1F26",
-    dim:"#8E7A84", soft:"#C4AEBA", line:"#EFD5E3",
-    accent:"#E396DF", accentSoft:"#F8DCEF", ok:"#9BC791", warn:"#E0A458", bad:"#D4707E",
-  },
-};
+/* ═══ ПЕРСОНАЖ, ОПЫТ, НАГРАДЫ ════════════════════════════════════════ */
+const totalXp = () => ST.sessions.reduce((a,s) => a + Math.round(sessionLoad(s)/3), 0);
+const lvl = () => levelFromXp(totalXp());
 
-function applyTheme() {
-  const t = THEMES[ST.settings.theme] || THEMES.dark;
-  const r = document.documentElement;
-  Object.entries(t).forEach(([k,v]) => r.style.setProperty(`--${k}`, v));
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", t.bg);
-  r.style.colorScheme = ST.settings.theme === "dark" ? "dark" : "light";
+/* Недельный стрик по силовым: пропуск бега его не жжёт, пропуск силовой жжёт.
+   Считаем назад по неделям от текущей, пока в неделе есть силовая. */
+function strengthStreak() {
+  const has = wkAgo => {
+    const end = new Date(); end.setDate(end.getDate() - wkAgo*7);
+    const start = new Date(end); start.setDate(start.getDate() - 6);
+    return ST.sessions.some(s => s.type === "strength" && s.date >= dk(start) && s.date <= dk(end));
+  };
+  let n = 0;
+  while (n < 60 && has(n)) n++;
+  return n;
 }
 
-/* ═══ СОСТОЯНИЕ ЭКРАНА ═══════════════════════════════════════════════ */
-let VIEW = { name:"home", exId:null, pickFor:null, month:null, filter:"all" };
-let REST = { until:0, total:0 };
-let DRAFT = {};   // черновик ввода подхода по exId
-
-/* ═══ РЕНДЕР ═════════════════════════════════════════════════════════ */
-function render() {
-  const root = $("#root");
-  const y = window.scrollY;
-  if (!ST.profile.name) { root.innerHTML = vOnboard(); return; }
-  const map = { home:vHome, session:vSession, picker:vPicker, exercise:vExercise,
-                history:vHistory, progress:vProgress, settings:vSettings, finish:vFinish,
-                day:vDay, sview:vSessionView };
-  root.innerHTML = (map[VIEW.name] || vHome)();
-  if (VIEW.keepScroll) { window.scrollTo(0, y); VIEW.keepScroll = false; }
-  tickRest();
+function matWeeks() {
+  const has = wkAgo => {
+    const end = new Date(); end.setDate(end.getDate() - wkAgo*7);
+    const start = new Date(end); start.setDate(start.getDate() - 6);
+    return ST.sessions.some(s => s.type === "bjj" && s.date >= dk(start) && s.date <= dk(end));
+  };
+  let n = 0;
+  while (n < 60 && has(n)) n++;
+  return n;
 }
 
-const go = (name, extra={}) => { VIEW = { ...VIEW, name, ...extra }; window.scrollTo(0,0); render(); };
-const rerender = () => { VIEW.keepScroll = true; render(); };
+const rirSets = () => ST.sessions.reduce((a,s) =>
+  a + (s.entries||[]).reduce((x,e) => x + e.sets.filter(st => (st.rir ?? 0) >= 2).length, 0), 0);
 
-/* ── компоненты ── */
-const header = (title, sub, back, right="") => `
-  <div class="hdr">
-    ${back ? `<button class="ic" data-act="${back}">←</button>` : `<div class="ic-sp"></div>`}
-    <div class="hdr-t"><div class="hdr-title">${esc(title)}</div>${sub ? `<div class="hdr-sub">${esc(sub)}</div>` : ""}</div>
-    <div class="hdr-r">${right}</div>
-  </div>`;
-
-const nav = active => `
-  <div class="nav">
-    ${[["home","Сегодня","▦"],["history","История","☰"],["progress","Прогресс","◔"],["settings","Профиль","⚙"]]
-      .map(([v,l,i]) => `<button class="nav-b ${active===v?"on":""}" data-act="go:${v}"><span class="nav-i">${i}</span>${l}</button>`).join("")}
-  </div>`;
-
-/* ═══ ОНБОРДИНГ ══════════════════════════════════════════════════════ */
-function vOnboard() {
-  return `
-  <div class="onb">
-    <div class="onb-logo">🌸</div>
-    <h1 class="onb-h1">BLOOM</h1>
-    <p class="onb-p">Лог тренировок, мата и бега</p>
-    <div class="card onb-card">
-      <label class="lbl">Как тебя зовут</label>
-      <input id="onb-name" class="inp" placeholder="Имя" autocomplete="off">
-      <div class="row2">
-        <div><label class="lbl">Рост, см</label><input id="onb-h" class="inp" inputmode="numeric" value="185"></div>
-        <div><label class="lbl">Вес, кг</label><input id="onb-w" class="inp" inputmode="decimal" placeholder="85"></div>
-      </div>
-      <button class="btn" data-act="onb-go">Начать</button>
-    </div>
-    <div class="onb-foot">Всё хранится на устройстве. Работает офлайн.</div>
-  </div>`;
+function metFor(need) {
+  if (!need) return true;
+  if (need.t === "level")    return lvl().level >= need.v;
+  if (need.t === "sessions") return ST.sessions.length >= need.v;
+  if (need.t === "streak")   return strengthStreak() >= need.v;
+  if (need.t === "matWeeks") return matWeeks() >= need.v;
+  if (need.t === "rirSets")  return rirSets() >= need.v;
+  return false;
 }
 
-/* ═══ ГЛАВНЫЙ ЭКРАН ══════════════════════════════════════════════════ */
-function vHome() {
-  const t = today();
-  const todaySessions = ST.sessions.filter(s => s.date === t);
-  const plan = ST.plans[t];
-  const wk = weekStrip();
-  const load7 = loadBetween(daysAgo(6), t);
-  const ratio = acwr();
-  const lastW = Object.entries(ST.weights).sort((a,b)=>a[0].localeCompare(b[0])).pop();
-
-  let ratioTag = "";
-  if (ratio !== null) {
-    const [cls, txt] = ratio > 1.5 ? ["bad","резкий скачок"]
-      : ratio > 1.3 ? ["warn","растёт быстро"]
-      : ratio < 0.8 ? ["dim","спад"] : ["ok","в коридоре"];
-    ratioTag = `<span class="tag ${cls}">${ratio.toFixed(2)} · ${txt}</span>`;
-  }
-
-  return `
-  <div class="scr">
-    <div class="top">
-      <div><div class="top-hi">Привет, ${esc(ST.profile.name)}</div>
-      <div class="top-d">${DAYS[new Date().getDay()]}, ${fmtDate(t)}</div></div>
-      <button class="ic" data-act="go:settings">⚙</button>
-    </div>
-
-    ${ST.active ? `
-      <button class="card live" data-act="go:session">
-        <div class="live-l"><span class="dot"></span>${ST.active.back ? "Запись за "+fmtDay(ST.active.date) : "Сессия идёт"}</div>
-        <div class="live-n">${SESSION_TYPES[ST.active.type].ic} ${SESSION_TYPES[ST.active.type].n}</div>
-        <div class="live-s">${activeSummary(ST.active)} · продолжить →</div>
-      </button>` : ""}
-
-    ${ST.flags.length ? `
-      <div class="card flags">
-        <button class="flags-h" data-act="flags">
-          <span class="lbl" style="margin:0">🚩 От тренера · ${ST.flags.length}</span>
-          <span class="flags-x">${VIEW.flagsOpen ? "свернуть" : "показать"}</span>
-        </button>
-        ${VIEW.flagsOpen ? ST.flags.map(f => `<div class="flag">${esc(f)}</div>`).join("") : ""}
-      </div>` : ""}
-
-    ${plan ? `
-      <div class="card plan">
-        <div class="plan-h"><div class="lbl">План на сегодня</div><div class="plan-n">${esc(plan.session||"Тренировка")}</div></div>
-        ${(plan.items||[]).map(i => {
-          const ex = exById(i.ex);
-          return `<div class="plan-i"><span>${esc(ex.n)}</span><span class="plan-t">${i.sets}×${esc(String(i.reps))}${i.weight?` · ${i.weight}кг`:""}</span></div>`;
-        }).join("")}
-        ${plan.note ? `<div class="plan-note">${esc(plan.note)}</div>` : ""}
-        <button class="btn" data-act="start:${plan.kind||"strength"}">Начать по плану</button>
-      </div>` : ""}
-
-    <div class="lbl pad">Записать</div>
-    <div class="grid3">
-      ${Object.entries(SESSION_TYPES).filter(([k]) => k!=="other").map(([k,v]) => `
-        <button class="tile" data-act="start:${k}" style="--tc:${v.c}">
-          <span class="tile-i">${v.ic}</span><span class="tile-n">${v.n}</span>
-        </button>`).join("")}
-      <button class="tile" data-act="w-log" style="--tc:#94A3B8"><span class="tile-i">⚖️</span><span class="tile-n">Вес</span></button>
-      <button class="tile" data-act="start:other" style="--tc:#64748B"><span class="tile-i">⚡</span><span class="tile-n">Другое</span></button>
-    </div>
-
-    <div class="lbl pad">Неделя</div>
-    <div class="card">
-      <div class="wk">${wk}</div>
-      <div class="wk-sum">
-        <div><div class="wk-v">${load7}</div><div class="wk-l">нагрузка за 7 дней</div></div>
-        <div class="wk-tag">${ratioTag}</div>
-      </div>
-    </div>
-
-    ${todaySessions.length ? `
-      <div class="lbl pad">Сегодня записано</div>
-      ${todaySessions.map(s => sessionRow(s)).join("")}` : ""}
-
-    ${lastW ? `
-      <button class="card wcard" data-act="w-log">
-        <div><div class="lbl">Вес</div><div class="wcard-v">${lastW[1]} <span>кг</span></div></div>
-        <div class="wcard-d">${fmtDay(lastW[0])}</div>
-      </button>` : ""}
-
-    <div class="sp"></div>
-  </div>
-  ${nav("home")}`;
-}
-
-function weekStrip() {
-  const out = [];
-  for (let i = 6; i >= 0; i--) {
-    const k = daysAgo(i);
-    const d = parseDk(k);
-    const ss = ST.sessions.filter(s => s.date === k);
-    const load = ss.reduce((a,s)=>a+sessionLoad(s),0);
-    const h = load ? Math.max(14, Math.min(52, load/12)) : 4;
-    const planned = WEEK_TEMPLATE[d.getDay()]?.planned || [];
-    out.push(`
-      <div class="wk-d ${i===0?"now":""}">
-        <div class="wk-bars">${ss.length
-          ? ss.map(s=>`<div class="wk-bar" style="height:${h/ss.length+6}px;background:${SESSION_TYPES[s.type]?.c||"#64748B"}"></div>`).join("")
-          : `<div class="wk-bar empty" style="height:4px"></div>`}</div>
-        <div class="wk-n">${DAYS[d.getDay()]}</div>
-        <div class="wk-p">${ss.length ? ss.map(s=>SESSION_TYPES[s.type]?.ic||"").join("") : (i===0? planned.map(p=>SESSION_TYPES[p]?.ic||"").join("") : "")}</div>
-      </div>`);
-  }
-  return out.join("");
-}
-
-const activeSummary = s => {
-  const sets = (s.entries||[]).reduce((a,e)=>a+e.sets.length,0);
-  const mins = Math.round((Date.now() - s.startTs)/60000);
-  return sets ? `${sets} подх. · ${mins} мин` : `${mins} мин`;
-};
-
-const tonnage = s => (s.entries||[]).reduce((a,e)=>a+e.sets.reduce((x,st)=>x+(st.w||0)*(st.r||0),0),0);
-const fmtVol = v => !v ? "" : v >= 1000 ? `${(v/1000).toFixed(1)} т` : `${Math.round(v)} кг`;
-
-function sessionRow(s) {
-  const t = SESSION_TYPES[s.type] || SESSION_TYPES.other;
-  const sets = (s.entries||[]).reduce((a,e)=>a+e.sets.length,0);
-  const bits = [
-    s.duration ? `${s.duration} мин` : "",
-    s.rpe ? `RPE ${s.rpe}` : "",
-    sets ? `${sets} подх.` : "",
-    fmtVol(tonnage(s)),
-    s.run?.km ? `${s.run.km} км` : "",
-  ].filter(Boolean).join(" · ");
-  return `
-    <button class="card srow" data-act="open-s:${s.id}">
-      <div class="srow-i" style="background:${t.c}22;color:${t.c}">${t.ic}</div>
-      <div class="srow-b">
-        <div class="srow-n">${esc(s.name || t.n)}</div>
-        <div class="srow-s">${esc(bits)}</div>
-      </div>
-      <div class="srow-l">${sessionLoad(s)}</div>
-    </button>`;
-}
-
-/* ═══ АКТИВНАЯ СЕССИЯ ════════════════════════════════════════════════ */
-function vSession() {
-  const s = ST.active;
-  if (!s) { VIEW.name = "home"; return vHome(); }
-  const t = SESSION_TYPES[s.type];
-  const mins = s.back ? (s.duration || 45) : Math.round((Date.now() - s.startTs)/60000);
-
-  if (t.mode === "strength") return vSessionStrength(s, t, mins);
-  return vSessionQuick(s, t, mins);
-}
-
-function vSessionStrength(s, t, mins) {
-  return `
-  <div class="scr">
-    ${header(`${t.ic} ${t.n}`, s.back ? fmtDay(s.date) : `${mins} мин`, "go:home",
-      `<button class="ic" data-act="finish">✓</button>`)}
-    <div id="rest" class="rest hide"></div>
-
-    ${(s.entries||[]).map((e,i) => exCard(e, i)).join("")}
-
-    <button class="btn ghost" data-act="pick">+ Добавить упражнение</button>
-    <button class="btn" data-act="finish">Завершить тренировку</button>
-    <button class="btn flat" data-act="cancel">Отменить сессию</button>
-    <div class="sp"></div>
-  </div>`;
-}
-
-function exCard(e, idx) {
-  const ex = exById(e.exId);
-  const open = VIEW.exId === e.exId;
-  const sug = suggest(e.exId);
-  const d = DRAFT[e.exId] || (DRAFT[e.exId] = {
-    w: e.sets.length ? e.sets[e.sets.length-1].w : (e.target?.weight ?? sug.w),
-    r: e.sets.length ? e.sets[e.sets.length-1].r : (parseInt(e.target?.reps) || sug.r),
-    rir: e.sets.length ? e.sets[e.sets.length-1].rir : sug.rir,
+/* Возвращает то, что открылось прямо сейчас, и сразу это фиксирует. */
+function checkUnlocks() {
+  const fresh = [];
+  [...BODIES, ...OUTFITS, ...HAIRS].forEach(it => {
+    if (ST.unlocked.includes(it.id)) return;
+    /* Отдаём запись из CHAR_BY_ID, а не сырую из каталога: только у первой
+       есть slot, без него путь к картинке собирается как char/undefined/. */
+    if (metFor(it.need)) { ST.unlocked.push(it.id); fresh.push(CHAR_BY_ID[it.id]); }
   });
-  const last = lastSet(e.exId);
-  const u = unit(ex);
+  if (fresh.length) save();
+  return fresh;
+}
 
-  return `
-  <div class="card ex ${open?"open":""}">
-    <button class="ex-h" data-act="toggle:${e.exId}">
-      <div class="ex-hb">
-        <div class="ex-n">${esc(ex.n)}</div>
-        <div class="ex-s">${e.target ? `цель ${e.target.sets}×${e.target.reps}` : PATTERNS[ex.p] || ""}${last ? ` · прошлый раз ${last.w?last.w+"кг × ":""}${last.r}${ex.u==="s"?"с":""}` : ""}</div>
+const has = id => ST.unlocked.includes(id);
+
+/* Слои того, что надето: образ перекрывает трусы, причёска ложится сверху. */
+function wornLayers(ch = ST.char) {
+  const out = [];
+  out.push(ch.outfit && ch.outfit !== "none"
+    ? charSrc("outfit", ch.outfit)
+    : charSrc("body", ch.body));
+  const h = charSrc("hair", ch.hair);
+  if (h) out.push(h);
+  return out.filter(Boolean);
+}
+
+const heroHtml = (layers, cls="") =>
+  `<div class="hero ${cls}" style="width:100%;height:100%">` +
+  layers.map(s => `<img src="${s}" alt="">`).join("") + `</div>`;
+
+/* Атрибуты считаются каждый от своего среза истории. Общий опыт двигал бы
+   все полоски одновременно, и они перестали бы что-либо означать. */
+function attrValues() {
+  const d28 = daysAgo(27);
+  const recent = ST.sessions.filter(s => s.date >= d28);
+  const ton = recent.filter(s => s.type === "strength")
+    .reduce((a,s) => a + (s.entries||[]).reduce((x,e) =>
+      x + e.sets.reduce((y,st) => y + (st.w||0)*(st.r||0), 0), 0), 0);
+  const runMin = recent.filter(s => s.type === "run").reduce((a,s) => a + (s.duration||0), 0);
+  const mobMin = recent.filter(s => s.type === "mobility").reduce((a,s) => a + (s.duration||0), 0);
+  const matMin = recent.filter(s => s.type === "bjj").reduce((a,s) => a + (s.duration||0), 0);
+  const hard   = recent.filter(s => (s.rpe||0) >= 8).length;
+  const cap = (v, full) => clamp(Math.round(v / full * 20), 0, 20);
+  return {
+    str:  cap(ton, 24000),
+    end:  cap(runMin, 240),
+    mob:  cap(mobMin, 150),
+    grit: cap(matMin, 500),
+    will: cap(hard * 60 + recent.length * 20, 400),
+  };
+}
+
+/* ═══ ТРЕНЕР ═════════════════════════════════════════════════════════
+   Открывает рот только когда есть число, которого нет у Горы.
+   Правила молчания: одну мысль не чаще раза в неделю, не больше двух
+   реплик за сессию, и молчок, пока подход только что записан. */
+let COACH = { shownThisSession: 0, dismissed: null, lastSetAt: 0 };
+
+function coachLine(ctx) {
+  if (COACH.dismissed === ctx.where) return null;
+  if (COACH.shownThisSession >= 2) return null;
+  if (Date.now() - COACH.lastSetAt < 20000) return null;
+
+  const fresh = id => {
+    const seen = ST.coachSeen[id];
+    return !seen || seen < daysAgo(6);
+  };
+  const out = [];
+
+  const r = acwr();
+  if (r && r > 1.3 && fresh("load"))
+    out.push({ id:"load", tone:"warn", kind:"Нагрузка",
+      text:`Неделя уже ${r.toFixed(2)} при коридоре до 1.3. Следующую силовую режу до трёх упражнений.`,
+      acts:[{ n:"Понял", a:"coach-ok" }] });
+
+  if (ctx.where === "session" && ctx.exId) {
+    const s = suggest(ctx.exId), last = lastSet(ctx.exId);
+    if (last && s.w && s.w !== last.w && fresh("prog:" + ctx.exId))
+      out.push({ id:"prog:" + ctx.exId, tone:"good", kind:"Следующий вес", text:s.why,
+        acts:[{ n:`Поставить ${s.w}`, a:`np-set:${s.w}:${s.r}` }, { n:"Оставить", a:"coach-ok", sec:true }] });
+  }
+
+  const flag = (ST.flags || []).find(f => ctx.exText && f.toLowerCase().split(/[ ,:]/)
+    .some(w => w.length > 4 && ctx.exText.toLowerCase().includes(w)));
+  if (flag && fresh("flag:" + flag))
+    out.push({ id:"flag:" + flag, tone:"warn", kind:"Флаг тренера", text:flag,
+      acts:[{ n:"Понял", a:"coach-ok" }] });
+
+  const st = strengthStreak();
+  if (st >= 2 && ctx.where === "home" && fresh("streak:" + st))
+    out.push({ id:"streak:" + st, tone:"good", kind:`${plural(st,"неделя","недели","недель")} подряд`,
+      text:`${plural(st,"неделя","недели","недель")} без пропуска силовой. Стрик недельный: пропуск бега его не жжёт.`,
+      acts:[{ n:"Красава", a:"coach-ok" }] });
+
+  return out[0] || null;
+}
+
+function coachShown(id) {
+  ST.coachSeen[id] = today();
+  COACH.shownThisSession++;
+  save();
+}
+
+function coachHtml(ctx) {
+  const c = coachLine(ctx);
+  if (!c) return "";
+  if (!ST.coachSeen[c.id]) coachShown(c.id);
+  const layers = wornLayers();
+  return `<div class="coach ${c.tone === "warn" ? "warn" : ""}">
+    <div class="coach-p">${heroHtml(layers)}</div>
+    <div class="coach-b">
+      <span class="lbl">${esc(c.kind)}</span>
+      <div class="coach-t">${esc(c.text)}</div>
+      <div class="coach-a">${c.acts.map(a =>
+        `<button data-act="${a.a}"${a.sec?' class="sec"':''}>${esc(a.n)}</button>`).join("")}</div>
+    </div></div>`;
+}
+
+/* ═══ ВИД ════════════════════════════════════════════════════════════ */
+let VIEW = { name:"home", exId:null, tab:"outfit", month:null };
+let REST = { until:0, total:0 };
+let SHEET = null;   // {kind:"numpad"|"adjust"|"picker", ...}
+let TOAST = null;
+
+function render() {
+  const v = VIEW.name;
+  const body =
+    !ST.profile.name ? vOnboard() :
+    v === "session"  ? vSession()  :
+    v === "finish"   ? vFinish()   :
+    v === "quick"    ? vQuick()    :
+    v === "hero"     ? vHero()     :
+    v === "wardrobe" ? vWardrobe() :
+    v === "levelup"  ? vLevelUp()  :
+    v === "history"  ? vHistory()  :
+    v === "profile"  ? vProfile()  :
+                       vHome();
+  $("#root").innerHTML = body + sheetHtml() + toastHtml();
+  if (REST.until > Date.now()) tickRest();
+}
+
+const go = (name, extra={}) => { VIEW = { ...VIEW, name, ...extra }; SHEET = null; window.scrollTo(0,0); render(); };
+const rerender = () => render();
+const toast = msg => { TOAST = msg; render(); setTimeout(() => { TOAST = null; render(); }, 2200); };
+const toastHtml = () => TOAST ? `<div class="toast">${esc(TOAST)}</div>` : "";
+
+const nav = active => `<div class="nav">${
+  [["home","Сегодня"],["hero","Герой"],["history","Прогресс"],["profile","Я"]]
+    .map(([k,n]) => `<button class="nav-b ${active===k?"on":""}" data-act="go:${k}">
+      <span class="lbl">${n}</span></button>`).join("")}</div>`;
+
+const hdr = (title, sub, back) => `<div class="hdr">
+  ${back ? `<button class="back" data-act="${back}">←</button>` : ""}
+  <div class="hdr-t"><div class="hdr-title dsp">${esc(title)}</div>
+  ${sub ? `<div class="hdr-sub">${esc(sub)}</div>` : ""}</div></div>`;
+
+/* ── онбординг: первый шаг это выбор трусов, а не форма ── */
+function vOnboard() {
+  const picked = VIEW.pants || "leopard";
+  return `<div class="scr">
+    <div class="top"><div class="top-l">
+      <span class="lbl">Шаг 1 из 2</span>
+      <div class="top-h dsp">Выбери,<br>с кого начнём</div></div></div>
+    <p class="hint" style="margin-top:10px">Одежду заработаешь. Сейчас важнее трусы: в них ты проведёшь первые недели.</p>
+
+    <div class="stage" style="height:190px;margin-top:10px">
+      <div class="stage-bg" style="width:170px;height:170px"></div>
+      <div class="hero bob" style="width:118px;height:178px">
+        <img src="${charSrc("body", picked)}" alt=""></div>
+    </div>
+
+    <div class="grid4">${BODIES.filter(b => !b.need).map(b => `
+      <button class="item ${b.id===picked?"on":""}" data-act="onb-p:${b.id}">
+        <div class="item-i" style="height:52px"><img src="${charSrc("body", b.id)}" style="height:50px" alt=""></div>
+        <div class="item-c" style="font-size:9px">${esc(b.n)}</div></button>`).join("")}</div>
+
+    <div class="sp"></div>
+    <span class="lbl" style="color:var(--dim)">Как тебя звать</span>
+    <input class="inp" id="onb-name" placeholder="Гора" style="margin-top:10px" autocomplete="off">
+    <span class="lbl" style="color:var(--dim)">Вес сейчас</span>
+    <input class="inp" id="onb-w" type="number" inputmode="decimal" placeholder="85" style="margin-top:10px">
+    <button class="btn" data-act="onb-go">Это я →</button>
+    <p class="hint" style="text-align:center;margin-top:12px">Остальное спрошу по ходу. Данные лежат на телефоне и никуда не уходят.</p>
+  </div>`;
+}
+
+/* ── сегодня ── */
+function vHome() {
+  const a = ST.active;
+  const plan = ST.plans[today()];
+  const name = ST.profile.name || "Гора";
+  const d = new Date();
+  const l = lvl();
+  const r = acwr();
+  const week = loadBetween(daysAgo(6), today());
+
+  return `<div class="scr">
+    <div class="top">
+      <div class="top-l">
+        <span class="lbl">${DAY_FULL[d.getDay()]} · ${fmtDate(today())}</span>
+        <div class="top-h dsp">Привет, ${esc(name)}</div>
       </div>
-      <div class="ex-c">${e.sets.length}</div>
+      <button style="position:relative;width:52px;height:52px;border-radius:18px;background:var(--mint);
+        display:flex;align-items:center;justify-content:center;flex-shrink:0" data-act="go:hero">
+        <div class="hero bob" style="width:32px;height:40px">${wornLayers().map(s=>`<img src="${s}" alt="">`).join("")}</div>
+        <span class="dsp num" style="position:absolute;right:-5px;bottom:-5px;min-width:22px;height:22px;
+          padding:0 5px;border-radius:11px;background:var(--ink);color:var(--mint);border:2px solid #fff;
+          display:flex;align-items:center;justify-content:center;font-size:11px">${l.level}</span>
+      </button>
+    </div>
+
+    ${coachHtml({ where:"home" })}
+
+    ${a ? liveCard(a) : plan ? planCard(plan) : noPlanCard()}
+
+    <span class="lbl" style="color:var(--dim);display:block;margin-top:18px">Записать быстро</span>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px">
+      ${["bjj","run","mobility"].map(t => {
+        const st = SESSION_TYPES[t], last = ST.sessions.filter(s => s.type===t).slice(-1)[0];
+        return `<button class="item" style="background:${st.c};border:none;padding:11px 6px"
+          data-act="quick:${t}">
+          <div class="dsp" style="font-size:13px;color:${st.dark?"#fff":"var(--ink)"}">${esc(st.n)}</div>
+          <div class="lbl" style="font-size:9px;letter-spacing:.6px;margin-top:3px;
+            color:${st.dark?"#fff":t==="run"?"#2C4A2C":"#332F63"}">${last?fmtDay(last.date):"ни разу"}</div>
+        </button>`;
+      }).join("")}
+    </div>
+
+    ${plan && !a ? `<button class="row" style="border-radius:20px;margin-top:12px" data-act="adjust">
+      <span class="row-n">Сегодня не тяну</span>
+      <span class="lbl" style="color:var(--dim)">поменять план</span>
+      <span class="row-x">→</span></button>` : ""}
+
+    <div class="card" style="margin-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div><span class="lbl">Нагрузка недели</span>
+          <div class="dsp num" style="font-size:30px;line-height:1;margin-top:4px">${week.toLocaleString("ru")}</div></div>
+        ${r ? `<div style="background:${r>1.3?"var(--violet)":"var(--violetLite)"};
+          color:${r>1.3?"#fff":"var(--ink)"};border-radius:999px;padding:8px 14px">
+          <span class="dsp num" style="font-size:14px">${r.toFixed(2)}</span></div>` : ""}
+      </div>
+      ${r ? `<div class="corr"><i></i><b style="left:${clamp((r-0.5)/1.2*100, 3, 97)}%"></b></div>
+      <div class="corr-l"><span>спад</span><span class="mid">коридор</span><span>перебор</span></div>`
+        : `<p class="hint" style="margin-top:10px">Коридор появится, когда наберётся четыре недели истории. Сейчас считать не на чем.</p>`}
+    </div>
+  </div>${nav("home")}`;
+}
+
+const liveCard = a => {
+  const st = SESSION_TYPES[a.type] || { n:a.type, c:"var(--fill)" };
+  const n = (a.entries||[]).reduce((x,e) => x + e.sets.length, 0);
+  return `<button class="card mint" style="margin-top:16px" data-act="go:session">
+    <span class="lbl">Идёт сейчас</span>
+    <div class="dsp" style="font-size:24px;line-height:1.05;margin-top:6px">${esc(st.n)}</div>
+    <p class="hint" style="color:var(--mintInk);margin-top:8px">
+      ${n ? plural(n,"подход","подхода","подходов") + " записано" : "Ещё ни одного подхода"} · начал ${fmtDay(a.date)}</p>
+    <div class="btn" style="margin-top:14px">Вернуться →</div></button>`;
+};
+
+const planCard = p => {
+  const items = p.items || [];
+  return `<div class="card mint" style="margin-top:16px">
+    <span class="lbl">План на сегодня</span>
+    <div class="dsp" style="font-size:24px;line-height:1.05;margin-top:6px">${esc(p.session || "Тренировка")}</div>
+    <div class="plan-rows">${items.map(it => {
+      const ex = exById(it.ex);
+      return `<div class="plan-r"><div class="tick"></div>
+        <span class="n">${esc(ex.n)}</span>
+        <span class="s num">${it.sets} × ${esc(it.reps)}${it.weight ? " · " + it.weight : ""}</span></div>`;
+    }).join("")}</div>
+    ${p.note ? `<p class="hint" style="color:var(--mintInk);margin-top:12px">${esc(p.note)}</p>` : ""}
+    <button class="btn" data-act="start-plan">Поехали →</button></div>`;
+};
+
+const noPlanCard = () => {
+  const d = new Date().getDay();
+  const planned = (WEEK_TEMPLATE[d]?.planned || []);
+  return `<div class="card" style="margin-top:16px">
+    <span class="lbl">Плана на сегодня нет</span>
+    <div class="dsp" style="font-size:20px;line-height:1.1;margin-top:6px">
+      ${planned.length ? "По расписанию: " + planned.map(t => SESSION_TYPES[t].n).join(" и ") : "Выходной по расписанию"}</div>
+    <p class="hint" style="margin-top:8px">План приходит от тренера: Профиль → «Вставить план». Или начни сам.</p>
+    <div class="row2" style="margin-top:12px">
+      <button class="btn ghost" style="margin:0" data-act="start:strength">Силовая</button>
+      <button class="btn ghost" style="margin:0" data-act="start:calisthenics">Дома</button></div>
+  </div>`;
+};
+
+/* ── тренировка ── */
+function vSession() {
+  const a = ST.active;
+  if (!a) { VIEW.name = "home"; return vHome(); }
+  const st = SESSION_TYPES[a.type] || { n:a.type };
+  const mins = Math.max(1, Math.round((Date.now() - (a.startedAt || Date.now())) / 60000));
+  const entries = a.entries || [];
+  const cur = entries.find(e => e.ex === VIEW.exId) || entries[entries.length-1];
+  const ex = cur ? exById(cur.ex) : null;
+
+  return `<div class="scr">
+    ${hdr(st.n, `${plural(entries.length,"упражнение","упражнения","упражнений")} · ${mins} мин`, "go:home")}
+
+    ${entries.length ? entries.map(e => {
+      const x = exById(e.ex), open = cur && e.ex === cur.ex;
+      return `<button class="card" style="${open?"background:var(--mint)":""}" data-act="pick-ex:${e.ex}">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="dsp" style="font-size:18px;flex:1">${esc(x.n)}</span>
+          <span class="lbl" style="color:${open?"var(--mintInk)":"var(--dim)"}">${
+            e.sets.length ? plural(e.sets.length,"подход","подхода","подходов") : "пусто"}</span>
+        </div>
+        <div class="sets">${e.sets.map((s,i) => `<span class="set">${
+          s.w ? `${s.w}<small>кг</small> × ${s.r}` : `${s.r}<small>${unit(x)}</small>`
+        }${s.rir!=null?`<small>rir ${s.rir}</small>`:""}</span>`).join("")}
+        ${open ? `<span class="set next">подход ${e.sets.length+1}</span>` : ""}</div>
+      </button>`;
+    }).join("") : `<div class="empty">
+      <div class="empty-h dsp">Ещё пусто</div>
+      <p class="empty-p">Добавь упражнение, и подходы поедут сюда.</p></div>`}
+
+    ${ex && needRir(cur) ? rirAsk(cur) : ""}
+
+    ${ex ? `
+      ${coachHtml({ where:"session", exId:cur.ex, exText:ex.n })}
+      <button class="card" data-act="np:${cur.ex}">
+        <span class="lbl">Записать подход</span>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-top:6px">
+          <span class="dsp num" style="font-size:40px;line-height:1">${DRAFT.w ?? suggest(cur.ex).w ?? 0}</span>
+          <span class="lbl" style="color:var(--dim)">кг</span>
+          <span class="dsp num" style="font-size:40px;line-height:1;margin-left:8px">${DRAFT.r ?? suggest(cur.ex).r}</span>
+          <span class="lbl" style="color:var(--dim)">${unit(ex)}</span>
+        </div>
+        <p class="hint" style="margin-top:8px">Нажми, чтобы вписать числа</p>
+      </button>
+      ${ex.cue ? `<p class="hint" style="padding:0 4px">${esc(ex.cue)}</p>` : ""}
+    ` : ""}
+
+    <button class="btn ghost" data-act="picker">Добавить упражнение</button>
+    <button class="btn" data-act="finish">Завершить тренировку</button>
+    <div id="rest"></div>
+  </div>`;
+}
+
+/* Последний подход без запаса. Спрашиваем ровно один раз и сразу,
+   пока ощущение свежее: задним числом RIR это уже фантазия. */
+const needRir = e => { const l = e?.sets[e.sets.length-1]; return l && l.rir == null; };
+
+function rirAsk(e) {
+  const l = e.sets[e.sets.length-1];
+  return `<div class="card" style="background:#fff;border:2px solid var(--ink)">
+    <div class="lad-h"><span class="lbl" style="color:var(--dim)">Сколько ещё мог</span>
+      <span class="dsp num" style="font-size:15px">${l.w ? l.w + " × " + l.r : l.r}</span></div>
+    <div class="ladder">${[0,1,2,3,4].map(v => `
+      <button class="lad" style="height:${44+v*5}px" data-act="set-rir:${v}">${v===4?"4+":v}</button>`).join("")}</div>
+    <p class="hint" style="margin-top:10px">Запас решает, растёт вес или повторы. Без него тренер считает вслепую.</p>
+  </div>`;
+}
+
+/* ── итог ── */
+function vFinish() {
+  const a = ST.active;
+  if (!a) { VIEW.name = "home"; return vHome(); }
+  const dur = DRAFT.dur ?? a.duration ?? 40;
+  const rpe = DRAFT.rpe ?? 7;
+  const load = dur * rpe;
+  return `<div class="scr">
+    ${hdr("Как прошло?", "Тренировка закончена", "go:session")}
+
+    <span class="lbl" style="color:var(--dim)">Сколько шло</span>
+    <button class="card" style="margin-top:10px;text-align:center" data-act="np-dur">
+      <div class="dsp num" style="font-size:44px;line-height:1">${dur}</div>
+      <span class="lbl" style="color:var(--dim)">мин · нажми, чтобы вписать</span>
     </button>
 
-    ${e.sets.length ? `<div class="sets">${e.sets.map((st,i) => `
-      <button class="set" data-act="delset:${e.exId}:${i}">
-        <span class="set-n">${i+1}</span>
-        ${st.w ? `<span class="set-w">${st.w}</span><span class="set-u">кг</span>` : ""}
-        <span class="set-r">${st.r}</span><span class="set-u">${ex.u==="s"?"с":""}</span>
-        ${st.rir!=null ? `<span class="set-rir">RIR ${st.rir}</span>` : ""}
-      </button>`).join("")}</div>` : ""}
+    <div class="lad-h" style="margin-top:18px">
+      <span class="lbl" style="color:var(--dim)">Насколько тяжело</span>
+      <span class="lad-w">${esc(RPE_SCALE[rpe] || "")}</span></div>
+    <div class="ladder">${Array.from({length:10},(_,i)=>i+1).map(v => `
+      <button class="lad ${v===rpe?"on":v<rpe?"past":""}" style="height:${Math.round(43+v*2.5)}px"
+        data-act="fin-rpe:${v}">${v}</button>`).join("")}</div>
 
-    ${open ? `
-    <div class="pane">
-      ${ex.cue ? `<div class="cue">💡 ${esc(ex.cue)}</div>` : ""}
-      <div class="sug">${esc(sug.why)}</div>
-
-      ${ex.step > 0 ? `
-      <div class="stepper">
-        <button class="st-b" data-act="d:${e.exId}:w:-${ex.step}">−</button>
-        <div class="st-v"><span>${d.w}</span><small>кг</small></div>
-        <button class="st-b" data-act="d:${e.exId}:w:${ex.step}">+</button>
-      </div>` : ""}
-
-      <div class="stepper">
-        <button class="st-b" data-act="d:${e.exId}:r:-${ex.u==="s"?5:1}">−</button>
-        <div class="st-v"><span>${d.r}</span><small>${u}</small></div>
-        <button class="st-b" data-act="d:${e.exId}:r:${ex.u==="s"?5:1}">+</button>
+    <div class="card mint" style="margin-top:18px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between">
+        <div><span class="lbl">Нагрузка сессии</span>
+          <div class="dsp num" style="font-size:38px;line-height:1;margin-top:4px">${load}</div></div>
+        <div style="text-align:right"><span class="lbl">Опыт</span>
+          <div class="dsp num" style="font-size:24px;line-height:1;margin-top:4px">+${Math.round(load/3)}</div></div>
       </div>
-
-      <div class="rirs">
-        ${[0,1,2,3,4].map(v => `<button class="rir ${d.rir===v?"on":""}" data-act="d:${e.exId}:rir:=${v}">${v===4?"4+":v}</button>`).join("")}
-      </div>
-      <div class="rir-h">RIR: ${esc(RIR_HINT[d.rir] ?? "")}</div>
-
-      <button class="btn" data-act="addset:${e.exId}">Записать подход</button>
-      <button class="btn flat" data-act="rmex:${e.exId}">Убрать упражнение</button>
-    </div>` : ""}
-  </div>`;
-}
-
-function vSessionQuick(s, t, mins) {
-  const isRun = t.mode === "run";
-  return `
-  <div class="scr">
-    ${header(`${t.ic} ${t.n}`, s.back ? fmtDay(s.date) : `идёт ${mins} мин`, "go:home")}
-    <div class="card qcard">
-      <div class="qbig">${mins}</div>
-      <div class="qlbl">${s.back ? "минут, поправишь на следующем шаге" : "минут с начала"}</div>
-      ${isRun ? `
-      <div class="row2">
-        <div><label class="lbl">Дистанция, км</label><input id="q-km" class="inp" inputmode="decimal" value="${s.run?.km ?? ""}" placeholder="5"></div>
-        <div><label class="lbl">Время, мин</label><input id="q-min" class="inp" inputmode="numeric" value="${s.run?.min ?? ""}" placeholder="${mins}"></div>
-      </div>` : ""}
-      <label class="lbl">Заметка</label>
-      <textarea id="q-note" class="inp ta" placeholder="${isRun?"Как бежалось, где, самочувствие":"Что делали, как прошло, что болит"}">${esc(s.notes||"")}</textarea>
-      <button class="btn" data-act="finish">Завершить и оценить</button>
-      <button class="btn flat" data-act="cancel">Отменить сессию</button>
+      <p class="hint" style="color:var(--mintInk);margin-top:10px">${esc(verdict(rpe))}</p>
     </div>
-    <div class="sp"></div>
+
+    <button class="btn" data-act="fin-save">Сохранить</button>
+    <button class="btn flat" data-act="fin-drop">Не сохранять</button>
   </div>`;
 }
 
-/* ═══ ЗАВЕРШЕНИЕ: RPE ════════════════════════════════════════════════ */
-function vFinish() {
-  const s = ST.active;
-  if (!s) { VIEW.name="home"; return vHome(); }
-  const t = SESSION_TYPES[s.type];
-  const mins = s.duration ?? Math.max(1, Math.round((Date.now()-s.startTs)/60000));
-  const rpe = VIEW.rpe ?? 6;
-  return `
-  <div class="scr">
-    ${header("Как прошло", `${t.ic} ${t.n}`, "go:session")}
-    <div class="card">
-      <label class="lbl">Длительность, мин</label>
-      <div class="stepper">
-        <button class="st-b" data-act="fin-d:-5">−</button>
-        <div class="st-v"><span>${mins}</span><small>мин</small></div>
-        <button class="st-b" data-act="fin-d:5">+</button>
-      </div>
-      <div class="chips">
-        ${[20,30,45,60,75,90].map(v => `<button class="chip ${mins===v?"on":""}" data-act="fin-set:${v}">${v}</button>`).join("")}
-      </div>
+const verdict = rpe =>
+  rpe >= 9 ? "Девять и выше два раза подряд значит следующая легче. Тренер это учтёт." :
+  rpe <= 3 ? "Совсем легко: в следующий раз можно добавить вес, если техника держится." :
+  "Неделя укладывается в коридор, ничего менять не надо.";
 
-      <label class="lbl">Насколько тяжело, RPE</label>
-      <div class="rpe">
-        ${[1,2,3,4,5,6,7,8,9,10].map(v => `<button class="rpe-b ${rpe===v?"on":""}" data-act="fin-r:${v}">${v}</button>`).join("")}
-      </div>
-      <div class="rpe-l">${esc(RPE_SCALE[rpe])}</div>
-      <div class="rpe-load">Нагрузка сессии: <b>${mins*rpe}</b></div>
+/* ── быстрый лог ── */
+function vQuick() {
+  const t = VIEW.qType || "bjj";
+  const st = SESSION_TYPES[t];
+  const dur = DRAFT.dur ?? (t === "bjj" ? 90 : t === "run" ? 35 : 15);
+  const rpe = DRAFT.rpe ?? (t === "bjj" ? 7 : 5);
+  const km  = DRAFT.km ?? 6;
+  const load = dur * rpe;
+  const paceMin = km ? dur / km : 0;
+  const pace = km ? `${Math.floor(paceMin)}:${pad(Math.round((paceMin%1)*60))} на км` : "";
+  const week = loadBetween(daysAgo(6), today());
 
-      <label class="lbl">Заметка</label>
-      <textarea id="fin-note" class="inp ta" placeholder="Что получилось, что мешало, что болит">${esc(s.notes||"")}</textarea>
-
-      <button class="btn" data-act="fin-save">Сохранить</button>
-    </div>
-    <div class="sp"></div>
-  </div>`;
-}
-
-/* ═══ ВЫБОР УПРАЖНЕНИЯ ═══════════════════════════════════════════════ */
-function vPicker() {
-  const q = (VIEW.q || "").toLowerCase().trim();
-  const f = VIEW.filter || "all";
-  let list = allEx();
-  if (f === "bjj")  list = list.filter(e => e.tags.includes("bjj"));
-  if (f === "home") list = list.filter(e => e.loc === "home" || e.loc === "both");
-  if (f === "gym")  list = list.filter(e => e.loc === "gym"  || e.loc === "both");
-  if (f === "mob")  list = list.filter(e => e.p === "mob" || e.p === "neck");
-  if (q) list = list.filter(e => e.n.toLowerCase().includes(q));
-
-  const groups = {};
-  list.forEach(e => (groups[e.p] ||= []).push(e));
-
-  return `
-  <div class="scr">
-    ${header("Упражнение", `${list.length} в каталоге`, "go:session")}
-    <input id="pick-q" class="inp" placeholder="Поиск" value="${esc(VIEW.q||"")}" autocomplete="off">
-    <div class="chips">
-      ${[["all","Все"],["bjj","Для БЖЖ"],["gym","Зал"],["home","Дом"],["mob","Мобильность"]]
-        .map(([k,l]) => `<button class="chip ${f===k?"on":""}" data-act="filter:${k}">${l}</button>`).join("")}
-    </div>
-    ${Object.entries(groups).map(([p,arr]) => `
-      <div class="lbl pad">${PATTERNS[p]||p}</div>
-      ${arr.map(e => {
-        const b = bestSet(e.id);
-        return `<button class="card prow" data-act="addex:${e.id}">
-          <div class="prow-b">
-            <div class="prow-n">${esc(e.n)}${e.tags.includes("bjj")?` <span class="mini">БЖЖ</span>`:""}</div>
-            <div class="prow-s">${EQ_NAMES[e.eq]||""} · ${e.reps[0]}–${e.reps[1]} ${unit(e)}${b?` · лучший ${b.w?b.w+"кг × ":""}${b.r}`:""}</div>
-          </div><div class="prow-a">+</div>
-        </button>`;
-      }).join("")}`).join("")}
-    <div class="sp"></div>
-  </div>`;
-}
-
-/* ═══ ДЕНЬ ═══════════════════════════════════════════════════════════ */
-function vDay() {
-  const k = VIEW.date || today();
-  const ss = ST.sessions.filter(s => s.date === k);
-  const w = ST.weights[k];
-  const past = k !== today();
-  return `
-  <div class="scr">
-    ${header(fmtDay(k), `${DAYS[parseDk(k).getDay()]}${past?" · запись задним числом":""}`, "go:history")}
-    ${ss.length ? ss.map(s => sessionRow(s)).join("") : `<div class="hint pad">В этот день ничего не записано</div>`}
-    ${w ? `<div class="card wcard"><div><div class="lbl">Вес</div><div class="wcard-v">${w} <span>кг</span></div></div></div>` : ""}
-    <div class="lbl pad">Добавить за этот день</div>
-    <div class="grid3">
-      ${Object.entries(SESSION_TYPES).map(([id,v]) => `
-        <button class="tile" data-act="startd:${id}:${k}" style="--tc:${v.c}">
-          <span class="tile-i">${v.ic}</span><span class="tile-n">${v.n}</span>
+  return `<div class="scr">
+    ${hdr("Записать", "15 секунд", "go:home")}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
+      ${["bjj","run","mobility"].map(k => `
+        <button class="item" style="background:${k===t?SESSION_TYPES[k].c:"var(--fill)"};border:none;padding:12px 6px"
+          data-act="q-type:${k}">
+          <div class="dsp" style="font-size:14px;color:${k===t&&SESSION_TYPES[k].dark?"#fff":"var(--ink)"}">${esc(SESSION_TYPES[k].n)}</div>
         </button>`).join("")}
     </div>
-    <div class="sp"></div>
-  </div>`;
-}
 
-/* ═══ ПРОСМОТР СОХРАНЁННОЙ СЕССИИ ════════════════════════════════════ */
-function vSessionView() {
-  const s = ST.sessions.find(x => x.id === VIEW.sid);
-  if (!s) { VIEW.name = "history"; return vHistory(); }
-  const t = SESSION_TYPES[s.type] || SESSION_TYPES.other;
-  const sets = (s.entries||[]).reduce((a,e)=>a+e.sets.length,0);
-  return `
-  <div class="scr">
-    ${header(`${t.ic} ${s.name || t.n}`, `${fmtDay(s.date)} · ${DAYS[parseDk(s.date).getDay()]}`, "go:history")}
-    <div class="card">
-      <div class="kv" style="border:0"><span>Длительность</span><b>${s.duration||"—"} мин</b></div>
-      <div class="kv"><span>RPE</span><b>${s.rpe||"—"} · ${esc(RPE_SCALE[s.rpe]||"")}</b></div>
-      <div class="kv"><span>Нагрузка</span><b>${sessionLoad(s)}</b></div>
-      ${sets ? `<div class="kv"><span>Подходов</span><b>${sets}</b></div>` : ""}
-      ${tonnage(s) ? `<div class="kv"><span>Тоннаж</span><b>${fmtVol(tonnage(s))}</b></div>` : ""}
-      ${s.run?.km ? `<div class="kv"><span>Дистанция</span><b>${s.run.km} км${s.run.min?` · ${(s.run.min/s.run.km).toFixed(1)} мин/км`:""}</b></div>` : ""}
+    <span class="lbl" style="color:var(--dim);display:block;margin-top:18px">Сколько шло</span>
+    <button class="card" style="margin-top:10px;text-align:center" data-act="np-dur">
+      <div class="dsp num" style="font-size:42px;line-height:1">${dur}</div>
+      <span class="lbl" style="color:var(--dim)">мин · нажми, чтобы вписать</span>
+    </button>
+
+    ${t === "run" ? `
+      <span class="lbl" style="color:var(--dim);display:block;margin-top:12px">Дистанция</span>
+      <button class="card" style="margin-top:10px;text-align:center" data-act="np-km">
+        <div class="dsp num" style="font-size:36px;line-height:1">${km}</div>
+        <span class="lbl" style="color:var(--dim)">км · ${esc(pace)}</span>
+      </button>` : ""}
+
+    <div class="lad-h" style="margin-top:16px">
+      <span class="lbl" style="color:var(--dim)">Насколько тяжело</span>
+      <span class="lad-w">${esc(RPE_SCALE[rpe] || "")}</span></div>
+    <div class="ladder">${Array.from({length:10},(_,i)=>i+1).map(v => `
+      <button class="lad ${v===rpe?"on":v<rpe?"past":""}" style="height:${Math.round(43+v*2.5)}px"
+        data-act="fin-rpe:${v}">${v}</button>`).join("")}</div>
+
+    <div class="card" style="margin-top:18px;display:flex;align-items:center;justify-content:space-between">
+      <div><span class="lbl">Нагрузка</span>
+        <div class="dsp num" style="font-size:30px;line-height:1;margin-top:4px">${load}</div></div>
+      <div style="text-align:right"><span class="lbl">Неделя станет</span>
+        <div class="dsp num" style="font-size:20px;line-height:1;margin-top:4px;color:var(--violet)">${week + load}</div></div>
     </div>
-    ${(s.entries||[]).map(e => {
-      const ex = exById(e.exId);
-      return `<div class="card hrow">
-        <div class="hrow-d" style="width:auto;flex:1">${esc(ex.n)}</div>
-        <div class="hrow-s">${e.sets.map(st=>`<span>${st.w?st.w+"×":""}${st.r}${st.rir!=null?`<i>${st.rir}</i>`:""}</span>`).join("")}</div>
-      </div>`;
-    }).join("")}
-    ${s.notes ? `<div class="card"><div class="lbl">Заметка</div><div class="hint" style="color:var(--text)">${esc(s.notes)}</div></div>` : ""}
-    <button class="btn flat" data-act="dels:${s.id}">Удалить эту запись</button>
-    <div class="sp"></div>
+
+    <button class="btn" data-act="q-save">Готово</button>
   </div>`;
 }
 
-/* ═══ ИСТОРИЯ ════════════════════════════════════════════════════════ */
+/* ── герой ── */
+function vHero() {
+  const l = lvl();
+  const av = attrValues();
+  const ch = ST.char;
+  const nm = id => (CHAR_BY_ID[id] || { n:"—" }).n;
+  return `<div class="scr">
+    <div class="top"><div class="top-l">
+      <span class="lbl">Уровень ${l.level}</span>
+      <div class="top-h dsp">${esc(ST.profile.name || "Гора")}</div></div>
+      <div style="background:var(--mint);border-radius:999px;padding:9px 15px">
+        <span class="lbl">${strengthStreak() ? plural(strengthStreak(),"неделя","недели","недель") : "Свеж"}</span></div>
+    </div>
+
+    <div class="stage" style="height:300px;margin-top:6px">
+      <div class="stage-bg" style="width:270px;height:270px"></div>
+      <div class="hero bob" style="width:170px;height:255px">
+        ${wornLayers().map(s => `<img src="${s}" alt="">`).join("")}</div>
+    </div>
+
+    <div style="display:flex;gap:6px;margin-top:6px">
+      ${[["body","Трусы",ch.body],["outfit","Образ",ch.outfit],["hair","Причёска",ch.hair]].map(([slot,label,cur]) =>
+        `<button class="tab" data-act="wd:${slot}">
+          <span class="lbl">${label}</span>
+          <span class="tab-sub">${esc(nm(cur))}</span></button>`).join("")}
+    </div>
+
+    <div class="lad-h" style="margin-top:18px">
+      <span class="lbl" style="color:var(--dim)">До ${l.level+1} уровня</span>
+      <span class="dsp num" style="font-size:13px">${l.into.toLocaleString("ru")} / ${l.need.toLocaleString("ru")}</span></div>
+    <div class="xp"><i style="width:${Math.round(l.into/l.need*100)}%"></i></div>
+
+    <div style="margin-top:16px">${ATTRS.map(a => `
+      <div class="attr"><span class="attr-n">${a.n}</span>
+        <div class="attr-b"><i style="width:${av[a.id]/20*100}%;background:${a.c}"></i></div>
+        <span class="attr-v">${av[a.id]}</span></div>`).join("")}</div>
+
+    <button class="card" style="margin-top:16px;display:flex;align-items:center;justify-content:space-between"
+      data-act="go:wardrobe">
+      <div><div class="dsp" style="font-size:16px">Гардероб</div>
+        <span class="lbl" style="color:var(--dim);margin:0">${ST.unlocked.length} из ${BODIES.length+OUTFITS.length+HAIRS.length}</span></div>
+      <span class="dsp" style="font-size:18px">→</span>
+    </button>
+  </div>${nav("hero")}`;
+}
+
+/* ── гардероб ── */
+function vWardrobe() {
+  const tab = VIEW.tab || "outfit";
+  const LIST = { body:BODIES, outfit:OUTFITS, hair:HAIRS }[tab];
+  const cur = ST.char[tab];
+  const sel = CHAR_BY_ID[VIEW.sel] || CHAR_BY_ID[cur] || LIST[0];
+  const nm = id => (CHAR_BY_ID[id] || { n:"—" }).n;
+  const thumb = it => tab === "hair"
+    ? (it.id === "bald" ? charSrc("body", ST.char.body) : charSrc("hair", it.id))
+    : (it.id === "none" ? charSrc("body", ST.char.body) : charSrc(tab, it.id));
+
+  return `<div class="scr" style="padding-bottom:220px">
+    ${hdr("Гардероб", `${ST.unlocked.length} из ${BODIES.length+OUTFITS.length+HAIRS.length}`, "go:hero")}
+
+    <div class="stage" style="height:216px">
+      <div class="stage-bg" style="width:198px;height:198px"></div>
+      <div class="hero bob" style="width:140px;height:210px">
+        ${wornLayers().map(s => `<img src="${s}" alt="">`).join("")}</div>
+    </div>
+
+    <div style="display:flex;gap:6px;margin-top:8px">
+      ${[["body","Трусы"],["outfit","Образ"],["hair","Причёска"]].map(([k,n]) =>
+        `<button class="tab ${tab===k?"on":""}" data-act="wd:${k}">
+          <span class="lbl">${n}</span><span class="tab-sub">${esc(nm(ST.char[k]))}</span></button>`).join("")}
+    </div>
+
+    <div class="grid3">${LIST.map(it => {
+      const locked = !has(it.id);
+      const src = thumb(it);
+      return `<button class="item ${it.id===cur?"on":""} ${locked?"locked":""}" data-act="wear:${tab}:${it.id}">
+        <div class="item-i">${src ? `<img src="${src}" alt="">` : `<span class="lbl" style="color:var(--dim)">нет</span>`}</div>
+        <div class="item-n">${esc(it.n)}</div>
+        <div class="item-c">${esc(needText(it.need))}</div></button>`;
+    }).join("")}</div>
+
+    <div style="position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--fill);
+      border-radius:26px 26px 0 0;padding:14px var(--pad) calc(20px + env(safe-area-inset-bottom));
+      max-width:520px;margin:0 auto">
+      <div class="dsp" style="font-size:16px">${esc(sel.n)}</div>
+      <p class="hint" style="margin-top:5px">${esc(sel.d)}</p>
+      <button class="btn ${has(sel.id) ? "" : "ghost"}" style="min-height:54px"
+        ${has(sel.id) ? `data-act="wear:${sel.slot}:${sel.id}"` : "disabled"}>
+        ${has(sel.id) ? (ST.char[sel.slot] === sel.id ? "Надето" : "Надеть") : "Ещё закрыто"}</button>
+    </div>
+  </div>`;
+}
+
+const needText = need => {
+  if (!need) return "Стартовое";
+  if (has0(need)) return "Открыто";
+  if (need.t === "level")    return `Уровень ${need.v}`;
+  if (need.t === "sessions") return `${need.v} сессий`;
+  if (need.t === "streak")   return `${plural(need.v,"неделя","недели","недель")} подряд`;
+  if (need.t === "matWeeks") return `${need.v} нед. мата`;
+  if (need.t === "rirSets")  return `${need.v} подходов с запасом`;
+  return "";
+};
+const has0 = need => metFor(need);
+
+/* ── взятие уровня ── */
+function vLevelUp() {
+  const l = lvl();
+  const fresh = VIEW.fresh || [];
+  return `<div class="scr" style="padding:0 0 96px">
+    <div style="background:var(--mint);height:340px;display:flex;align-items:center;
+      justify-content:center;text-align:center;overflow:hidden;position:relative">
+      <div>
+        <span class="lbl" style="color:var(--mintInk)">Уровень взят</span>
+        <div class="dsp num" style="font-size:120px;line-height:.86;margin-top:4px">${l.level}</div>
+      </div>
+    </div>
+    <div style="padding:0 var(--pad)">
+      ${fresh.length ? `
+        <span class="lbl" style="color:var(--dim);display:block;margin-top:20px">Открылось</span>
+        ${fresh.map(it => `<div class="card violet" style="margin-top:10px;display:flex;align-items:center;gap:16px">
+          <div class="hero" style="width:54px;height:64px">
+            <img src="${charSrc(it.slot, it.id) || charSrc("body", ST.char.body)}" alt=""></div>
+          <div><span class="lbl">Новая вещь</span>
+            <div class="dsp" style="font-size:20px;line-height:1.05;margin-top:4px">${esc(it.n)}</div>
+            <p class="hint" style="color:#fff;margin-top:5px">${esc(it.d)}</p></div>
+        </div>`).join("")}
+        <button class="btn" data-act="go:wardrobe">Примерить →</button>
+      ` : `<p class="hint" style="margin-top:20px;text-align:center">Новых вещей пока нет, следующая ждёт впереди.</p>`}
+      <button class="btn flat" data-act="go:home">Потом</button>
+    </div>
+  </div>`;
+}
+
+/* ── прогресс ── */
 function vHistory() {
-  const byDate = {};
-  ST.sessions.forEach(s => (byDate[s.date] ||= []).push(s));
-  const dates = Object.keys(byDate).sort().reverse();
-  const m = VIEW.month || { y:new Date().getFullYear(), m:new Date().getMonth() };
+  const days = [];
+  for (let i = 27; i >= 0; i--) days.push(daysAgo(i));
+  const byDay = {};
+  ST.sessions.forEach(s => (byDay[s.date] ||= []).push(s));
 
-  const first = new Date(m.y, m.m, 1);
-  const days = new Date(m.y, m.m+1, 0).getDate();
-  const off = (first.getDay()+6)%7;
-  const cells = [...Array(off).fill(null), ...Array.from({length:days},(_,i)=>i+1)];
+  const prs = [...new Set(ST.sessions.flatMap(s => (s.entries||[]).map(e => e.ex)))]
+    .map(id => ({ id, ex:exById(id), best:bestSet(id) }))
+    .filter(x => x.best)
+    .sort((a,b) => b.best.v - a.best.v).slice(0, 5);
 
-  return `
-  <div class="scr">
-    <div class="top"><div><div class="top-hi">История</div>
-      <div class="top-d">${ST.sessions.length} тренировок</div></div></div>
+  const recent = [...ST.sessions].reverse().slice(0, 6);
+  const firstDow = (parseDk(days[0]).getDay() + 6) % 7;
 
-    <div class="card">
-      <div class="cal-h">
-        <button class="ic sm" data-act="mon:-1">‹</button>
-        <div class="cal-t">${["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"][m.m]} ${m.y}</div>
-        <button class="ic sm" data-act="mon:1">›</button>
-      </div>
-      <div class="cal-w">${["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map(d=>`<div>${d}</div>`).join("")}</div>
-      <div class="cal">
-        ${cells.map(d => {
-          if (d === null) return `<div></div>`;
-          const k = `${m.y}-${pad(m.m+1)}-${pad(d)}`;
-          const ss = byDate[k] || [];
-          const isT = k === today();
-          return `<button class="cal-d ${ss.length?"has":""} ${isT?"today":""}" data-act="jump:${k}">
-            <span>${d}</span>
-            <div class="cal-dots">${ss.slice(0,3).map(s=>`<i style="background:${SESSION_TYPES[s.type]?.c||"#888"}"></i>`).join("")}</div>
-          </button>`;
-        }).join("")}
-      </div>
+  return `<div class="scr">
+    <div class="top"><div class="top-l">
+      <span class="lbl">Последние 4 недели</span>
+      <div class="top-h dsp">Прогресс</div></div>
+      ${strengthStreak() ? `<div style="background:var(--mint);border-radius:999px;padding:9px 15px">
+        <span class="lbl">Стрик ${plural(strengthStreak(),"неделя","недели","недель")}</span></div>` : ""}
     </div>
 
-    ${dates.slice(0,40).map(d => `
-      <div class="lbl pad">${fmtDay(d)}</div>
-      ${byDate[d].map(s => sessionRow(s)).join("")}`).join("")}
-    <div class="sp"></div>
-  </div>
-  ${nav("history")}`;
-}
-
-/* ═══ ПРОГРЕСС ═══════════════════════════════════════════════════════ */
-function vProgress() {
-  const weeks = [];
-  for (let w = 7; w >= 0; w--) {
-    const to = daysAgo(w*7), from = daysAgo(w*7+6);
-    weeks.push({ from, to, load: loadBetween(from, to) });
-  }
-  const maxL = Math.max(...weeks.map(w=>w.load), 1);
-  const ratio = acwr();
-
-  const byType = {};
-  ST.sessions.filter(s => s.date >= daysAgo(27)).forEach(s => {
-    byType[s.type] = (byType[s.type]||0) + sessionLoad(s);
-  });
-  const totalT = Object.values(byType).reduce((a,b)=>a+b,0) || 1;
-
-  const prs = allEx().map(e => ({ ex:e, b:bestSet(e.id) })).filter(x => x.b)
-    .sort((a,b) => (b.b.date||"").localeCompare(a.b.date||"")).slice(0,12);
-
-  const ws = Object.entries(ST.weights).sort((a,b)=>a[0].localeCompare(b[0]));
-
-  return `
-  <div class="scr">
-    <div class="top"><div><div class="top-hi">Прогресс</div>
-      <div class="top-d">нагрузка, рекорды, вес</div></div></div>
-
-    <div class="card">
-      <div class="lbl">Недельная нагрузка</div>
-      <div class="bars">
-        ${weeks.map((w,i) => `
-          <div class="bar-c">
-            <div class="bar-v">${w.load||""}</div>
-            <div class="bar" style="height:${Math.max(3,(w.load/maxL)*90)}px;opacity:${i===7?1:.55}"></div>
-            <div class="bar-l">${i===7?"эта":`−${7-i}`}</div>
-          </div>`).join("")}
-      </div>
-      <div class="hint">Минуты × RPE. Смотри не на цифру, а на скачки между неделями.</div>
-      ${ratio!==null ? `<div class="ratio">
-        <div class="ratio-v ${ratio>1.5?"bad":ratio>1.3?"warn":ratio<0.8?"dim":"ok"}">${ratio.toFixed(2)}</div>
-        <div class="ratio-t">острая к хронической. Коридор 0.8–1.3. Выше 1.5 значит прыгнул слишком резко и это классический вход в травму.</div>
-      </div>` : `<div class="hint">Копи данные месяц, тогда появится индикатор перегруза.</div>`}
-    </div>
-
-    ${Object.keys(byType).length ? `
-    <div class="card">
-      <div class="lbl">Из чего нагрузка, 4 недели</div>
-      ${Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([k,v]) => {
-        const t = SESSION_TYPES[k]||SESSION_TYPES.other;
-        return `<div class="tr">
-          <div class="tr-n">${t.ic} ${t.n}</div>
-          <div class="tr-bar"><i style="width:${(v/totalT)*100}%;background:${t.c}"></i></div>
-          <div class="tr-v">${v/totalT < 0.005 ? "&lt;1" : Math.round(v/totalT*100)}%</div>
+    <div class="dows">${DOWS.map(d => `<span>${d}</span>`).join("")}</div>
+    <div class="cal">
+      ${Array.from({length:firstDow},()=>`<div></div>`).join("")}
+      ${days.map(k => {
+        const ss = byDay[k] || [];
+        const main = ss.find(s => s.type==="bjj") || ss.find(s => s.type==="strength") || ss[0];
+        const t = main ? SESSION_TYPES[main.type] : null;
+        const c = t?.c || "var(--fill)";
+        return `<div class="cal-d ${main?"has":""}" style="background:${c};color:${t?.dark?"#fff":"var(--ink)"}">
+          ${parseDk(k).getDate()}
+          ${ss.some(s=>s.type==="strength") && main?.type!=="strength" ? `<i></i>` : ""}
         </div>`;
       }).join("")}
-    </div>` : ""}
+    </div>
+    <div class="legend">
+      ${["bjj","strength","run","mobility"].map(t =>
+        `<div><b style="background:${SESSION_TYPES[t].c}"></b><span>${SESSION_TYPES[t].n}</span></div>`).join("")}
+    </div>
 
     ${prs.length ? `
-    <div class="card">
-      <div class="lbl">Рекорды</div>
-      ${prs.map(({ex,b}) => `
-        <button class="pr" data-act="exview:${ex.id}">
-          <div class="pr-n">${esc(ex.n)}</div>
-          <div class="pr-v">${b.w?`${b.w} кг × ${b.r}`:`${b.r}${ex.u==="s"?" сек":" повт"}`}${b.w?` <small>≈${e1rm(b.w,b.r)}</small>`:""}</div>
-        </button>`).join("")}
-    </div>` : ""}
+      <span class="lbl" style="color:var(--dim);display:block;margin-top:22px">Личные рекорды</span>
+      <div class="rows">${prs.map(p => `<div class="row">
+        <span class="row-n">${esc(p.ex.n)}</span>
+        <span class="dsp num" style="font-size:15px">${p.best.w ? `${p.best.w} кг` : `${p.best.r} ${unit(p.ex)}`}</span>
+        <span class="lbl" style="color:var(--dim)">${fmtDate(p.best.date)}</span></div>`).join("")}</div>
+    ` : ""}
 
-    ${ws.length>1 ? `
-    <div class="card">
-      <div class="lbl">Вес</div>
-      ${weightChart(ws)}
-      <div class="wrow"><span>${ws[0][1]} кг · ${fmtDate(ws[0][0])}</span><span>${ws[ws.length-1][1]} кг · ${fmtDay(ws[ws.length-1][0])}</span></div>
-    </div>` : ""}
-    <div class="sp"></div>
-  </div>
-  ${nav("progress")}`;
+    ${recent.length ? `
+      <span class="lbl" style="color:var(--dim);display:block;margin-top:22px">Последние</span>
+      <div style="margin-top:10px">${recent.map(s => {
+        const st = SESSION_TYPES[s.type] || { n:s.type, c:"var(--fill)" };
+        return `<div class="srow">
+          <div class="srow-i" style="background:${st.c}"></div>
+          <div class="srow-b"><div class="srow-n">${esc(s.title || st.n)}</div>
+            <div class="srow-s">${fmtDay(s.date)} · ${s.duration} мин · RPE ${s.rpe}</div></div>
+          <span class="srow-l">${sessionLoad(s)}</span></div>`;
+      }).join("")}</div>
+    ` : `<div class="empty" style="margin-top:30px">
+      <div class="empty-h dsp">Истории ещё нет</div>
+      <p class="empty-p">Запиши первую сессию, и здесь появятся календарь, рекорды и нагрузка по неделям.</p></div>`}
+  </div>${nav("history")}`;
 }
 
-function weightChart(ws) {
-  const vals = ws.map(w=>w[1]);
-  const mn = Math.min(...vals), mx = Math.max(...vals), rg = (mx-mn)||1;
-  const pts = ws.map((w,i) => {
-    const x = ws.length===1 ? 50 : (i/(ws.length-1))*100;
-    const y = 60 - ((w[1]-mn)/rg)*50 - 5;
-    return `${x},${y}`;
-  }).join(" ");
-  return `<svg viewBox="0 0 100 60" preserveAspectRatio="none" class="chart">
-    <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
-  </svg>`;
-}
+/* ── профиль ── */
+function vProfile() {
+  const w = Object.entries(ST.weights).sort().slice(-1)[0];
+  const noReview = ST.sessions.length
+    ? Math.round((Date.now() - parseDk(ST.sessions[ST.sessions.length-1].date)) / 86400000) : 0;
+  return `<div class="scr">
+    <div class="top"><div class="top-l">
+      <span class="lbl">${ST.profile.height} см${w ? " · " + w[1] + " кг" : ""}</span>
+      <div class="top-h dsp">${esc(ST.profile.name || "Гора")}</div></div></div>
 
-/* ═══ КАРТОЧКА УПРАЖНЕНИЯ ════════════════════════════════════════════ */
-function vExercise() {
-  const ex = exById(VIEW.exId);
-  const h = exHistory(ex.id);
-  const b = bestSet(ex.id);
-  return `
-  <div class="scr">
-    ${header(ex.n, PATTERNS[ex.p]||"", "go:progress")}
-    <div class="card">
-      ${ex.cue ? `<div class="cue">💡 ${esc(ex.cue)}</div>` : ""}
-      <div class="kv"><span>Снаряд</span><b>${EQ_NAMES[ex.eq]||"—"}</b></div>
-      <div class="kv"><span>Диапазон</span><b>${ex.reps[0]}–${ex.reps[1]} ${unit(ex)}</b></div>
-      <div class="kv"><span>Шаг веса</span><b>${ex.step?ex.step+" кг":"без веса"}</b></div>
-      ${b ? `<div class="kv"><span>Рекорд</span><b>${b.w?`${b.w} кг × ${b.r}`:b.r}</b></div>` : ""}
-      ${ex.tags.length ? `<div class="tags">${ex.tags.map(t=>`<span class="mini">${t}</span>`).join("")}</div>` : ""}
+    <div class="card violet" style="margin-top:16px">
+      <span class="lbl">Тренер</span>
+      <div class="dsp" style="font-size:20px;line-height:1.1;margin-top:6px">Отдать данные и забрать план</div>
+      <p class="hint" style="color:#fff;margin-top:8px">
+        Шесть недель: подходы, RIR, нагрузка, вес, флаги. Вставляешь в чат, получаешь разбор и план.</p>
+      <button class="btn mint" style="min-height:50px" data-act="export">Скопировать данные</button>
+      <button class="btn line" style="min-height:48px;margin-top:8px;border-color:rgba(255,255,255,.4);color:#fff"
+        data-act="import">Вставить план</button>
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        ${[[ST.sessions.length,"сессий"],[Object.keys(ST.plans).length,"планов"],[noReview + " дн","без разбора"]]
+          .map(([v,n]) => `<div><div class="dsp num" style="font-size:19px">${v}</div>
+            <span class="lbl" style="color:#fff;margin:0">${n}</span></div>`).join("")}</div>
     </div>
-    ${h.length ? `<div class="lbl pad">История</div>
-      ${h.slice(0,20).map(x => `<div class="card hrow">
-        <div class="hrow-d">${fmtDay(x.date)}</div>
-        <div class="hrow-s">${x.sets.map(s=>`<span>${s.w?s.w+"×":""}${s.r}${s.rir!=null?`<i>${s.rir}</i>`:""}</span>`).join("")}</div>
-      </div>`).join("")}` : `<div class="hint pad">Ещё не делал</div>`}
-    <div class="sp"></div>
+
+    ${ST.flags.length ? `
+      <div class="lad-h" style="margin-top:20px">
+        <span class="lbl" style="color:var(--dim)">Что тренер держит</span>
+        <span class="lbl" style="color:var(--violet)">${plural(ST.flags.length,"флаг","флага","флагов")}</span></div>
+      <div class="rows">${ST.flags.map(f => `<div class="row">
+        <div style="width:8px;height:8px;border-radius:4px;background:var(--violet);flex-shrink:0"></div>
+        <span class="row-n" style="font-size:13px">${esc(f)}</span></div>`).join("")}</div>
+    ` : ""}
+
+    <span class="lbl" style="color:var(--dim);display:block;margin-top:20px">Настройки</span>
+    <div class="rows">
+      <button class="row" data-act="log-weight"><span class="row-n">Вес и замеры</span>
+        <span class="row-v">${w ? w[1] + " кг" : "не записан"}</span><span class="row-x">→</span></button>
+      <button class="row" data-act="backup"><span class="row-n">Резервная копия</span>
+        <span class="row-v">скачать</span><span class="row-x">→</span></button>
+      <button class="row" data-act="wipe"><span class="row-n" style="color:var(--pinkInk)">Стереть всё</span>
+        <span class="row-x">→</span></button>
+    </div>
+    <p class="hint" style="margin-top:14px;padding:0 4px">Данные лежат в браузере на телефоне. Резервная копия это единственный способ их не потерять.</p>
+  </div>${nav("profile")}`;
+}
+
+/* ═══ ШИТЫ ═══════════════════════════════════════════════════════════ */
+let DRAFT = {};   // черновик ввода: вес, повторы, длительность, RPE
+
+function sheetHtml() {
+  if (!SHEET) return "";
+  if (SHEET.kind === "numpad") return npHtml();
+  if (SHEET.kind === "picker") return pickerHtml();
+  if (SHEET.kind === "adjust") return adjustHtml();
+  return "";
+}
+
+/* ── нампад: вписывать, а не крутить ── */
+function npHtml() {
+  const f = SHEET.fields, cur = SHEET.field;
+  const val = SHEET.vals[cur] ?? "";
+  const meta = f.find(x => x.k === cur);
+  const KEYS = ["1","2","3","4","5","6","7","8","9",".","0","⌫"];
+  return `<div class="scrim" data-act="sheet-x"></div><div class="sheet">
+    <div class="grab"></div>
+    <div class="np-fields">${f.map(x => `
+      <button class="np-f ${x.k===cur?"on":""}" data-act="np-f:${x.k}">
+        <span class="lbl">${esc(x.n)}</span>
+        <span class="np-v"><b class="num">${esc(SHEET.vals[x.k] ?? "")}</b><i></i><u>${esc(x.u)}</u></span>
+      </button>`).join("")}</div>
+
+    ${meta.quick?.length ? `<div class="np-quick">${meta.quick.map(q => `
+      <button class="np-q ${String(q.v)===String(val)?"on":""}" data-act="np-q:${q.v}">${esc(q.n)}</button>`).join("")}
+    </div>` : ""}
+
+    <div class="np-keys">${KEYS.map(k => `
+      <button class="np-k ${k==="⌫"?"wipe":""}" data-act="np-k:${k}">${k}</button>`).join("")}</div>
+
+    <button class="btn" data-act="${SHEET.done}">${esc(SHEET.cta)}</button>
   </div>`;
 }
 
-/* ═══ ПРОФИЛЬ И НАСТРОЙКИ ════════════════════════════════════════════ */
-function vSettings() {
-  const totalLoad = loadBetween(daysAgo(27), today());
-  return `
-  <div class="scr">
-    <div class="top"><div><div class="top-hi">Профиль</div>
-      <div class="top-d">${esc(ST.profile.name||"")}</div></div></div>
-
-    <div class="card">
-      <div class="row2">
-        <div><label class="lbl">Рост, см</label><input id="p-h" class="inp" inputmode="numeric" value="${ST.profile.height||""}"></div>
-        <div><label class="lbl">Имя</label><input id="p-n" class="inp" value="${esc(ST.profile.name||"")}"></div>
-      </div>
-      <button class="btn ghost" data-act="p-save">Сохранить профиль</button>
+function pickerHtml() {
+  const q = (SHEET.q || "").toLowerCase();
+  const loc = SHEET.loc || "all";
+  const list = allEx()
+    .filter(e => loc === "all" || e.loc === loc || e.loc === "both")
+    .filter(e => !q || e.n.toLowerCase().includes(q))
+    .slice(0, 60);
+  return `<div class="scrim" data-act="sheet-x"></div><div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-h dsp">Что делаем</div>
+    <input class="inp" id="pk-q" placeholder="Поиск" value="${esc(SHEET.q||"")}" style="margin-top:12px" autocomplete="off">
+    <div class="chips" style="margin-top:0">
+      ${[["all","Всё"],["gym","Зал"],["home","Дом"]].map(([k,n]) =>
+        `<button class="chip dark ${loc===k?"on":""}" data-act="pk-loc:${k}">${n}</button>`).join("")}
     </div>
+    <div class="rows" style="margin-top:12px">${list.map(e => `
+      <button class="row" data-act="add-ex:${e.id}">
+        <span class="row-n">${esc(e.n)}</span>
+        <span class="row-v">${esc(PATTERNS[e.p] || "")}</span>
+        <span class="row-x">+</span></button>`).join("") ||
+      `<p class="hint" style="padding:14px">Ничего не нашлось.</p>`}</div>
+  </div>`;
+}
 
-    <div class="card">
-      <div class="lbl">Тема</div>
-      <div class="chips">
-        <button class="chip ${ST.settings.theme==="dark"?"on":""}" data-act="theme:dark">Тёмная</button>
-        <button class="chip ${ST.settings.theme==="bloom"?"on":""}" data-act="theme:bloom">Розовая</button>
-      </div>
+/* ── «сегодня не тяну»: план это предложение, а не приказ ── */
+function adjustHtml() {
+  const OPTS = [
+    { id:"light", n:"Облегчить", d:"Веса минус двадцать процентов, запас три вместо двух" },
+    { id:"short", n:"Урезать",   d:"Два упражнения вместо четырёх, самое важное остаётся" },
+    { id:"skip",  n:"Пропустить сегодня", d:"Мат был тяжёлый или просто нет сил" },
+  ];
+  const pick = SHEET.pick || "light";
+  return `<div class="scrim" data-act="sheet-x"></div><div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-h dsp">Сегодня не тяну</div>
+    <p class="sheet-p">План это предложение, а не приказ. Молча пропустить хуже: тренер не узнает почему.</p>
+    <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px">
+      ${OPTS.map(o => `<button class="item" style="text-align:left;padding:14px 16px;display:flex;
+        align-items:center;gap:12px;${o.id===pick?"background:var(--mint);border-color:var(--ink)":""}"
+        data-act="adj-p:${o.id}">
+        <div style="width:20px;height:20px;border-radius:10px;border:2px solid ${o.id===pick?"var(--ink)":"#C9C6C4"};
+          background:${o.id===pick?"var(--ink)":"transparent"};flex-shrink:0"></div>
+        <div><div class="dsp" style="font-size:15px">${o.n}</div>
+          <div style="font-size:12px;font-weight:500;margin-top:3px;
+            color:${o.id===pick?"var(--mintInk)":"var(--dim)"}">${o.d}</div></div>
+      </button>`).join("")}
     </div>
-
-    <div class="card">
-      <div class="lbl">Тренеру</div>
-      <div class="hint">Экспорт кидаешь в чат, оттуда приходит разбор и план на следующую сессию.</div>
-      <button class="btn" data-act="export">Скопировать данные для тренера</button>
-      <button class="btn ghost" data-act="import">Вставить план от тренера</button>
-      <div class="kv"><span>Сессий</span><b>${ST.sessions.length}</b></div>
-      <div class="kv"><span>Нагрузка за 4 недели</span><b>${totalLoad}</b></div>
-      <div class="kv"><span>Замеров веса</span><b>${Object.keys(ST.weights).length}</b></div>
-    </div>
-
-    <div class="card">
-      <div class="lbl">Данные</div>
-      <button class="btn ghost" data-act="backup">Скачать резервную копию</button>
-      <button class="btn flat" data-act="wipe">Стереть всё</button>
-    </div>
-    <div class="sp"></div>
-  </div>
-  ${nav("settings")}`;
+    <button class="btn" data-act="adj-go:${pick}">Поменять план</button>
+    <button class="btn flat" data-act="sheet-x">Оставить как есть</button>
+  </div>`;
 }
 
 /* ═══ ТАЙМЕР ОТДЫХА ══════════════════════════════════════════════════ */
@@ -800,288 +996,322 @@ function startRest(sec) {
 function tickRest() {
   const el = $("#rest");
   if (!el) return;
-  const left = Math.ceil((REST.until - Date.now())/1000);
-  if (left <= 0) { el.className = "rest hide"; return; }
-  el.className = "rest";
-  el.innerHTML = `<div class="rest-b" style="width:${(left/REST.total)*100}%"></div>
-    <span>Отдых ${Math.floor(left/60)}:${pad(left%60)}</span>
-    <button class="rest-x" data-act="rest-skip">пропустить</button>`;
-}
-setInterval(() => {
-  if (REST.until && Date.now() < REST.until + 1200) {
-    const before = REST.until - Date.now() > 0;
-    tickRest();
-    if (before && REST.until - Date.now() <= 0) beep();
-  }
-}, 1000);
-
-function beep() {
-  try {
-    const ac = new (window.AudioContext||window.webkitAudioContext)();
-    const o = ac.createOscillator(), g = ac.createGain();
-    o.connect(g); g.connect(ac.destination);
-    o.frequency.value = 880; g.gain.value = 0.15;
-    o.start(); o.stop(ac.currentTime + 0.18);
-  } catch {}
-  navigator.vibrate?.([120,60,120]);
+  const left = Math.max(0, Math.round((REST.until - Date.now())/1000));
+  if (!left) { el.innerHTML = ""; return; }
+  const pct = left / REST.total * 100;
+  el.innerHTML = `<div class="rest"><i style="width:${pct}%"></i>
+    <span class="lbl">Отдых</span><span class="t">${Math.floor(left/60)}:${pad(left%60)}</span>
+    <button class="lbl" style="color:var(--dim)" data-act="rest-x">пропустить</button></div>`;
+  setTimeout(tickRest, 1000);
 }
 
 /* ═══ ДЕЙСТВИЯ ═══════════════════════════════════════════════════════ */
-function startSession(type, date) {
-  if (ST.active && !confirm("Есть незавершённая сессия. Начать новую и потерять её?")) return;
-  const d = date || today();
-  const plan = ST.plans[d];
-  const entries = (plan && (plan.kind||"strength") === type)
-    ? (plan.items||[]).map(i => ({
-        exId: i.ex, sets: [],
-        target: { sets:i.sets, reps:i.reps, weight:i.weight, rir:i.rir, note:i.note },
-      }))
-    : [];
-  const back = d !== today();
+function startSession(type, plan) {
   ST.active = {
-    id: uid(), date: d, type, startTs: Date.now(), back,
-    entries, run: type==="run" ? {km:"",min:""} : null,
-    notes: "", name: plan?.session || null,
-    duration: back ? 45 : undefined,
+    id: uid(), date: today(), type,
+    title: plan?.session || null,
+    startedAt: Date.now(), entries: [], done: false,
   };
-  DRAFT = {};
-  save(); go("session");
-}
-
-function finishSession() {
-  const s = ST.active; if (!s) return;
-  if (s.type === "run") {
-    s.run = { km: parseFloat($("#q-km")?.value) || null, min: parseInt($("#q-min")?.value) || null };
-    if (s.run.min) s.duration = s.run.min;
+  if (plan?.items?.length) {
+    ST.active.entries = plan.items.map(it => ({ ex: it.ex, sets: [], target: it }));
+    VIEW.exId = plan.items[0].ex;
   }
-  const note = $("#q-note")?.value ?? $("#fin-note")?.value;
-  if (note != null) s.notes = note;
-  s.duration ??= s.back ? 45 : Math.max(1, Math.round((Date.now()-s.startTs)/60000));
-  save(); go("finish", { rpe: VIEW.rpe ?? 6, dur: s.duration });
+  save();
+  go("session");
 }
 
-function saveFinished() {
-  const s = ST.active; if (!s) return;
-  s.notes = $("#fin-note")?.value ?? s.notes;
-  s.rpe = VIEW.rpe ?? 6;
-  s.duration = VIEW.dur ?? s.duration ?? 45;
-  s.endTs = Date.now();
-  s.done = true;
-  s.entries = (s.entries||[]).filter(e => e.sets.length);
+function saveFinished(extra = {}) {
+  const a = ST.active;
+  if (!a) return;
+  const before = lvl().level;
+  const s = { ...a, ...extra, done:true };
+  s.entries = (s.entries || []).filter(e => e.sets.length);
   ST.sessions.push(s);
-  ST.sessions.sort((a,b)=>a.date.localeCompare(b.date));
+  ST.sessions.sort((x,y) => x.date.localeCompare(y.date));
   ST.active = null;
-  VIEW.rpe = undefined; VIEW.dur = undefined;
   DRAFT = {};
-  save(); go("home");
-}
-
-function logWeight() {
-  const cur = ST.weights[today()] ?? Object.values(ST.weights).slice(-1)[0] ?? "";
-  const v = prompt("Вес сегодня, кг", cur);
-  if (v === null) return;
-  const n = parseFloat(String(v).replace(",", "."));
-  if (!isNaN(n) && n > 0) { ST.weights[today()] = n; save(); rerender(); }
+  save();
+  const fresh = checkUnlocks();
+  const after = lvl().level;
+  if (after > before || fresh.length) {
+    ST.seenLevel = after; save();
+    go("levelup", { fresh });
+  } else {
+    go("home");
+    toast(`Записано: нагрузка ${sessionLoad(s)}, опыт +${Math.round(sessionLoad(s)/3)}`);
+  }
 }
 
 function exportForCoach() {
   const from = daysAgo(41);
-  const payload = {
-    kind: "bloom-export", v: 2, generated: new Date().toISOString(),
-    profile: ST.profile,
-    weights: Object.fromEntries(Object.entries(ST.weights).filter(([k]) => k >= from)),
+  const weeks = {};
+  ST.sessions.filter(s => s.date >= from).forEach(s => {
+    const d = parseDk(s.date); const day = (d.getDay()+6)%7;
+    const mon = new Date(d); mon.setDate(d.getDate()-day);
+    (weeks[dk(mon)] ||= []).push(s);
+  });
+  const out = {
+    kind: "bloom-export",
+    at: new Date().toISOString(),
+    profile: { ...ST.profile, level: lvl().level, xp: totalXp() },
+    weight: Object.entries(ST.weights).sort().slice(-8),
     flags: ST.flags,
-    weekLoad: [0,1,2,3].map(w => ({
-      from: daysAgo(w*7+6), to: daysAgo(w*7), load: loadBetween(daysAgo(w*7+6), daysAgo(w*7)),
-    })),
-    acwr: acwr(),
+    acwr: acwr() ? +acwr().toFixed(2) : null,
+    streakWeeks: strengthStreak(),
+    matWeeks: matWeeks(),
+    weekLoads: Object.fromEntries(Object.entries(weeks)
+      .map(([k,v]) => [k, v.reduce((a,s)=>a+sessionLoad(s),0)])),
     sessions: ST.sessions.filter(s => s.date >= from).map(s => ({
-      date:s.date, type:s.type, name:s.name, duration:s.duration, rpe:s.rpe,
-      load: sessionLoad(s), notes:s.notes, run:s.run,
-      entries: (s.entries||[]).map(e => ({ ex: exById(e.exId).n, id:e.exId, sets:e.sets })),
+      date: s.date, type: s.type, title: s.title || null,
+      duration: s.duration, rpe: s.rpe, load: sessionLoad(s), notes: s.notes || null,
+      entries: (s.entries||[]).map(e => ({
+        ex: e.ex, n: exById(e.ex).n,
+        sets: e.sets.map(x => ({ w:x.w||0, r:x.r||0, rir:x.rir ?? null })),
+      })),
     })),
   };
-  const txt = JSON.stringify(payload, null, 1);
-  copy(txt, `Скопировано: ${payload.sessions.length} сессий за 6 недель. Вставь в чат тренеру.`);
+  copy(JSON.stringify(out, null, 1), "Скопировано. Вставляй в чат тренеру.");
 }
 
 function copy(txt, okMsg) {
-  const done = () => alert(okMsg);
+  const done = () => toast(okMsg);
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(txt).then(done, () => fallback());
   } else fallback();
   function fallback() {
     const ta = document.createElement("textarea");
-    ta.value = txt; ta.style.position="fixed"; ta.style.opacity="0";
+    ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
     document.body.appendChild(ta); ta.select();
-    try { document.execCommand("copy"); done(); }
-    catch { prompt("Скопируй вручную", txt); }
-    document.body.removeChild(ta);
+    try { document.execCommand("copy"); done(); } catch { toast("Не вышло скопировать"); }
+    ta.remove();
   }
 }
 
 function importPlan() {
   const raw = prompt("Вставь JSON плана от тренера");
   if (!raw) return;
-  let p; try { p = JSON.parse(raw); } catch { alert("Это не JSON. Скопируй блок целиком."); return; }
-  const plans = Array.isArray(p) ? p : (p.plans || [p]);
-  let n = 0;
-  plans.forEach(pl => {
-    if (!pl || !pl.date) return;
-    ST.plans[pl.date] = pl; n++;
+  let data;
+  try { data = JSON.parse(raw); } catch { return toast("Это не JSON"); }
+  const list = Array.isArray(data) ? data : data.plans ? data.plans : [data];
+  let n = 0, badEx = [];
+  list.forEach(p => {
+    if (!p?.date) return;
+    (p.items || []).forEach(it => { if (!EX_BY_ID[it.ex] && !ST.customEx.find(e=>e.id===it.ex)) badEx.push(it.ex); });
+    ST.plans[p.date] = p;
+    /* Флаги перезаписывают список целиком: тренер отдаёт полный актуальный набор. */
+    if (Array.isArray(p.flags)) ST.flags = p.flags;
+    n++;
   });
-  if (p.flags) ST.flags = p.flags;
   save();
-  alert(n ? `Планов загружено: ${n}${p.flags?", флаги обновлены":""}` : "В плане нет поля date");
   go("home");
+  toast(badEx.length
+    ? `Планов: ${n}. Не нашёл упражнения: ${[...new Set(badEx)].join(", ")}`
+    : `Планов принято: ${n}`);
 }
 
 function backup() {
-  const blob = new Blob([JSON.stringify(ST)], {type:"application/json"});
+  const blob = new Blob([JSON.stringify(ST, null, 1)], { type:"application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `bloom-${today()}.json`;
   a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-/* ═══ ОБРАБОТЧИК СОБЫТИЙ ═════════════════════════════════════════════ */
+/* ═══ СОБЫТИЯ ════════════════════════════════════════════════════════ */
 document.addEventListener("click", ev => {
   const b = ev.target.closest("[data-act]");
   if (!b) return;
   const [act, ...args] = b.dataset.act.split(":");
+  const a = ST.active;
 
   switch (act) {
-    case "go": go(args[0]); break;
+    case "go": VIEW.name = args[0]; SHEET = null; window.scrollTo(0,0); return render();
+    case "sheet-x": SHEET = null; return render();
 
+    /* онбординг */
+    case "onb-p": VIEW.pants = args[0]; return render();
     case "onb-go": {
-      const n = $("#onb-name").value.trim();
-      if (!n) return;
-      ST.profile.name = n;
-      ST.profile.height = parseInt($("#onb-h").value) || 185;
-      const w = parseFloat(String($("#onb-w").value).replace(",","."));
-      if (w) { ST.weights[today()] = w; ST.profile.startWeight = w; }
-      save(); applyTheme(); go("home");
-      break;
+      const nm = $("#onb-name")?.value.trim();
+      const w  = parseFloat($("#onb-w")?.value);
+      if (!nm) return toast("Как тебя звать?");
+      ST.profile.name = nm;
+      ST.char.body = VIEW.pants || "leopard";
+      if (w > 0) { ST.weights[today()] = w; ST.profile.startWeight = w; }
+      save(); return go("home");
     }
 
-    case "start": startSession(args[0]); break;
-    case "finish": finishSession(); break;
-    case "cancel":
-      if (confirm("Отменить сессию? Записанное не сохранится.")) { ST.active=null; DRAFT={}; save(); go("home"); }
-      break;
-
-    case "fin-r": VIEW.rpe = +args[0]; rerender(); break;
-    case "fin-d": {
-      const cur = VIEW.dur ?? ST.active?.duration ?? 45;
-      VIEW.dur = Math.max(5, cur + (+args[0]));
-      if (ST.active) ST.active.duration = VIEW.dur;
-      rerender(); break;
+    /* старт и план */
+    case "start": return startSession(args[0], null);
+    case "start-plan": {
+      const p = ST.plans[today()];
+      return startSession(p?.kind || "strength", p);
     }
-    case "fin-set":
-      VIEW.dur = +args[0];
-      if (ST.active) ST.active.duration = VIEW.dur;
-      rerender(); break;
-    case "fin-save": saveFinished(); break;
-
-    case "pick": go("picker", { q:"", filter:"all" }); break;
-    case "filter": VIEW.filter = args[0]; rerender(); break;
-    case "addex": {
-      const id = args[0];
-      if (!ST.active) startSession("strength");
-      if (!ST.active.entries.some(e => e.exId === id))
-        ST.active.entries.push({ exId:id, sets:[] });
-      VIEW.exId = id;
-      save(); go("session");
-      break;
-    }
-    case "rmex":
-      ST.active.entries = ST.active.entries.filter(e => e.exId !== args[0]);
-      save(); rerender(); break;
-
-    case "toggle": VIEW.exId = VIEW.exId === args[0] ? null : args[0]; rerender(); break;
-
-    case "d": {   // d:exId:field:delta   (=N задаёт значение)
-      const [id, field, raw] = args;
-      const d = DRAFT[id] ||= { w:0, r:0, rir:2 };
-      if (raw.startsWith("=")) d[field] = +raw.slice(1);
-      else d[field] = Math.max(0, +(d[field] + parseFloat(raw)).toFixed(2));
-      rerender(); break;
+    case "quick": DRAFT = {}; return go("quick", { qType: args[0] });
+    case "q-type": DRAFT = {}; VIEW.qType = args[0]; return render();
+    case "q-save": {
+      const t = VIEW.qType || "bjj";
+      const dur = DRAFT.dur ?? (t === "bjj" ? 90 : t === "run" ? 35 : 15);
+      const rpe = DRAFT.rpe ?? (t === "bjj" ? 7 : 5);
+      ST.active = { id:uid(), date:today(), type:t, entries:[],
+        run: t === "run" ? { km: DRAFT.km ?? 6 } : null };
+      return saveFinished({ duration:dur, rpe });
     }
 
-    case "addset": {
-      const id = args[0];
-      const e = ST.active.entries.find(x => x.exId === id);
-      const d = DRAFT[id];
-      if (!e || !d || !d.r) return;
-      e.sets.push({ w:d.w||0, r:d.r, rir:d.rir, ts:Date.now() });
-      save();
-      const ex = exById(id);
-      startRest(ex.p === "mob" ? 30 : ex.step >= 5 ? 180 : 90);
-      rerender(); break;
+    /* сессия */
+    case "picker": SHEET = { kind:"picker", q:"", loc:"all" }; return render();
+    case "pk-loc": SHEET.loc = args[0]; return render();
+    case "add-ex": {
+      if (!a) return;
+      if (!a.entries.find(e => e.ex === args[0])) a.entries.push({ ex:args[0], sets:[] });
+      VIEW.exId = args[0]; SHEET = null; DRAFT = {}; save(); return render();
     }
-    case "delset": {
-      const [id, i] = args;
-      const e = ST.active.entries.find(x => x.exId === id);
-      if (e && confirm("Удалить подход?")) { e.sets.splice(+i,1); save(); rerender(); }
-      break;
+    case "pick-ex": VIEW.exId = args[0]; DRAFT = {}; return render();
+    case "np": {
+      const ex = exById(args[0]), s = suggest(args[0]);
+      SHEET = { kind:"numpad", field:"w",
+        vals:{ w:String(DRAFT.w ?? s.w ?? 0), r:String(DRAFT.r ?? s.r) },
+        fields:[
+          { k:"w", n:"Вес", u:"кг", quick: lastSet(args[0])
+            ? [{ n:`${lastSet(args[0]).w} как в прошлый`, v:lastSet(args[0]).w },
+               { n:`−${ex.step}`, v:"-" }, { n:`+${ex.step}`, v:"+" }] : [] },
+          { k:"r", n:"Повторы", u:unit(ex), quick: lastSet(args[0])
+            ? [{ n:`${lastSet(args[0]).r} как в прошлый`, v:lastSet(args[0]).r },
+               { n:"−1", v:"-" }, { n:"+1", v:"+" }] : [] },
+        ],
+        step:{ w:ex.step || 2.5, r:1 },
+        cta:"Записать подход", done:`np-set-done:${args[0]}` };
+      return render();
     }
-    case "rest-skip": REST.until = 0; tickRest(); break;
+    case "np-f": SHEET.field = args[0]; SHEET.fresh = true; return render();
+    case "np-k": {
+      const k = args[0], f = SHEET.field;
+      let v = SHEET.fresh === false ? String(SHEET.vals[f] ?? "") : "";
+      if (k === "⌫") { v = String(SHEET.vals[f] ?? "").slice(0, -1) || "0"; SHEET.fresh = false; }
+      else if (k === "." && v.includes(".")) { /* вторую точку не пускаем */ }
+      else if (v.replace(".","").length < 5) { v = (v === "0" && k !== ".") ? k : v + k; SHEET.fresh = false; }
+      SHEET.vals[f] = v;
+      return render();
+    }
+    case "np-q": {
+      const f = SHEET.field, step = SHEET.step[f];
+      const cur = parseFloat(SHEET.vals[f]) || 0;
+      SHEET.vals[f] = args[0] === "+" ? String(Math.round((cur + step)*10)/10)
+                    : args[0] === "-" ? String(Math.max(0, Math.round((cur - step)*10)/10))
+                    : args[0];
+      SHEET.fresh = false;
+      return render();
+    }
+    case "np-set": {   /* тренер предложил вес и повторы */
+      DRAFT.w = parseFloat(args[0]); DRAFT.r = parseFloat(args[1]);
+      COACH.dismissed = "session";
+      return render();
+    }
+    case "np-set-done": {
+      if (!a) return;
+      const e = a.entries.find(x => x.ex === args[0]);
+      if (!e) return;
+      const w = parseFloat(SHEET.vals.w) || 0, r = parseFloat(SHEET.vals.r) || 0;
+      if (!r) { SHEET = null; return toast("Повторы не заданы"); }
+      /* Запас спрашиваем не здесь, а лесенкой на экране сессии сразу после
+         записи: лишний шаг в шите между подходами это лишние две секунды. */
+      e.sets.push({ w, r, rir:null, at:Date.now() });
+      DRAFT = {}; COACH.lastSetAt = Date.now();
+      SHEET = null;
+      startRest(90);
+      save(); return render();
+    }
+    case "set-rir": {
+      if (!a) return;
+      const e = a.entries.find(x => x.ex === VIEW.exId);
+      const last = e?.sets[e.sets.length-1];
+      if (last) { last.rir = +args[0]; save(); }
+      return render();
+    }
+    case "rest-x": REST.until = 0; return render();
 
-    case "flags": VIEW.flagsOpen = !VIEW.flagsOpen; rerender(); break;
-    case "w-log": logWeight(); break;
-    case "mon": {
-      const m = VIEW.month || { y:new Date().getFullYear(), m:new Date().getMonth() };
-      let nm = m.m + (+args[0]), ny = m.y;
-      if (nm < 0) { nm = 11; ny--; } if (nm > 11) { nm = 0; ny++; }
-      VIEW.month = { y:ny, m:nm }; rerender(); break;
+    /* завершение */
+    case "finish": {
+      if (!a) return;
+      DRAFT = { dur: Math.max(5, Math.round((Date.now()-(a.startedAt||Date.now()))/60000)), rpe:7 };
+      return go("finish");
     }
-    case "jump": {
-      const k = args.join(":");
-      if (k > today()) { alert("Будущее ещё не случилось"); break; }
-      go("day", { date:k }); break;
+    case "fin-rpe": DRAFT.rpe = +args[0]; return render();
+    case "fin-save": return saveFinished({ duration: DRAFT.dur ?? 40, rpe: DRAFT.rpe ?? 7 });
+    case "fin-drop": ST.active = null; DRAFT = {}; save(); return go("home");
+    case "np-dur": {
+      SHEET = { kind:"numpad", field:"dur", vals:{ dur:String(DRAFT.dur ?? 40) },
+        fields:[{ k:"dur", n:"Длительность", u:"мин",
+          quick:[{n:"20",v:20},{n:"35",v:35},{n:"60",v:60}] }],
+        step:{ dur:5 }, cta:"Готово", done:"np-dur-done" };
+      return render();
     }
-    case "startd": startSession(args[0], args.slice(1).join(":")); break;
-    case "open-s": go("sview", { sid:args[0] }); break;
-    case "dels":
-      if (confirm("Удалить запись насовсем?")) {
-        ST.sessions = ST.sessions.filter(s => s.id !== args[0]);
-        save(); go("history");
-      }
-      break;
-    case "exview": go("exercise", { exId:args[0] }); break;
+    case "np-dur-done": DRAFT.dur = parseInt(SHEET.vals.dur) || 40; SHEET = null; return render();
+    case "np-km": {
+      SHEET = { kind:"numpad", field:"km", vals:{ km:String(DRAFT.km ?? 6) },
+        fields:[{ k:"km", n:"Дистанция", u:"км", quick:[{n:"5",v:5},{n:"−0.5",v:"-"},{n:"+0.5",v:"+"}] }],
+        step:{ km:0.5 }, cta:"Готово", done:"np-km-done" };
+      return render();
+    }
+    case "np-km-done": DRAFT.km = parseFloat(SHEET.vals.km) || 0; SHEET = null; return render();
 
-    case "theme": ST.settings.theme = args[0]; save(); applyTheme(); rerender(); break;
-    case "p-save":
-      ST.profile.name = $("#p-n").value.trim() || ST.profile.name;
-      ST.profile.height = parseInt($("#p-h").value) || ST.profile.height;
-      save(); rerender(); break;
+    /* «не тяну» */
+    case "adjust": SHEET = { kind:"adjust", pick:"light" }; return render();
+    case "adj-p": SHEET.pick = args[0]; return render();
+    case "adj-go": {
+      const p = ST.plans[today()];
+      if (!p) { SHEET = null; return render(); }
+      if (args[0] === "skip") { delete ST.plans[today()]; save(); SHEET = null; go("home");
+        return toast("План снят. Тренер увидит пропуск и причину в выгрузке."); }
+      if (args[0] === "light") p.items = (p.items||[]).map(it =>
+        ({ ...it, weight: it.weight ? Math.round(it.weight*0.8*2)/2 : it.weight, rir:3 }));
+      if (args[0] === "short") p.items = (p.items||[]).slice(0, 2);
+      save(); SHEET = null; render();
+      return toast(args[0] === "light" ? "Веса срезаны на двадцать процентов" : "Оставил два упражнения");
+    }
 
-    case "export": exportForCoach(); break;
-    case "import": importPlan(); break;
-    case "backup": backup(); break;
-    case "wipe":
-      if (confirm("Стереть вообще все данные? Отменить будет нельзя.") && confirm("Точно? Последний шанс.")) {
-        localStorage.removeItem(KEY); ST = structuredClone(BLANK); save(); applyTheme(); go("home");
-      }
-      break;
+    /* герой и гардероб */
+    case "wd": VIEW.tab = args[0]; VIEW.sel = ST.char[args[0]]; return go("wardrobe");
+    case "wear": {
+      const [slot, id] = args;
+      VIEW.sel = id;
+      if (has(id)) { ST.char[slot] = id; save(); }
+      return render();
+    }
+
+    /* тренер */
+    case "coach-ok": COACH.dismissed = VIEW.name === "session" ? "session" : "home"; return render();
+
+    /* профиль */
+    case "export": return exportForCoach();
+    case "import": return importPlan();
+    case "backup": return backup();
+    case "log-weight": {
+      const v = prompt("Вес сегодня, кг", Object.entries(ST.weights).sort().slice(-1)[0]?.[1] ?? "85");
+      const n = parseFloat(String(v).replace(",", "."));
+      if (n > 20 && n < 300) { ST.weights[today()] = n; save(); render(); toast("Записал " + n + " кг"); }
+      return;
+    }
+    case "wipe": {
+      if (!confirm("Стереть все данные без возврата?")) return;
+      if (!confirm("Точно? Резервную копию скачал?")) return;
+      localStorage.removeItem(KEY);
+      ST = structuredClone(BLANK);
+      return go("home");
+    }
   }
 });
 
 document.addEventListener("input", ev => {
-  if (ev.target.id === "pick-q") {
-    VIEW.q = ev.target.value;
-    const pos = ev.target.selectionStart;
-    rerender();
-    const el = $("#pick-q");
-    if (el) { el.focus(); el.setSelectionRange(pos,pos); }
+  if (ev.target.id === "pk-q" && SHEET?.kind === "picker") {
+    SHEET.q = ev.target.value;
+    const scroll = window.scrollY;
+    render();
+    $("#pk-q")?.focus();
+    window.scrollTo(0, scroll);
   }
 });
 
-/* ═══ СТАРТ ══════════════════════════════════════════════════════════ */
-applyTheme();
 render();
-
-if ("serviceWorker" in navigator) {
+if ("serviceWorker" in navigator)
   window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-}
